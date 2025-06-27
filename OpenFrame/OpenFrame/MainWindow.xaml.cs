@@ -14,6 +14,9 @@ using Path = System.IO.Path;
 using OpenFrame.Controls;
 using OpenFrame.Core;
 using OpenFrame.Models;
+using System.Windows.Threading;
+using AvalonDock.Layout.Serialization;
+using System.ComponentModel;
 
 namespace OpenFrame;
 
@@ -22,6 +25,11 @@ namespace OpenFrame;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private WindowSettings _windowSettings;
+    private DispatcherTimer _layoutSaveTimer;
+    private bool _isLayoutLoaded = false;
+
+
     public MainWindow()
     {
         Logger.Init();
@@ -36,6 +44,10 @@ public partial class MainWindow : Window
         {
             Logger.LogError("Error checking for updates: " + ex.Message, ex);
         }
+
+        // Load settings
+        _windowSettings = LayoutManager.LoadSettings();
+
         InitializeComponent();
         InitializeEventHandlers();
     }
@@ -49,11 +61,51 @@ public partial class MainWindow : Window
 
         FolderTree.FolderSelected += FolderTree_FolderSelected;
         FolderTree.FileSelected += FolderTree_FileSelected;
+
+        // Load custom layout after everything is initialized
+        this.Loaded += MainWindow_Loaded;
+        this.Closing += MainWindow_Closing;
+        // Track window changes
+        this.LocationChanged += (s, e) => UpdateWindowSettings();
+        this.SizeChanged += (s, e) => UpdateWindowSettings();
+        this.StateChanged += (s, e) => UpdateWindowSettings();
+
+        // Track layout changes with a timer to avoid excessive saves
+        InitializeLayoutSaveTimer();
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Only restore custom layout if user has made changes before
+        if (_windowSettings.HasCustomLayout && !string.IsNullOrEmpty(_windowSettings.DockLayoutXml))
+        {
+            RestoreCustomLayout();
+        }
+
+        // Now start monitoring for layout changes
+        DockManager.LayoutUpdated += DockManager_LayoutUpdated;
+        _isLayoutLoaded = true;
+    }
+
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+
+    }
+
+    private void InitializeLayoutSaveTimer()
+    {
+        _layoutSaveTimer = new DispatcherTimer();
+        _layoutSaveTimer.Interval = TimeSpan.FromMilliseconds(1000); // Save 1 second after last change
+        _layoutSaveTimer.Tick += (s, e) =>
+        {
+            _layoutSaveTimer.Stop();
+            SaveDockLayout();
+        };
     }
 
     private void OpenVideoButton_Click(object sender, RoutedEventArgs e)
     {
-        OpenFileDialog openFileDialog = new OpenFileDialog
+        System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
         {
             Title = "Select Video File",
             Filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v|" +
@@ -64,7 +116,7 @@ public partial class MainWindow : Window
             RestoreDirectory = true
         };
 
-        if (openFileDialog.ShowDialog() == true)
+        if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
             string selectedFile = openFileDialog.FileName;
 
@@ -283,4 +335,174 @@ public partial class MainWindow : Window
         return videoExtensions.Contains(Path.GetExtension(filePath).ToLower());
     }
     #endregion
+
+    #region Window Position Persistence
+
+    private void RestoreWindowPosition()
+    {
+        try
+        {
+            this.Left = _windowSettings.Left;
+            this.Top = _windowSettings.Top;
+            this.Width = _windowSettings.Width;
+            this.Height = _windowSettings.Height;
+            this.WindowState = _windowSettings.WindowState;
+
+            EnsureWindowIsVisible();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to restore window position", ex);
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+    }
+
+    private void EnsureWindowIsVisible()
+    {
+        var windowRect = new System.Drawing.Rectangle(
+            (int)this.Left, (int)this.Top,
+            (int)this.Width, (int)this.Height);
+
+        bool isVisible = false;
+        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+        {
+            if (screen.WorkingArea.IntersectsWith(windowRect))
+            {
+                isVisible = true;
+                break;
+            }
+        }
+
+        if (!isVisible)
+        {
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+    }
+
+    private void UpdateWindowSettings()
+    {
+        if (this.WindowState == WindowState.Normal)
+        {
+            _windowSettings.Left = this.Left;
+            _windowSettings.Top = this.Top;
+            _windowSettings.Width = this.ActualWidth;
+            _windowSettings.Height = this.ActualHeight;
+        }
+        _windowSettings.WindowState = this.WindowState;
+    }
+
+    #endregion
+
+    #region Dock Layout Persistence
+
+    private void RestoreCustomLayout()
+    {
+        try
+        {
+            var layoutSerializer = new XmlLayoutSerializer(DockManager);
+            layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
+
+            using (var stringReader = new StringReader(_windowSettings.DockLayoutXml))
+            {
+                layoutSerializer.Deserialize(stringReader);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to restore custom layout, using default", ex);
+            // Don't reset flag here - let user keep their preference
+        }
+    }
+
+    private void LayoutSerializer_LayoutSerializationCallback(object sender, LayoutSerializationCallbackEventArgs e)
+    {
+        // Match ContentId from XAML to actual controls
+        switch (e.Model.ContentId)
+        {
+            case "videoPreview":
+                e.Content = FindName("VideoPreview");
+                break;
+            case "timeline":
+                e.Content = FindName("TimelineControl");
+                break;
+            case "properties":
+                e.Content = FindPropertiesPanel();
+                break;
+            case "markers":
+                e.Content = FindMarkersPanel();
+                break;
+            default:
+                e.Cancel = true; // Don't restore unknown panels
+                break;
+        }
+    }
+
+    private object FindPropertiesPanel()
+    {
+        // Find the properties panel content from your XAML
+        // This should match whatever you have inside the Properties LayoutAnchorable
+        // You might need to adjust this based on your actual XAML structure
+        return FindName("PropertiesContent") ?? CreatePropertiesContent();
+    }
+
+    private object FindMarkersPanel()
+    {
+        // Find the markers panel content from your XAML
+        return FindName("MarkersContent") ?? CreateMarkersContent();
+    }
+
+    private UIElement CreatePropertiesContent()
+    {
+        // Fallback: recreate properties content if not found
+        var stackPanel = new System.Windows.Controls.StackPanel();
+        // Add your properties controls here
+        return stackPanel;
+    }
+
+    private UIElement CreateMarkersContent()
+    {
+        // Fallback: recreate markers content if not found
+        var stackPanel = new System.Windows.Controls.StackPanel();
+        // Add your markers controls here
+        return stackPanel;
+    }
+
+    private void DockManager_LayoutUpdated(object sender, EventArgs e)
+    {
+        if (!_isLayoutLoaded) return; // Don't save during initial load
+
+        // Restart the timer - only save after user stops moving things
+        _layoutSaveTimer.Stop();
+        _layoutSaveTimer.Start();
+    }
+
+    private void SaveDockLayout()
+    {
+        try
+        {
+            var layoutSerializer = new XmlLayoutSerializer(DockManager);
+            using (var stringWriter = new StringWriter())
+            {
+                layoutSerializer.Serialize(stringWriter);
+                _windowSettings.DockLayoutXml = stringWriter.ToString();
+                _windowSettings.HasCustomLayout = true; // Mark that user has customized
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to save dock layout", ex);
+        }
+    }
+
+    #endregion
+
+    private void AddMarkerButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ResetLayoutButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

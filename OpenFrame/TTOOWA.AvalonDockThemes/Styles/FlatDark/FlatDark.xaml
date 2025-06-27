@@ -1,0 +1,194 @@
+﻿<!--
+    ***********************************************************************************
+    
+    AvalonDock Custom Theme
+    
+    Copyright (C) 2007-2013 Xceed Software Inc.
+    
+    This program is provided to you under the terms of the New BSD
+    License (BSD) as published at http://avalondock.codeplex.com/license
+    
+    For more features, controls, and fast professional support,
+    pick up AvalonDock in Extended WPF Toolkit Plus at http://xceed.com/wpf_toolkit
+    
+    Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
+    
+    **********************************************************************************
+-->
+
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Theme.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- ============================================ -->
+    <!-- YOUR CUSTOM COLORS -->
+    <!-- ============================================ -->
+
+    <!-- Base Colors -->
+    <Color x:Key="Background">#FF020817</Color>
+    <Color x:Key="Foreground">#FFFAFAFA</Color>
+    <Color x:Key="Card">#FF020817</Color>
+    <Color x:Key="CardForeground">#FFFAFAFA</Color>
+    <Color x:Key="Popover">#FF020817</Color>
+    <Color x:Key="PopoverForeground">#FFFAFAFA</Color>
+
+    <!-- Primary Colors -->
+    <Color x:Key="Primary">#FFFAFAFA</Color>
+    <Color x:Key="PrimaryForeground">#FF09090B</Color>
+
+    <!-- Secondary Colors -->
+    <Color x:Key="Secondary">#FF27272A</Color>
+    <Color x:Key="SecondaryForeground">#FFFAFAFA</Color>
+
+    <!-- Muted Colors -->
+    <Color x:Key="Muted">#FF27272A</Color>
+    <Color x:Key="MutedForeground">#FFA1A1AA</Color>
+
+    <!-- Accent Colors -->
+    <Color x:Key="Accent">#FF27272A</Color>
+    <Color x:Key="AccentForeground">#FFFAFAFA</Color>
+
+    <!-- Destructive Colors -->
+    <Color x:Key="Destructive">#FFDC2626</Color>
+    <Color x:Key="DestructiveForeground">#FFFAFAFA</Color>
+
+    <!-- Border Colors -->
+    <Color x:Key="Border">#FF27272A</Color>
+    <Color x:Key="Input">#FF27272A</Color>
+    <Color x:Key="Ring">#FFFAFAFA</Color>
+
+    <!-- ============================================ -->
+    <!-- AVALONDOCK THEME COLORS (USING YOUR PALETTE) -->
+    <!-- ============================================ -->
+
+    <!-- Updated Active Tab to use your Secondary color -->
+    <SolidColorBrush x:Key="ActiveTabBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="FloatingWindowBorder" Color="{StaticResource Border}" />
+
+    <!-- General -->
+    <SolidColorBrush x:Key="AvalonDock_Background" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_PanelBorderBrush" Color="{StaticResource Border}" />
+    <SolidColorBrush x:Key="AvalonDock_TabBackground" Color="{StaticResource Secondary}" />
+
+    <!-- Auto Hide : Tab -->
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabDefaultBackground" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabDefaultBorder" Color="{StaticResource Border}" />
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabDefaultText" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabHoveredBackground" Color="{StaticResource Muted}" />
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabHoveredBorder" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_AutoHideTabHoveredText" Color="{StaticResource Foreground}" />
+
+    <!-- Document Well : Overflow Button -->
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonDefaultGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonHoveredGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonPressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonPressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellOverflowButtonPressedGlyph" Color="{StaticResource MutedForeground}" />
+
+    <!-- Document Well : Tab -->
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabSelectedActiveBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabSelectedActiveText" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabSelectedInactiveBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabSelectedInactiveText" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabUnselectedBackground" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabUnselectedText" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabUnselectedHoveredBackground" Color="{StaticResource Muted}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabUnselectedHoveredText" Color="{StaticResource Foreground}" />
+
+    <!-- Document Well : Tab : Button -->
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActiveGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActiveHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActiveHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActiveHoveredGlyph" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActivePressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActivePressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedActivePressedGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactiveGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactiveHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactiveHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactiveHoveredGlyph" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactivePressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactivePressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonSelectedInactivePressedGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonHoveredGlyph" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonPressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonPressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_DocumentWellTabButtonUnselectedTabHoveredButtonPressedGlyph" Color="{StaticResource MutedForeground}" />
+
+    <!-- Tool Window : Caption -->
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionActiveBackground" Color="{StaticResource Muted}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionActiveGrip" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionActiveText" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionInactiveBackground" Color="{StaticResource Muted}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionInactiveGrip" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionInactiveText" Color="{StaticResource MutedForeground}" />
+
+    <!-- Tool Window : Caption : Button -->
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActiveGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActiveHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActiveHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActiveHoveredGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActivePressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActivePressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonActivePressedGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactiveGlyph" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactiveHoveredBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactiveHoveredBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactiveHoveredGlyph" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactivePressedBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactivePressedBorder" Color="Transparent" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowCaptionButtonInactivePressedGlyph" Color="{StaticResource MutedForeground}" />
+
+    <!-- Tool Window : Tab -->
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabSelectedActiveBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabSelectedActiveText" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabSelectedInactiveBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabSelectedInactiveText" Color="{StaticResource Foreground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabUnselectedBackground" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabUnselectedText" Color="{StaticResource MutedForeground}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabUnselectedHoveredBackground" Color="{StaticResource Muted}" />
+    <SolidColorBrush x:Key="AvalonDock_ToolWindowTabUnselectedHoveredText" Color="{StaticResource Foreground}" />
+
+    <!-- Floating Document Window -->
+    <SolidColorBrush x:Key="AvalonDock_FloatingDocumentWindowBackground" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="AvalonDock_FloatingDocumentWindowBorder" Color="{StaticResource Border}" />
+
+    <!-- Floating Tool Window -->
+    <SolidColorBrush x:Key="AvalonDock_FloatingToolWindowBackground" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_FloatingToolWindowBorder" Color="{StaticResource Border}" />
+
+    <!-- Navigator Window -->
+    <SolidColorBrush x:Key="AvalonDock_NavigatorWindowBackground" Color="{StaticResource Background}" />
+    <SolidColorBrush x:Key="AvalonDock_NavigatorWindowSelectedBackground" Color="{StaticResource Accent}" />
+    <SolidColorBrush x:Key="AvalonDock_NavigatorWindowSelectedText" Color="{StaticResource AccentForeground}" />
+
+    <!-- ============================================ -->
+    <!-- ADDITIONAL BRUSHES FOR CONSISTENCY -->
+    <!-- ============================================ -->
+
+    <!-- Convert your colors to brushes for easy reference -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Background}"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource Foreground}"/>
+    <SolidColorBrush x:Key="CardBrush" Color="{StaticResource Card}"/>
+    <SolidColorBrush x:Key="CardForegroundBrush" Color="{StaticResource CardForeground}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{StaticResource PrimaryForeground}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="SecondaryForegroundBrush" Color="{StaticResource SecondaryForeground}"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource Muted}"/>
+    <SolidColorBrush x:Key="MutedForegroundBrush" Color="{StaticResource MutedForeground}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="{StaticResource AccentForeground}"/>
+    <SolidColorBrush x:Key="DestructiveBrush" Color="{StaticResource Destructive}"/>
+    <SolidColorBrush x:Key="DestructiveForegroundBrush" Color="{StaticResource DestructiveForeground}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Border}"/>
+    <SolidColorBrush x:Key="InputBrush" Color="{StaticResource Input}"/>
+    <SolidColorBrush x:Key="RingBrush" Color="{StaticResource Ring}"/>
+
+</ResourceDictionary>

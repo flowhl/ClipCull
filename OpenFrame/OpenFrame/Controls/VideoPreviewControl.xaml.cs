@@ -1,4 +1,5 @@
 ﻿using LibVLCSharp.Shared;
+using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,7 +17,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Brushes = System.Windows.Media.Brushes;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
+using MessageBox = System.Windows.MessageBox;
+using Panel = System.Windows.Controls.Panel;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
 {
@@ -28,6 +33,7 @@ namespace OpenFrame.Controls
         private Media _media;
         private DispatcherTimer _positionTimer;
         private bool _isDisposed = false;
+        private int _rotation = 0;
         #endregion
 
         #region Properties
@@ -42,6 +48,22 @@ namespace OpenFrame.Controls
         }
 
         public string CurrentVideoPath { get; private set; }
+
+        public int Rotation
+        {
+            get => _rotation;
+            set
+            {
+                if (_rotation != value)
+                {
+                    _rotation = value;
+                    OnPropertyChanged(nameof(Rotation));
+                    DisposeVLC();
+                    InitializeVLC(_rotation);
+                    LoadVideo(CurrentVideoPath); // Reload video with new rotation
+                }
+            }
+        }
         #endregion
 
         #region Events
@@ -55,20 +77,35 @@ namespace OpenFrame.Controls
         public VideoPreviewControl()
         {
             InitializeComponent();
+            NoVideoOverlay.Visibility = Visibility.Visible;
+            Panel.SetZIndex(NoVideoOverlay, 1000);
             DataContext = this;
-            InitializeVLC();
+            InitializeVLC(Rotation);
             InitializeTimer();
             InitializeTimelineEvents();
         }
         #endregion
 
         #region Initialization
-        private void InitializeVLC()
+        private void InitializeVLC(int rotationAngle = 0)
         {
+            string[] args = null;
+            if (rotationAngle != 0)
+            {
+                //args = new string[] { };
+                args = new string[] { "--video-filter=transform", "--transform-type="+rotationAngle };
+            }
             try
             {
                 LibVLCSharp.Shared.Core.Initialize();
-                _libVLC = new LibVLC();
+                if (args != null)
+                {
+                    _libVLC = new LibVLC(args);
+                }
+                else
+                {
+                    _libVLC = new LibVLC();
+                }
                 MediaPlayer = new MediaPlayer(_libVLC);
 
                 // Subscribe to MediaPlayer events
@@ -83,6 +120,30 @@ namespace OpenFrame.Controls
                 MessageBox.Show($"Failed to initialize VLC: {ex.Message}", "VLC Error",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            BorderVideoArea.SizeChanged += BorderVideoArea_SizeChanged;
+        }
+
+        private void DisposeVLC()
+        {
+            // Unsubscribe from MediaPlayer events
+            MediaPlayer.EndReached -= MediaPlayer_EndReached;
+            MediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
+            MediaPlayer.Playing -= MediaPlayer_Playing;
+            MediaPlayer.Paused -= MediaPlayer_Paused;
+            MediaPlayer.Stopped -= MediaPlayer_Stopped;
+
+            MediaPlayer.Stop();
+            MediaPlayer.Dispose();
+            MediaPlayer = null;
+            _libVLC.Dispose();
+            _libVLC = null;
+            GC.Collect();
+        }
+
+        private void BorderVideoArea_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            //refresh as somehow something is white
+            //BorderVideoArea.InvalidateVisual();
         }
 
         private void InitializeTimer()
@@ -126,10 +187,11 @@ namespace OpenFrame.Controls
 
                     await Dispatcher.InvokeAsync(() =>
                     {
+                        NoVideoOverlay.Visibility = Visibility.Collapsed;
+                        VideoView.Visibility = Visibility.Visible;
                         CurrentVideoPath = filePath;
                         UpdateMediaInfo();
                         EnableControls(true);
-                        NoVideoOverlay.Visibility = Visibility.Collapsed;
 
                         // Start playing and immediately pause to get first frame
                         var prevVolume = MediaPlayer.Volume;
@@ -228,7 +290,7 @@ namespace OpenFrame.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.LucideIcon = LucideIcons.Enum.IconName.Pause;
+                PlayPauseIcon.Kind = PackIconKind.Pause;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(true));
             });
         }
@@ -237,7 +299,7 @@ namespace OpenFrame.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.LucideIcon = LucideIcons.Enum.IconName.Play;
+                PlayPauseIcon.Kind = PackIconKind.Play;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
@@ -246,7 +308,7 @@ namespace OpenFrame.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.LucideIcon = LucideIcons.Enum.IconName.Play;
+                PlayPauseIcon.Kind = PackIconKind.Play;
                 timelineControl.CurrentTime = 0;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
@@ -256,7 +318,7 @@ namespace OpenFrame.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.LucideIcon = LucideIcons.Enum.IconName.Play;
+                PlayPauseIcon.Kind = PackIconKind.Play;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
@@ -366,6 +428,8 @@ namespace OpenFrame.Controls
         public void Dispose()
         {
             if (_isDisposed) return;
+
+            BorderVideoArea.SizeChanged -= BorderVideoArea_SizeChanged;
 
             _positionTimer?.Stop();
             _positionTimer = null;

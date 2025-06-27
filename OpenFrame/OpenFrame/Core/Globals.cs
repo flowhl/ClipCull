@@ -13,12 +13,13 @@ namespace OpenFrame.Core
 {
     public static class Globals
     {
-        public static MainWindow mainWindow = (MainWindow)Application.Current.MainWindow;
+        public static MainWindow mainWindow = (MainWindow)System.Windows.Application.Current.MainWindow;
 
         #region Paths and Folders
         public static string AppName = "OpenFrame";
         public static string RootPath = System.IO.Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
         public static string LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppName, "Logs");
+        public static string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName, "Settings");
 
         static public void CopyFolder(string sourceFolder, string destFolder)
         {

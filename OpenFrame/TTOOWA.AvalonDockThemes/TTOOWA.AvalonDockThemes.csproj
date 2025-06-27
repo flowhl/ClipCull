@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Dirkster.AvalonDock" Version="4.71.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Resource Include="Styles\FlatDark\Images\DockAnchorableBottom.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockAnchorableLeft.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockAnchorableRight.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockAnchorableTop.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentAsAnchorableBottom.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentAsAnchorableLeft.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentAsAnchorableRight.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentAsAnchorableTop.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentBottom.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentInside.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentLeft.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentRight.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockDocumentTop.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockPaneEmpty.png"/>
+        <Resource Include="Styles\FlatDark\Images\DockPaneLargeEmpty.png"/>
+        <Resource Include="Styles\FlatDark\Images\HTabGroup.png"/>
+        <Resource Include="Styles\FlatDark\Images\Locked.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinAutoHide.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinAutoHide_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinAutoHide_Dark.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinAutoHide_White.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinClose.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinClose_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinClose_Dark.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinClose_White.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinDocMenu.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinDocMenu_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMaximize.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMaximize_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMaximize_Dark.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMenu.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMenu_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMenu_Dark.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinMenu_White.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinRestore.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinRestore_Black.png"/>
+        <Resource Include="Styles\FlatDark\Images\PinRestore_Dark.png"/>
+        <Resource Include="Styles\FlatDark\Images\VTabGroup.png"/>
+    </ItemGroup>
+
+</Project>

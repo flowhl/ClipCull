@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Velopack;
 using Velopack.Sources;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OpenFrame.Core.Update
 {
