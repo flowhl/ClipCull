@@ -1,0 +1,114 @@
+﻿<UserControl x:Class="OpenFrame.Controls.TimelineControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:OpenFrame.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="60" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!-- Timeline Track Style -->
+        <Style x:Key="TimelineTrackStyle" TargetType="Rectangle">
+            <Setter Property="Fill" Value="#FF404040"/>
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="RadiusX" Value="4"/>
+            <Setter Property="RadiusY" Value="4"/>
+        </Style>
+
+        <!-- Playhead Style -->
+        <Style x:Key="PlayheadStyle" TargetType="Rectangle">
+            <Setter Property="Fill" Value="#FF007ACC"/>
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="RadiusX" Value="2"/>
+            <Setter Property="RadiusY" Value="2"/>
+        </Style>
+
+        <!-- Playhead Handle Style -->
+        <Style x:Key="PlayheadHandleStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="#FF007ACC"/>
+            <Setter Property="Stroke" Value="White"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Marker Style -->
+        <Style x:Key="MarkerStyle" TargetType="Polygon">
+            <Setter Property="Fill" Value="#FFFFD700"/>
+            <Setter Property="Stroke" Value="#FFCC9900"/>
+            <Setter Property="StrokeThickness" Value="1"/>
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#FF2D2D30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Time Labels Row -->
+        <Grid Grid.Row="0" Height="20" Margin="10,5">
+            <Canvas x:Name="TimeLabelsCanvas"/>
+        </Grid>
+
+        <!-- Timeline Track Row -->
+        <Grid Grid.Row="1" Height="30" Margin="10,0">
+            <Canvas x:Name="TimelineCanvas"
+                   Background="Transparent"
+                   MouseLeftButtonDown="TimelineCanvas_MouseLeftButtonDown"
+                   MouseMove="TimelineCanvas_MouseMove"
+                   MouseLeftButtonUp="TimelineCanvas_MouseLeftButtonUp"
+                   Cursor="Hand">
+
+                <!-- Timeline Track Background (lowest layer) -->
+                <Rectangle x:Name="TimelineTrack"
+                          Style="{StaticResource TimelineTrackStyle}"
+                          Canvas.Top="11"
+                          Canvas.ZIndex="1"/>
+
+                <!-- Markers will be added programmatically (middle layer, ZIndex 2) -->
+
+                <!-- Playhead Line (top layer) -->
+                <Rectangle x:Name="Playhead"
+                          Style="{StaticResource PlayheadStyle}"
+                          Canvas.Top="3"
+                          Canvas.Left="0"
+                          Canvas.ZIndex="3"/>
+
+                <!-- Playhead Handle (highest layer) -->
+                <Ellipse x:Name="PlayheadHandle"
+                        Style="{StaticResource PlayheadHandleStyle}"
+                        Canvas.Top="9"
+                        Canvas.Left="-6"
+                        Canvas.ZIndex="4"/>
+
+            </Canvas>
+        </Grid>
+
+        <!-- Current Time Display -->
+        <Grid Grid.Row="2" Height="20" Margin="10,5">
+            <TextBlock x:Name="CurrentTimeDisplay"
+                      Text="00:00:00.000"
+                      Foreground="White"
+                      FontFamily="Consolas"
+                      FontSize="11"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Center"/>
+
+            <TextBlock x:Name="DurationDisplay"
+                      Text="00:00:00.000"
+                      Foreground="#FFCCCCCC"
+                      FontFamily="Consolas"
+                      FontSize="11"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</UserControl>

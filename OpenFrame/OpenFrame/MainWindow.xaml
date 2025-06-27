@@ -1,0 +1,75 @@
+﻿<Window x:Class="OpenFrame.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OpenFrame" xmlns:uc="clr-namespace:OpenFrame.Controls"
+        mc:Ignorable="d"
+        Title="FPV Footage Manager - Technical Preview" 
+        Height="800" Width="1200"
+        Background="#FF2D2D30">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Menu Bar -->
+        <Border Grid.Row="0" Background="#FF3E3E42" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="OpenVideoButton" 
+                        Content="Open Video File" 
+                        Click="OpenVideoButton_Click"
+                        Padding="15,8"
+                        Background="#FF007ACC"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="3"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#FF1E8AD6"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <TextBlock x:Name="CurrentFileLabel" 
+                          Text="No video loaded" 
+                          Foreground="#FFCCCCCC" 
+                          VerticalAlignment="Center" 
+                          Margin="20,0,0,0"
+                          FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Row="1" Background="#FF1E1E1E" Margin="10">
+            <uc:VideoPreviewControl x:Name="VideoPreview"/>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#FF3E3E42" Padding="10,5">
+            <TextBlock x:Name="StatusLabel" 
+                      Text="Ready" 
+                      Foreground="#FFCCCCCC" 
+                      FontSize="11"/>
+        </Border>
+    </Grid>
+</Window>
