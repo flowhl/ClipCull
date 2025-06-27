@@ -67,7 +67,7 @@ namespace OpenFrame.Controls
         {
             try
             {
-                Core.Initialize();
+                LibVLCSharp.Shared.Core.Initialize();
                 _libVLC = new LibVLC();
                 MediaPlayer = new MediaPlayer(_libVLC);
 

@@ -12,6 +12,9 @@
     <PackageReference Include="LibVLCSharp" Version="3.9.3" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.3" />
     <PackageReference Include="LucideIcons" Version="1.0.0.5" />
+    <PackageReference Include="Notifications.Wpf" Version="0.1.1" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
