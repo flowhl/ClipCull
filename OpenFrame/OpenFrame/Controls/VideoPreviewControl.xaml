@@ -53,7 +53,6 @@
                 <!-- Timeline Control -->
                 <local:TimelineControl x:Name="timelineControl"
                                    Grid.Row="0" 
-                                   Height="120"
                                    Margin="0,0,0,10"/>
 
                 <!-- Control Buttons -->

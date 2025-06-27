@@ -171,3 +171,4 @@ namespace OpenFrame.Controls
             return time.ToString(@"hh\:mm\:ss\.fff");
         }
     }
+}

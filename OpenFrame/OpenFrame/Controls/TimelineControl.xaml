@@ -3,10 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:OpenFrame.Controls"
+             xmlns:local="clr-namespace:OpenFrame.Controls" xmlns:lucideIcons="clr-namespace:LucideIcons;assembly=LucideIcons"
              mc:Ignorable="d" 
              d:DesignHeight="60" d:DesignWidth="800">
-
     <UserControl.Resources>
         <!-- Timeline Track Style -->
         <Style x:Key="TimelineTrackStyle" TargetType="Rectangle">
@@ -35,31 +34,196 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
-        <!-- Marker Style -->
-        <Style x:Key="MarkerStyle" TargetType="Polygon">
-            <Setter Property="Fill" Value="#FFFFD700"/>
-            <Setter Property="Stroke" Value="#FFCC9900"/>
-            <Setter Property="StrokeThickness" Value="1"/>
-            <Setter Property="Width" Value="12"/>
-            <Setter Property="Height" Value="16"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <!-- Control Button Style -->
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF404040"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF666666"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF555555"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF333333"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- In Point Button Style -->
+        <Style x:Key="InPointButtonStyle" TargetType="Button" BasedOn="{StaticResource ControlButtonStyle}">
+            <Setter Property="Background" Value="#FF228B22"/>
+            <Setter Property="BorderBrush" Value="#FF32CD32"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF32CD32"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FF1F7A1F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Out Point Button Style -->
+        <Style x:Key="OutPointButtonStyle" TargetType="Button" BasedOn="{StaticResource ControlButtonStyle}">
+            <Setter Property="Background" Value="#FFCC4444"/>
+            <Setter Property="BorderBrush" Value="#FFFF6666"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFFF6666"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FFAA3333"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- SubClip Button Style -->
+        <Style x:Key="SubClipButtonStyle" TargetType="Button" BasedOn="{StaticResource ControlButtonStyle}">
+            <Setter Property="Background" Value="#FF7B68EE"/>
+            <Setter Property="BorderBrush" Value="#FF9370DB"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF9370DB"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FF6A5ACD"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
     <Grid Background="#FF2D2D30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Control Buttons Row -->
+        <Grid Grid.Row="0" Height="35" Margin="10,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- I/O Point Controls -->
+            <Button Grid.Column="0" 
+                   x:Name="SetInPointButton"
+                   Click="SetInPointButton_Click"
+                   Style="{StaticResource InPointButtonStyle}"
+                   ToolTip="Set In Point (I)">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="SkipBack" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="I" Margin="2,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="1" 
+                   x:Name="SetOutPointButton"
+                   Click="SetOutPointButton_Click"
+                   Style="{StaticResource OutPointButtonStyle}"
+                   ToolTip="Set Out Point (O)">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="SkipForward" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="O" Margin="2,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="2" 
+                   x:Name="ClearInOutButton"
+                   Click="ClearInOutButton_Click"
+                   Style="{StaticResource ControlButtonStyle}"
+                   ToolTip="Clear In/Out Points">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="X" Height="14" Width="14" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="Clear I/O" Margin="2,0,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Separator -->
+            <Rectangle Grid.Column="3" Width="1" Fill="#FF666666" Margin="5,2"/>
+
+            <!-- SubClip Controls -->
+            <Button Grid.Column="4" 
+                   x:Name="StartSubClipButton"
+                   Click="StartSubClipButton_Click"
+                   Style="{StaticResource SubClipButtonStyle}"
+                   ToolTip="Start SubClip ([)">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="Play" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="[" Margin="2,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="5" 
+                   x:Name="FinishSubClipButton"
+                   Click="FinishSubClipButton_Click"
+                   Style="{StaticResource SubClipButtonStyle}"
+                   ToolTip="Finish SubClip (])">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="Square" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="]" Margin="2,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Marker Controls -->
+            <Button Grid.Column="7" 
+                   x:Name="AddMarkerButton"
+                   Click="AddMarkerButton_Click"
+                   Style="{StaticResource ControlButtonStyle}"
+                   ToolTip="Add Marker (M)">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="MapPin" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="M" Margin="2,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="8" 
+                   x:Name="ClearAllButton"
+                   Click="ClearAllButton_Click"
+                   Style="{StaticResource ControlButtonStyle}"
+                   ToolTip="Clear All Markers and Clips">
+                <StackPanel Orientation="Horizontal">
+                    <lucideIcons:Icon LucideIcon="Trash2" Height="16" Width="16" Stroke="White" StrokeWidth="2"/>
+                    <TextBlock Text="Clear All" Margin="2,0,0,0"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
         <!-- Time Labels Row -->
-        <Grid Grid.Row="0" Height="20" Margin="10,5">
+        <Grid Grid.Row="1" Height="20" Margin="10,5">
             <Canvas x:Name="TimeLabelsCanvas"/>
         </Grid>
 
         <!-- Timeline Track Row -->
-        <Grid Grid.Row="1" Height="30" Margin="10,0">
+        <Grid Grid.Row="2" Height="30" Margin="10,0">
             <Canvas x:Name="TimelineCanvas"
                    Background="Transparent"
                    MouseLeftButtonDown="TimelineCanvas_MouseLeftButtonDown"
@@ -73,41 +237,59 @@
                           Canvas.Top="11"
                           Canvas.ZIndex="1"/>
 
-                <!-- Markers will be added programmatically (middle layer, ZIndex 2) -->
+                <!-- SubClips will be added programmatically (layer 2, ZIndex 2) -->
+                <!-- ClipPoints will be added programmatically (layer 3, ZIndex 3) -->
+                <!-- Markers will be added programmatically (layer 4, ZIndex 4) -->
 
                 <!-- Playhead Line (top layer) -->
                 <Rectangle x:Name="Playhead"
                           Style="{StaticResource PlayheadStyle}"
                           Canvas.Top="3"
                           Canvas.Left="0"
-                          Canvas.ZIndex="3"/>
+                          Canvas.ZIndex="5"/>
 
                 <!-- Playhead Handle (highest layer) -->
                 <Ellipse x:Name="PlayheadHandle"
                         Style="{StaticResource PlayheadHandleStyle}"
                         Canvas.Top="9"
                         Canvas.Left="-6"
-                        Canvas.ZIndex="4"/>
+                        Canvas.ZIndex="6"/>
 
             </Canvas>
         </Grid>
 
         <!-- Current Time Display -->
-        <Grid Grid.Row="2" Height="20" Margin="10,5">
-            <TextBlock x:Name="CurrentTimeDisplay"
+        <Grid Grid.Row="3" Height="20" Margin="10,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                      x:Name="CurrentTimeDisplay"
                       Text="00:00:00.000"
                       Foreground="White"
                       FontFamily="Consolas"
                       FontSize="11"
-                      HorizontalAlignment="Left"
                       VerticalAlignment="Center"/>
 
-            <TextBlock x:Name="DurationDisplay"
+            <!-- Status Text -->
+            <TextBlock Grid.Column="1"
+                      x:Name="StatusDisplay"
+                      Text=""
+                      Foreground="#FFCCCCCC"
+                      FontFamily="Consolas"
+                      FontSize="10"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"/>
+
+            <TextBlock Grid.Column="2"
+                      x:Name="DurationDisplay"
                       Text="00:00:00.000"
                       Foreground="#FFCCCCCC"
                       FontFamily="Consolas"
                       FontSize="11"
-                      HorizontalAlignment="Right"
                       VerticalAlignment="Center"/>
         </Grid>
     </Grid>
