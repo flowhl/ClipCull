@@ -86,7 +86,7 @@
 
         <!-- Right Sidebar -->
         <Grid Grid.Column="1" Grid.RowSpan="3">
-            <uc:FolderTreeControl x:Name="FolderTree"></uc:FolderTreeControl>
+            <uc:FolderTreeControl x:Name="FolderTree" ShowFiles="True"></uc:FolderTreeControl>
         </Grid>
     </Grid>
 </Window>

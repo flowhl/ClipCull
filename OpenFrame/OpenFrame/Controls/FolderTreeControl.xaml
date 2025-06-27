@@ -299,6 +299,8 @@
                              Checked="ShowFilesCheckBox_Changed"
                              Unchecked="ShowFilesCheckBox_Changed"
                              Foreground="{DynamicResource SecondaryTextBrush}"
+                              Background="Transparent"
+                              BorderThickness="0"
                              Margin="0,0,10,0"/>
 
                     <TextBlock Text="{Binding FileFilter, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}" 
