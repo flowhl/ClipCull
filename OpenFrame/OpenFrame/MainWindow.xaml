@@ -18,6 +18,8 @@
 
         <!-- Top Menu Bar -->
         <Border Grid.Row="0" Background="#FF3E3E42" Padding="10">
+            <StackPanel Orientation="Vertical">
+                        
             <StackPanel Orientation="Horizontal">
                 <Button x:Name="OpenVideoButton" 
                         Content="Open Video File" 
@@ -56,6 +58,71 @@
                           VerticalAlignment="Center" 
                           Margin="20,0,0,0"
                           FontSize="12"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button x:Name="SaveSidecarButton" 
+                        Content="Save Sidecar" 
+                        Click="SaveSidecarButton_Click"
+                        Padding="15,8"
+                        Background="#FF007ACC"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="3"
+                                                Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FF1E8AD6"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button x:Name="ReloadSidecarButton" 
+                        Content="Reload Sidecar" 
+                        Click="ReloadSidecarButton_Click"
+                        Padding="15,8"
+                        Background="#FF007ACC"
+                        Foreground="White"
+                        BorderThickness="0"
+                            Margin="10,0,0,0"
+                        Cursor="Hand">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="3"
+                                                Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#FF1E8AD6"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                </StackPanel>
             </StackPanel>
         </Border>
 

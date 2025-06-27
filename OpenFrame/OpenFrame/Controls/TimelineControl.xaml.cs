@@ -70,7 +70,7 @@ namespace OpenFrame.Controls
         public ClipPoint InPoint
         {
             get => _inPoint;
-            private set
+            set
             {
                 if (_inPoint != value)
                 {
@@ -91,7 +91,7 @@ namespace OpenFrame.Controls
         public ClipPoint OutPoint
         {
             get => _outPoint;
-            private set
+            set
             {
                 if (_outPoint != value)
                 {

@@ -74,6 +74,10 @@ namespace OpenFrame.Models
             _title = title;
         }
 
+        public ClipPoint()
+        {
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)

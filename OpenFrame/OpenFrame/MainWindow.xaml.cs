@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using Path = System.IO.Path;
 using OpenFrame.Controls;
 using OpenFrame.Core;
+using OpenFrame.Models;
 
 namespace OpenFrame;
 
@@ -60,22 +61,151 @@ public partial class MainWindow : Window
                 return;
             }
 
-            try
-            {
-                // Update UI immediately
-                CurrentFileLabel.Text = $"Loading: {Path.GetFileName(selectedFile)}";
-                UpdateStatus("Loading video...", false);
-
-                // Load video in preview control
-                VideoPreview.LoadVideo(selectedFile);
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"Error loading video: {ex.Message}", true);
-                CurrentFileLabel.Text = "No video loaded";
-            }
+            LoadVideoFile(selectedFile);
         }
     }
+
+    #region File Loading
+
+    public void LoadVideoFile(string filePath)
+    {
+        try
+        {
+            CurrentFileLabel.Text = $"Loading: {Path.GetFileName(filePath)}";
+            UpdateStatus("Loading video...", false);
+
+            ApplySidecarContent(GetSidecarContent(filePath));
+
+            VideoPreview.LoadVideo(filePath);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Error loading video: {ex.Message}", true);
+            CurrentFileLabel.Text = "No video loaded";
+        }
+    }
+
+
+    private void ReloadSidecarButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (VideoPreview == null || string.IsNullOrEmpty(VideoPreview.CurrentVideoPath))
+        {
+            UpdateStatus("No video loaded to reload sidecar content.", true);
+            return;
+        }
+        ApplySidecarContent(GetSidecarContent(VideoPreview.CurrentVideoPath));
+    }
+
+    private void SaveSidecarButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (VideoPreview == null || string.IsNullOrEmpty(VideoPreview.CurrentVideoPath))
+        {
+            UpdateStatus("No video loaded to save sidecar content.", true);
+            return;
+        }
+        SaveSidecarContent(VideoPreview?.CurrentVideoPath);
+    }
+
+    public SidecarContent GetSidecarContent(string videoFile)
+    {
+        string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
+        if (!File.Exists(sidecarPath))
+        {
+            UpdateStatus($"No sidecar file found for {Path.GetFileName(videoFile)}", false);
+            return new SidecarContent();
+        }
+
+        var sidecarContent = Globals.DeserializeFromFile<SidecarContent>(sidecarPath);
+        if (sidecarContent != null)
+            return sidecarContent;
+
+        UpdateStatus($"Failed to load sidecar content from {Path.GetFileName(sidecarPath)}", true);
+        throw new InvalidDataException("Invalid sidecar content format.");
+    }
+
+    public void SaveSidecarContent(string videoFile)
+    {
+        string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
+        var currentSidecar = GetCurrentStateAsSidecar();
+        if (currentSidecar == null)
+        {
+            UpdateStatus("No sidecar content to save.", true);
+            Logger.LogInfo("No sidecar content to save.");
+            return;
+        }
+        try
+        {
+            Globals.SerializeToFile(currentSidecar, sidecarPath);
+            UpdateStatus($"Sidecar content saved to {Path.GetFileName(sidecarPath)}", false);
+            Logger.LogInfo($"Sidecar content saved to {sidecarPath}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to save sidecar content", ex);
+        }
+    }
+
+    public SidecarContent GetCurrentStateAsSidecar()
+    {
+        var sidecarContent = new SidecarContent();
+        if (VideoPreview == null || VideoPreview.timelineControl == null)
+        {
+            UpdateStatus("Video preview or timeline control is not initialized.", true);
+            return null;
+        }
+        sidecarContent.SubClips = VideoPreview.timelineControl.SubClips.ToList();
+        sidecarContent.Markers = VideoPreview.timelineControl.Markers.ToList();
+        sidecarContent.InPoint = VideoPreview.timelineControl.InPoint;
+        sidecarContent.OutPoint = VideoPreview.timelineControl.OutPoint;
+
+        return sidecarContent;
+    }
+
+    public void ApplySidecarContent(SidecarContent sidecarContent)
+    {
+        if (sidecarContent == null)
+        {
+            UpdateStatus("No sidecar content to apply.", true);
+            return;
+        }
+        // Clear existing markers and subclips
+        VideoPreview.timelineControl.ClearMarkers();
+        VideoPreview.timelineControl.ClearSubClips();
+        // Apply markers
+        if (sidecarContent.Markers == null || sidecarContent.Markers.Count == 0)
+        {
+            UpdateStatus("No markers found in sidecar content.", false);
+        }
+        else
+        {
+            UpdateStatus($"Applying {sidecarContent.Markers.Count} markers from sidecar content.", false);
+            foreach (var marker in sidecarContent.Markers)
+            {
+                VideoPreview.timelineControl.Markers.Add(marker);
+            }
+        }
+
+        // Apply subclips
+        if (sidecarContent.SubClips == null || sidecarContent.SubClips.Count == 0)
+        {
+            UpdateStatus("No subclips found in sidecar content.", false);
+        }
+        else
+        {
+            UpdateStatus($"Applying {sidecarContent.SubClips.Count} subclips from sidecar content.", false);
+            foreach (var subClip in sidecarContent.SubClips)
+            {
+                VideoPreview.timelineControl.SubClips.Add(subClip);
+            }
+        }
+
+        VideoPreview.timelineControl.InPoint = sidecarContent.InPoint;
+        VideoPreview.timelineControl.OutPoint = sidecarContent.OutPoint;
+
+        UpdateStatus("Sidecar content applied successfully.", false);
+    }
+
+    #endregion
 
     private void VideoPreview_VideoLoaded(object sender, Controls.VideoLoadedEventArgs e)
     {

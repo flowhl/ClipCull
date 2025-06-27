@@ -117,6 +117,10 @@ namespace OpenFrame.Models
             _color = color;
         }
 
+        public SubClip()
+        {
+        }
+
         private static Color GenerateRandomColor()
         {
             // Generate vibrant, saturated colors
