@@ -5,6 +5,9 @@
     <Compile Update="Controls\ClipPointEditDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\FolderTreeControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\MarkerEditDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

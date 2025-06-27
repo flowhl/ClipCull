@@ -16,6 +16,10 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
 
         <!-- Top Menu Bar -->
         <Border Grid.Row="0" 
@@ -79,5 +83,10 @@
                       Text="Ready" 
                       Style="{DynamicResource CaptionTextStyle}"/>
         </Border>
+
+        <!-- Right Sidebar -->
+        <Grid Grid.Column="1" Grid.RowSpan="3">
+            <uc:FolderTreeControl x:Name="FolderTree"></uc:FolderTreeControl>
+        </Grid>
     </Grid>
 </Window>

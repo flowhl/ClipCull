@@ -46,6 +46,9 @@ public partial class MainWindow : Window
         VideoPreview.VideoLoaded += VideoPreview_VideoLoaded;
         VideoPreview.VideoLoadFailed += VideoPreview_VideoLoadFailed;
         VideoPreview.PlaybackStateChanged += VideoPreview_PlaybackStateChanged;
+
+        FolderTree.FolderSelected += FolderTree_FolderSelected;
+        FolderTree.FileSelected += FolderTree_FileSelected;
     }
 
     private void OpenVideoButton_Click(object sender, RoutedEventArgs e)
@@ -253,4 +256,31 @@ public partial class MainWindow : Window
         VideoPreview?.Dispose();
         base.OnClosed(e);
     }
+
+    #region Filetreeview
+    private void FolderTree_FolderSelected(object sender, Controls.FolderSelectedEventArgs e)
+    {
+        // When user selects a folder, you could:
+        // 1. Update status
+        UpdateStatus($"Selected folder: {e.FolderPath}");
+
+        // 2. Auto-load first video file in folder (optional)
+        // LoadFirstVideoFromFolder(e.FolderPath);
+    }
+
+    private void FolderTree_FileSelected(object sender, Controls.FileSelectedEventArgs e)
+    {
+        // When user selects a video file, load it
+        if (IsVideoFile(e.FilePath))
+        {
+            LoadVideoFile(e.FilePath);
+        }
+    }
+
+    private bool IsVideoFile(string filePath)
+    {
+        var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm", ".m4v" };
+        return videoExtensions.Contains(Path.GetExtension(filePath).ToLower());
+    }
+    #endregion
 }
