@@ -3,17 +3,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:OpenFrame.Controls" xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF" xmlns:lucideIcons="clr-namespace:LucideIcons;assembly=LucideIcons"
+             xmlns:local="clr-namespace:OpenFrame.Controls" 
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF" xmlns:lucideIcons="clr-namespace:LucideIcons;assembly=LucideIcons"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
-    <Grid Background="#FF1E1E1E">
+
+    <UserControl.Resources>
+        <!-- Include Lucide Icon Styles -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/OpenFrame;component/Styles/LucideIconStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource BackgroundDarkBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Video Display Area -->
-        <Border Grid.Row="0" Background="Black" Margin="5">
+        <Border Grid.Row="0" 
+                Background="Black" 
+                Margin="{DynamicResource PaddingSmall}"
+                CornerRadius="{DynamicResource CornerRadiusSubtle}">
             <Grid>
                 <!-- VLC Video View -->
                 <vlc:VideoView x:Name="VideoView" 
@@ -23,19 +37,22 @@
                 <!-- Overlay for no video state -->
                 <Border x:Name="NoVideoOverlay" 
                        Background="#AA000000"
+                       CornerRadius="{DynamicResource CornerRadiusSubtle}"
                        Visibility="Visible">
                     <StackPanel HorizontalAlignment="Center" 
                                VerticalAlignment="Center">
-                        <lucideIcons:Icon LucideIcon="Video" Height="48" Width="48" Stroke="#FF666666" StrokeWidth="1.5" 
-                                         HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <lucideIcons:Icon LucideIcon="Video" 
+                                         Style="{StaticResource LargeIconStyle}"
+                                         HorizontalAlignment="Center" 
+                                         Margin="0,0,0,10"/>
                         <TextBlock Text="No video loaded" 
-                                  FontSize="16" 
+                                  Style="{DynamicResource HeadingH2Style}"
                                   HorizontalAlignment="Center" 
-                                  Foreground="#FF999999"/>
+                                  Foreground="{DynamicResource SecondaryTextBrush}"/>
                         <TextBlock Text="Use 'Open Video File' to load a video" 
-                                  FontSize="12" 
+                                  Style="{DynamicResource CaptionTextStyle}"
                                   HorizontalAlignment="Center" 
-                                  Foreground="#FF666666" 
+                                  Foreground="{DynamicResource DisabledTextBrush}" 
                                   Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
@@ -43,7 +60,11 @@
         </Border>
 
         <!-- Control Panel -->
-        <Border Grid.Row="1" Background="#FF2D2D30" Padding="10">
+        <Border Grid.Row="1" 
+                Background="{DynamicResource SurfaceBrush}" 
+                Padding="{DynamicResource PaddingMedium}"
+                CornerRadius="{DynamicResource CornerRadiusSubtle}"
+                Margin="{DynamicResource PaddingSmall}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -57,111 +78,107 @@
                                    Margin="0,0,0,10"/>
 
                 <!-- Control Buttons -->
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <StackPanel Grid.Row="1" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,0,0,10">
+
                     <!-- Frame Step Backward -->
                     <Button x:Name="FrameBackwardButton" 
                            Click="FrameBackwardButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FF5A5A5A"
-                           Foreground="White"
-                           BorderThickness="0"
-                           ToolTip="Previous Frame"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="SkipBack" Height="16" Width="16" Stroke="White" StrokeWidth="1.5"/>
+                           ToolTip="Previous Frame">
+                        <lucideIcons:Icon LucideIcon="SkipBack" Style="{StaticResource ButtonIconStyle}"/>
                     </Button>
 
                     <!-- 10 Seconds Backward -->
                     <Button x:Name="Skip10BackwardButton" 
                            Click="Skip10BackwardButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FF5A5A5A"
-                           Foreground="White"
-                           BorderThickness="0"
-                           ToolTip="Skip 10s Back"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="Rewind" Height="16" Width="16" Stroke="White" StrokeWidth="1.5"/>
+                           ToolTip="Skip 10s Back">
+                        <lucideIcons:Icon LucideIcon="Rewind" Style="{StaticResource ButtonIconStyle}"/>
                     </Button>
 
                     <!-- Play/Pause -->
                     <Button x:Name="PlayPauseButton" 
                            Click="PlayPauseButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource PrimaryButtonStyle}"
                            Width="45" Height="30"
-                           Margin="5"
-                           Background="#FF007ACC"
-                           Foreground="White"
-                           BorderThickness="0"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon x:Name="PlayPauseIcon" LucideIcon="Play" Height="18" Width="18" Stroke="White" StrokeWidth="1.5"/>
+                           Margin="5">
+                        <lucideIcons:Icon x:Name="PlayPauseIcon" 
+                                         LucideIcon="Play" 
+                                         Style="{StaticResource ButtonIconStyle}"
+                                         Width="18" Height="18"/>
                     </Button>
 
                     <!-- Stop -->
                     <Button x:Name="StopButton" 
                            Click="StopButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FF5A5A5A"
-                           Foreground="White"
-                           BorderThickness="0"
-                           ToolTip="Stop / Reset"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="Square" Height="16" Width="16" Stroke="White" StrokeWidth="1.5"/>
+                           ToolTip="Stop / Reset">
+                        <lucideIcons:Icon LucideIcon="Square" Style="{StaticResource ButtonIconStyle}"/>
                     </Button>
 
                     <!-- 10 Seconds Forward -->
                     <Button x:Name="Skip10ForwardButton" 
                            Click="Skip10ForwardButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FF5A5A5A"
-                           Foreground="White"
-                           BorderThickness="0"
-                           ToolTip="Skip 10s Forward"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="FastForward" Height="16" Width="16" Stroke="White" StrokeWidth="1.5"/>
+                           ToolTip="Skip 10s Forward">
+                        <lucideIcons:Icon LucideIcon="FastForward" Style="{StaticResource ButtonIconStyle}"/>
                     </Button>
 
                     <!-- Frame Step Forward -->
                     <Button x:Name="FrameForwardButton" 
                            Click="FrameForwardButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FF5A5A5A"
-                           Foreground="White"
-                           BorderThickness="0"
-                           ToolTip="Next Frame"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="SkipForward" Height="16" Width="16" Stroke="White" StrokeWidth="1.5"/>
+                           ToolTip="Next Frame">
+                        <lucideIcons:Icon LucideIcon="SkipForward" Style="{StaticResource ButtonIconStyle}"/>
                     </Button>
 
-                    <Separator Width="15" Background="Transparent"/>
+                    <!-- Separator -->
+                    <Rectangle Width="1" 
+                              Height="20" 
+                              Fill="{DynamicResource BorderPrimaryBrush}" 
+                              Margin="10,0"/>
 
                     <!-- Add Marker Button -->
                     <Button x:Name="AddMarkerButton" 
                            Click="AddMarkerButton_Click"
                            IsEnabled="False"
+                           Style="{DynamicResource BaseButtonStyle}"
+                           Background="{DynamicResource WarningBrush}"
+                           BorderBrush="{DynamicResource WarningBrush}"
                            Width="35" Height="30"
                            Margin="2"
-                           Background="#FFFFD700"
-                           Foreground="Black"
-                           BorderThickness="0"
-                           ToolTip="Add Marker"
-                           Style="{DynamicResource ControlButtonStyle}">
-                        <lucideIcons:Icon LucideIcon="Bookmark" Height="16" Width="16" Stroke="Black" StrokeWidth="1.5"/>
+                           ToolTip="Add Marker">
+                        <lucideIcons:Icon LucideIcon="Bookmark" 
+                                         Style="{StaticResource BaseIconStyle}"
+                                         Stroke="Black"/>
                     </Button>
                 </StackPanel>
 
                 <!-- Volume and Info -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel Grid.Row="2" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Center">
                     <TextBlock Text="Volume:" 
-                              Foreground="White" 
+                              Style="{DynamicResource BodyTextStyle}"
                               VerticalAlignment="Center" 
                               Margin="10,0,5,0"/>
 
@@ -171,43 +188,17 @@
                            Value="100"
                            Width="80"
                            VerticalAlignment="Center"
-                           ValueChanged="VolumeSlider_ValueChanged"/>
+                           ValueChanged="VolumeSlider_ValueChanged"
+                           Foreground="{DynamicResource PrimaryAccentBrush}"/>
 
                     <TextBlock x:Name="VolumeLabel" 
                               Text="100%" 
-                              Foreground="White" 
+                              Style="{DynamicResource CodeTextStyle}"
                               VerticalAlignment="Center" 
                               Margin="5,0,0,0"
-                              Width="35"
-                              FontFamily="Consolas"
-                              FontSize="11"/>
+                              Width="35"/>
                 </StackPanel>
             </Grid>
         </Border>
     </Grid>
-
-    <UserControl.Resources>
-        <!-- Control Button Style -->
-        <Style x:Key="ControlButtonStyle" TargetType="Button">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="3">
-                            <ContentPresenter HorizontalAlignment="Center" 
-                                            VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.8"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.3"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
 </UserControl>

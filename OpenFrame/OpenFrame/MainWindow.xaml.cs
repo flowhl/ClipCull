@@ -25,6 +25,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         Logger.Init();
+        try
+        {
+#if DEBUG
+#else
+                AppUpdates.AppUpdateManager.CheckForUpdates();
+#endif
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Error checking for updates: " + ex.Message, ex);
+        }
         InitializeComponent();
         InitializeEventHandlers();
     }

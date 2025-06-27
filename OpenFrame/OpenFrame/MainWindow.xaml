@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OpenFrame" xmlns:uc="clr-namespace:OpenFrame.Controls"
+        xmlns:local="clr-namespace:OpenFrame" 
+        xmlns:uc="clr-namespace:OpenFrame.Controls"
         mc:Ignorable="d"
         Title="FPV Footage Manager - Technical Preview" 
         Height="800" Width="1200"
-        Background="#FF2D2D30">
+        Style="{DynamicResource AppWindowStyle}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -17,126 +18,66 @@
         </Grid.RowDefinitions>
 
         <!-- Top Menu Bar -->
-        <Border Grid.Row="0" Background="#FF3E3E42" Padding="10">
+        <Border Grid.Row="0" 
+                Background="{DynamicResource SurfaceBrush}" 
+                Padding="{DynamicResource PaddingMedium}"
+                BorderBrush="{DynamicResource BorderPrimaryBrush}"
+                BorderThickness="0,0,0,1">
             <StackPanel Orientation="Vertical">
-                        
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="OpenVideoButton" 
-                        Content="Open Video File" 
-                        Click="OpenVideoButton_Click"
-                        Padding="15,8"
-                        Background="#FF007ACC"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="3"
-                                                Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter HorizontalAlignment="Center" 
-                                                            VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#FF1E8AD6"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
 
-                <TextBlock x:Name="CurrentFileLabel" 
-                          Text="No video loaded" 
-                          Foreground="#FFCCCCCC" 
-                          VerticalAlignment="Center" 
-                          Margin="20,0,0,0"
-                          FontSize="12"/>
+                <!-- Primary Actions -->
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="OpenVideoButton" 
+                            Content="Open Video File" 
+                            Click="OpenVideoButton_Click"
+                            Style="{DynamicResource PrimaryButtonStyle}"
+                            Padding="{DynamicResource PaddingLarge}"
+                            Height="50"/>
+
+                    <TextBlock x:Name="CurrentFileLabel" 
+                              Text="No video loaded" 
+                              Style="{DynamicResource CaptionTextStyle}"
+                              VerticalAlignment="Center" 
+                              Margin="{DynamicResource PaddingLarge}"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+
+                <!-- Secondary Actions -->
+                <StackPanel Orientation="Horizontal" 
+                           Margin="0,10,0,0">
                     <Button x:Name="SaveSidecarButton" 
-                        Content="Save Sidecar" 
-                        Click="SaveSidecarButton_Click"
-                        Padding="15,8"
-                        Background="#FF007ACC"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="3"
-                                                Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center" 
-                                                            VerticalAlignment="Center"/>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#FF1E8AD6"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                            Content="Save Sidecar" 
+                            Click="SaveSidecarButton_Click"
+                            Style="{DynamicResource SuccessButtonStyle}"
+                            Padding="{DynamicResource PaddingLarge}"
+                            Height="50"/>
 
                     <Button x:Name="ReloadSidecarButton" 
-                        Content="Reload Sidecar" 
-                        Click="ReloadSidecarButton_Click"
-                        Padding="15,8"
-                        Background="#FF007ACC"
-                        Foreground="White"
-                        BorderThickness="0"
-                            Margin="10,0,0,0"
-                        Cursor="Hand">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="3"
-                                                Padding="{TemplateBinding Padding}">
-                                                    <ContentPresenter HorizontalAlignment="Center" 
-                                                            VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="#FF1E8AD6"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                            Content="Reload Sidecar" 
+                            Click="ReloadSidecarButton_Click"
+                            Style="{DynamicResource BaseButtonStyle}"
+                            Padding="{DynamicResource PaddingLarge}"
+                            Margin="{DynamicResource PaddingMedium}"
+                            Height="50"/>
                 </StackPanel>
             </StackPanel>
         </Border>
 
         <!-- Main Content Area -->
-        <Border Grid.Row="1" Background="#FF1E1E1E" Margin="10">
+        <Border Grid.Row="1" 
+                Background="{DynamicResource BackgroundDarkBrush}" 
+                Margin="{DynamicResource PaddingMedium}">
             <uc:VideoPreviewControl x:Name="VideoPreview"/>
         </Border>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Background="#FF3E3E42" Padding="10,5">
+        <Border Grid.Row="2" 
+                Background="{DynamicResource SurfaceBrush}" 
+                Padding="{DynamicResource PaddingMedium}"
+                BorderBrush="{DynamicResource BorderPrimaryBrush}"
+                BorderThickness="0,1,0,0">
             <TextBlock x:Name="StatusLabel" 
                       Text="Ready" 
-                      Foreground="#FFCCCCCC" 
-                      FontSize="11"/>
+                      Style="{DynamicResource CaptionTextStyle}"/>
         </Border>
     </Grid>
 </Window>

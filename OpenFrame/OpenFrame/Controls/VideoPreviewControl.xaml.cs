@@ -131,6 +131,15 @@ namespace OpenFrame.Controls
                         EnableControls(true);
                         NoVideoOverlay.Visibility = Visibility.Collapsed;
 
+                        // Start playing and immediately pause to get first frame
+                        var prevVolume = MediaPlayer.Volume;
+                        MediaPlayer.Volume = 0; // Mute to avoid sound during first frame
+                        MediaPlayer.Play();
+                        Task.Delay(100).Wait();
+                        MediaPlayer.Pause();
+                        MediaPlayer.Position = 0;
+                        MediaPlayer.Volume = prevVolume; // Restore volume
+
                         VideoLoaded?.Invoke(this, new VideoLoadedEventArgs(filePath, _media.Duration));
                         _positionTimer.Start();
                     });

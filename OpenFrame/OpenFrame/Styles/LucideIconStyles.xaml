@@ -1,0 +1,80 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:lucideIcons="clr-namespace:LucideIcons;assembly=LucideIcons">
+
+    <!-- ============================================ -->
+    <!-- LUCIDE ICON STYLES -->
+    <!-- ============================================ -->
+
+    <!-- Base Icon Style -->
+    <Style x:Key="BaseIconStyle" TargetType="lucideIcons:Icon">
+        <Setter Property="Stroke" Value="White"/>
+        <Setter Property="StrokeWidth" Value="1.5"/>
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Height" Value="16"/>
+    </Style>
+
+    <!-- Accent Icon Style -->
+    <Style x:Key="AccentIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#007ACC"/>
+    </Style>
+
+    <!-- Success Icon Style -->
+    <Style x:Key="SuccessIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#32CD32"/>
+    </Style>
+
+    <!-- Error Icon Style -->
+    <Style x:Key="ErrorIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#FF6666"/>
+    </Style>
+
+    <!-- Warning Icon Style -->
+    <Style x:Key="WarningIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#FFD700"/>
+    </Style>
+
+    <!-- Secondary Icon Style -->
+    <Style x:Key="SecondaryIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#CCCCCC"/>
+    </Style>
+
+    <!-- Disabled Icon Style -->
+    <Style x:Key="DisabledIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#888888"/>
+    </Style>
+
+    <!-- Border Icon Style -->
+    <Style x:Key="BorderIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="#666666"/>
+    </Style>
+
+    <!-- Large Icon Style -->
+    <Style x:Key="LargeIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Width" Value="48"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="StrokeWidth" Value="1.5"/>
+        <Setter Property="Stroke" Value="#666666"/>
+    </Style>
+
+    <!-- Small Icon Style -->
+    <Style x:Key="SmallIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Width" Value="12"/>
+        <Setter Property="Height" Value="12"/>
+        <Setter Property="StrokeWidth" Value="1.5"/>
+    </Style>
+
+    <!-- Button Icon Style -->
+    <Style x:Key="ButtonIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource BaseIconStyle}">
+        <Setter Property="Stroke" Value="White"/>
+        <Setter Property="StrokeWidth" Value="2"/>
+    </Style>
+
+    <!-- Timeline Control Icon Style -->
+    <Style x:Key="TimelineIconStyle" TargetType="lucideIcons:Icon" BasedOn="{StaticResource ButtonIconStyle}">
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Height" Value="16"/>
+    </Style>
+
+</ResourceDictionary>
