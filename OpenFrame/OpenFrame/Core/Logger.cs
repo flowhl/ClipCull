@@ -14,7 +14,7 @@ namespace OpenFrame.Core
         private static ILogger _logger;
         private static LogEventLevel _currentLogLevel = LogEventLevel.Information;
 
-        static Logger()
+        public static void Init()
         {
             InitializeLogger();
         }

@@ -12,6 +12,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Path = System.IO.Path;
 using OpenFrame.Controls;
+using OpenFrame.Core;
 
 namespace OpenFrame;
 
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
+        Logger.Init();
         InitializeComponent();
         InitializeEventHandlers();
     }
