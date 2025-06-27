@@ -17,7 +17,8 @@
             <Grid>
                 <!-- VLC Video View -->
                 <vlc:VideoView x:Name="VideoView" 
-                              MediaPlayer="{Binding MediaPlayer}"/>
+                               Background="Transparent"
+                               MediaPlayer="{Binding MediaPlayer}"/>
 
                 <!-- Overlay for no video state -->
                 <Border x:Name="NoVideoOverlay" 
