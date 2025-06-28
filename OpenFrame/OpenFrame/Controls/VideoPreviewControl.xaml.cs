@@ -1,5 +1,7 @@
 ﻿using LibVLCSharp.Shared;
 using MaterialDesignThemes.Wpf;
+using OpenFrame.Core;
+using OpenFrame.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -47,7 +49,27 @@ namespace OpenFrame.Controls
             }
         }
 
-        public string CurrentVideoPath { get; private set; }
+        private string _currentVideoPath;
+        public string CurrentVideoPath
+        {
+            get => _currentVideoPath;
+            private set
+            {
+                _currentVideoPath = value;
+                OnPropertyChanged(nameof(CurrentVideoPath));
+            }
+        }
+
+        private VideoMetadata _currentVideoMetadata;
+        public VideoMetadata CurrentVideoMetadata
+        {
+            get => _currentVideoMetadata;
+            set
+            {
+                _currentVideoMetadata = value;
+                OnPropertyChanged(nameof(CurrentVideoMetadata));
+            }
+        }
 
         public int Rotation
         {
@@ -93,7 +115,7 @@ namespace OpenFrame.Controls
             if (rotationAngle != 0)
             {
                 //args = new string[] { };
-                args = new string[] { "--video-filter=transform", "--transform-type="+rotationAngle };
+                args = new string[] { "--video-filter=transform", "--transform-type=" + rotationAngle };
             }
             try
             {
@@ -175,6 +197,17 @@ namespace OpenFrame.Controls
                 // Clean up previous media
                 StopVideo();
                 _media?.Dispose();
+
+                //Read metadata
+                try
+                {
+                    CurrentVideoMetadata = VideoMetadataReader.ReadMetadata(filePath);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to read metadata for {filePath}: {ex.Message}");
+                    CurrentVideoMetadata = null;
+                }
 
                 // Create new media
                 _media = new Media(_libVLC, filePath);

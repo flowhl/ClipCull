@@ -85,6 +85,8 @@ public partial class MainWindow : Window
         // Now start monitoring for layout changes
         DockManager.LayoutUpdated += DockManager_LayoutUpdated;
         _isLayoutLoaded = true;
+
+        VideoMetadataViewer.DataContext = VideoPreview;
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)

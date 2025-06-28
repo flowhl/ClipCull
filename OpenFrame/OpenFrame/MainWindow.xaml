@@ -144,18 +144,7 @@
                                               CanClose="False"
                                               CanHide="True">
                             <Border Style="{StaticResource card}" Margin="4" x:Name="PropertiesContent">
-                                <StackPanel>
-                                    <TextBlock Text="Video Properties" Style="{StaticResource h4}" Margin="0,0,0,12"/>
-
-                                    <TextBlock Text="Duration" Style="{StaticResource small}" Margin="0,0,0,4"/>
-                                    <TextBlock x:Name="DurationLabel" Text="--:--:--" Style="{StaticResource code}" Margin="0,0,0,12"/>
-
-                                    <TextBlock Text="Resolution" Style="{StaticResource small}" Margin="0,0,0,4"/>
-                                    <TextBlock x:Name="ResolutionLabel" Text="-- x --" Style="{StaticResource code}" Margin="0,0,0,12"/>
-
-                                    <TextBlock Text="Frame Rate" Style="{StaticResource small}" Margin="0,0,0,4"/>
-                                    <TextBlock x:Name="FrameRateLabel" Text="-- fps" Style="{StaticResource code}" Margin="0,0,0,12"/>
-                                </StackPanel>
+                                <uc:VideoMetadataControl x:Name="VideoMetadataViewer" Metadata="{Binding Path=CurrentVideoMetadata}"/>
                             </Border>
                         </xcad:LayoutAnchorable>
                     </xcad:LayoutAnchorablePane>
