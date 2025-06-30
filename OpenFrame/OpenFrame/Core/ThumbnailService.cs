@@ -12,7 +12,7 @@ namespace OpenFrame.Core
     {
         public static string GetThumbnail(string videoFilePath)
         {
-            string thumbnailPath = System.IO.Path.ChangeExtension(videoFilePath, ".jpg");
+            string thumbnailPath = System.IO.Path.ChangeExtension(videoFilePath, ".png");
             if (string.IsNullOrEmpty(videoFilePath) || !System.IO.File.Exists(videoFilePath))
             {
                 throw new ArgumentException("Invalid video file path provided.");
