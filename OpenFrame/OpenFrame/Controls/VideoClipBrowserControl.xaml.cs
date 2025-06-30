@@ -41,7 +41,8 @@ namespace OpenFrame.Controls
             {
                 if (SetProperty(ref _folderPath, value))
                 {
-                    RefreshClips();
+                    // Start refresh asynchronously without blocking the UI
+                    _ = RefreshClipsAsync();
                 }
             }
         }
@@ -58,7 +59,8 @@ namespace OpenFrame.Controls
                 {
                     if (!string.IsNullOrEmpty(FolderPath))
                     {
-                        RefreshClips();
+                        // Start refresh asynchronously without blocking the UI
+                        _ = RefreshClipsAsync();
                     }
                 }
             }
@@ -150,36 +152,58 @@ namespace OpenFrame.Controls
         #region Public Methods
 
         /// <summary>
-        /// Refresh the clips list
+        /// Refresh the clips list asynchronously
         /// </summary>
-        public async void RefreshClips()
+        public async Task RefreshClipsAsync()
         {
             if (string.IsNullOrEmpty(FolderPath) || !Directory.Exists(FolderPath))
             {
-                VideoClips.Clear();
-                StatusText = "No folder selected";
-                OnPropertyChanged(nameof(ClipCount));
-                OnPropertyChanged(nameof(IsEmpty));
+                // Update UI on the UI thread
+                Dispatcher.Invoke(() =>
+                {
+                    VideoClips.Clear();
+                    StatusText = "No folder selected";
+                    OnPropertyChanged(nameof(ClipCount));
+                    OnPropertyChanged(nameof(IsEmpty));
+                });
                 return;
             }
 
-            IsLoading = true;
-            StatusText = "Loading clips...";
-            OnPropertyChanged(nameof(IsEmpty));
+            // Update loading state on UI thread
+            Dispatcher.Invoke(() =>
+            {
+                IsLoading = true;
+                StatusText = "Loading clips...";
+                OnPropertyChanged(nameof(IsEmpty));
+            });
 
             try
             {
-                await Task.Run(() => LoadClipsFromFolder());
+                await LoadClipsFromFolder();
             }
             catch (Exception ex)
             {
-                StatusText = $"Error loading clips: {ex.Message}";
+                Dispatcher.Invoke(() =>
+                {
+                    StatusText = $"Error loading clips: {ex.Message}";
+                });
             }
             finally
             {
-                IsLoading = false;
-                OnPropertyChanged(nameof(IsEmpty));
+                Dispatcher.Invoke(() =>
+                {
+                    IsLoading = false;
+                    OnPropertyChanged(nameof(IsEmpty));
+                });
             }
+        }
+
+        /// <summary>
+        /// Refresh the clips list (synchronous wrapper for backward compatibility)
+        /// </summary>
+        public async void RefreshClips()
+        {
+            await RefreshClipsAsync();
         }
 
         /// <summary>
@@ -198,7 +222,7 @@ namespace OpenFrame.Controls
 
         #region Private Methods
 
-        private void LoadClipsFromFolder()
+        private async Task LoadClipsFromFolder()
         {
             var clips = new List<VideoClipInfo>();
             var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm" };
@@ -210,56 +234,61 @@ namespace OpenFrame.Controls
                     .Where(file => videoExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
                     .ToList();
 
+                // Update status on UI thread
                 Dispatcher.Invoke(() => StatusText = $"Found {videoFiles.Count} video files, processing...");
 
                 var processedFiles = new Dictionary<string, List<VideoClipInfo>>();
 
-                foreach (var videoFile in videoFiles)
+                // Process files in background
+                await Task.Run(() =>
                 {
-                    try
+                    foreach (var videoFile in videoFiles)
                     {
-                        var sidecarContent = SidecarService.GetSidecarContent(videoFile);
-                        if (sidecarContent?.SubClips != null && sidecarContent.SubClips.Any())
+                        try
                         {
-                            var fileClips = new List<VideoClipInfo>();
-
-                            foreach (var subClip in sidecarContent.SubClips)
+                            var sidecarContent = SidecarService.GetSidecarContent(videoFile);
+                            if (sidecarContent?.SubClips != null && sidecarContent.SubClips.Any())
                             {
-                                var clipInfo = new VideoClipInfo
+                                var fileClips = new List<VideoClipInfo>();
+
+                                foreach (var subClip in sidecarContent.SubClips)
                                 {
-                                    VideoFilePath = videoFile,
-                                    VideoFileName = Path.GetFileName(videoFile),
-                                    SubClip = subClip,
-                                    ClipTitle = !string.IsNullOrEmpty(subClip.Title) ? subClip.Title : $"Clip {subClip.Id.ToString().Substring(0, 8)}",
-                                    StartTimeMs = subClip.StartTime,
-                                    EndTimeMs = subClip.EndTime,
-                                    Duration = subClip.DurationDisplay,
-                                    StartTimeDisplay = subClip.StartTimeDisplay,
-                                    EndTimeDisplay = subClip.EndTimeDisplay,
-                                    ClipColor = subClip.Color,
-                                    ClipColorBrush = subClip.ColorBrush,
-                                    IsLoadingThumbnail = true
-                                };
+                                    var clipInfo = new VideoClipInfo
+                                    {
+                                        VideoFilePath = videoFile,
+                                        VideoFileName = Path.GetFileName(videoFile),
+                                        SubClip = subClip,
+                                        ClipTitle = !string.IsNullOrEmpty(subClip.Title) ? subClip.Title : $"Clip {subClip.Id.ToString().Substring(0, 8)}",
+                                        StartTimeMs = subClip.StartTime,
+                                        EndTimeMs = subClip.EndTime,
+                                        Duration = subClip.DurationDisplay,
+                                        StartTimeDisplay = subClip.StartTimeDisplay,
+                                        EndTimeDisplay = subClip.EndTimeDisplay,
+                                        ClipColor = subClip.Color,
+                                        // Don't access ColorBrush on background thread - let it be created on UI thread
+                                        IsLoadingThumbnail = true
+                                    };
 
-                                fileClips.Add(clipInfo);
-                                clips.Add(clipInfo);
+                                    fileClips.Add(clipInfo);
+                                    clips.Add(clipInfo);
+                                }
+
+                                // Mark the first clip of each file
+                                if (fileClips.Any())
+                                {
+                                    fileClips[0].IsFirstClipOfFile = true;
+                                }
+
+                                processedFiles[videoFile] = fileClips;
                             }
-
-                            // Mark the first clip of each file
-                            if (fileClips.Any())
-                            {
-                                fileClips[0].IsFirstClipOfFile = true;
-                            }
-
-                            processedFiles[videoFile] = fileClips;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log error but continue processing other files
+                            System.Diagnostics.Debug.WriteLine($"Error processing {videoFile}: {ex.Message}");
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        // Log error but continue processing other files
-                        System.Diagnostics.Debug.WriteLine($"Error processing {videoFile}: {ex.Message}");
-                    }
-                }
+                });
 
                 // Update UI on main thread
                 Dispatcher.Invoke(() =>
@@ -274,8 +303,8 @@ namespace OpenFrame.Controls
                     StatusText = $"Loaded {ClipCount} clips from {processedFiles.Count} files";
                 });
 
-                // Load thumbnails asynchronously
-                LoadThumbnailsAsync(clips);
+                // Load thumbnails asynchronously without blocking
+                _ = Task.Run(() => LoadThumbnailsAsync(clips));
             }
             catch (Exception ex)
             {
@@ -283,7 +312,7 @@ namespace OpenFrame.Controls
             }
         }
 
-        private async void LoadThumbnailsAsync(List<VideoClipInfo> clips)
+        private async Task LoadThumbnailsAsync(List<VideoClipInfo> clips)
         {
             await Task.Run(() =>
             {
@@ -293,6 +322,7 @@ namespace OpenFrame.Controls
                     {
                         var thumbnailPath = ThumbnailService.GetThumbnail(clip.VideoFilePath);
 
+                        // Update UI on the UI thread
                         Dispatcher.Invoke(() =>
                         {
                             clip.ThumbnailPath = thumbnailPath;
@@ -315,9 +345,9 @@ namespace OpenFrame.Controls
 
         #region Event Handlers
 
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            RefreshClips();
+            await RefreshClipsAsync();
         }
 
         private void ClipsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -359,6 +389,7 @@ namespace OpenFrame.Controls
     {
         private string _thumbnailPath;
         private bool _isLoadingThumbnail;
+        private System.Windows.Media.SolidColorBrush _clipColorBrush;
 
         public string VideoFilePath { get; set; }
         public string VideoFileName { get; set; }
@@ -370,8 +401,20 @@ namespace OpenFrame.Controls
         public string StartTimeDisplay { get; set; }
         public string EndTimeDisplay { get; set; }
         public System.Windows.Media.Color ClipColor { get; set; }
-        public System.Windows.Media.SolidColorBrush ClipColorBrush { get; set; }
         public bool IsFirstClipOfFile { get; set; }
+
+        public System.Windows.Media.SolidColorBrush ClipColorBrush
+        {
+            get
+            {
+                if (_clipColorBrush == null)
+                {
+                    _clipColorBrush = new System.Windows.Media.SolidColorBrush(ClipColor);
+                    _clipColorBrush.Freeze(); // Make it thread-safe
+                }
+                return _clipColorBrush;
+            }
+        }
 
         public string ThumbnailPath
         {

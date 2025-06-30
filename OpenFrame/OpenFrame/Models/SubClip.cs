@@ -17,6 +17,7 @@ namespace OpenFrame.Models
         private string _title;
         private Color _color;
         private Guid _id;
+        private SolidColorBrush _colorBrush;
 
         public Guid Id
         {
@@ -84,13 +85,25 @@ namespace OpenFrame.Models
                 if (_color != value)
                 {
                     _color = value;
+                    _colorBrush = null; // Clear cached brush
                     OnPropertyChanged(nameof(Color));
                     OnPropertyChanged(nameof(ColorBrush));
                 }
             }
         }
 
-        public SolidColorBrush ColorBrush => new SolidColorBrush(Color);
+        public SolidColorBrush ColorBrush
+        {
+            get
+            {
+                if (_colorBrush == null)
+                {
+                    _colorBrush = new SolidColorBrush(Color);
+                    _colorBrush.Freeze(); // Make it thread-safe
+                }
+                return _colorBrush;
+            }
+        }
 
         public long Duration => EndTime - StartTime;
 

@@ -312,4 +312,17 @@ public partial class MainWindow : Window
         MessageBox.Show("Layout has been reset. Please restart the application to see the changes.",
                        "Layout Reset", MessageBoxButton.OK, MessageBoxImage.Information);
     }
+
+    private void OpenClipFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        string folder = DialogHelper.ChooseFolder("Select Clip Folder");
+
+        if (folder.IsNullOrEmpty())
+            return;
+
+        if (!Directory.Exists(folder))
+            return;
+
+        VideoClipBrowser.FolderPath = folder;
+    }
 }
