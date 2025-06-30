@@ -15,8 +15,10 @@ using OpenFrame.Controls;
 using OpenFrame.Core;
 using OpenFrame.Models;
 using System.Windows.Threading;
-using AvalonDock.Layout.Serialization;
 using System.ComponentModel;
+using OpenFrame.Core.Update;
+using OpenFrame.Extensions;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OpenFrame;
 
@@ -25,14 +27,13 @@ namespace OpenFrame;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private WindowSettings _windowSettings;
-    private DispatcherTimer _layoutSaveTimer;
-    private bool _isLayoutLoaded = false;
-
+    public ICommand LoadLayoutCommand { get; private set; }
+    public ICommand SaveLayoutCommand { get; private set; }
 
     public MainWindow()
     {
         Logger.Init();
+        Directory.CreateDirectory(Globals.ExternalPath);
         try
         {
 #if DEBUG
@@ -45,8 +46,9 @@ public partial class MainWindow : Window
             Logger.LogError("Error checking for updates: " + ex.Message, ex);
         }
 
-        // Load settings
-        _windowSettings = LayoutManager.LoadSettings();
+        //Call before InitializeComponent
+        LoadLayoutCommand = LayoutManager.CreateLoadLayoutCommand();
+        SaveLayoutCommand = LayoutManager.CreateSaveLayoutCommand();
 
         InitializeComponent();
         InitializeEventHandlers();
@@ -62,75 +64,81 @@ public partial class MainWindow : Window
         FolderTree.FolderSelected += FolderTree_FolderSelected;
         FolderTree.FileSelected += FolderTree_FileSelected;
 
-        // Load custom layout after everything is initialized
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
-        // Track window changes
-        this.LocationChanged += (s, e) => UpdateWindowSettings();
-        this.SizeChanged += (s, e) => UpdateWindowSettings();
-        this.StateChanged += (s, e) => UpdateWindowSettings();
-
-        // Track layout changes with a timer to avoid excessive saves
-        InitializeLayoutSaveTimer();
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        // Only restore custom layout if user has made changes before
-        if (_windowSettings.HasCustomLayout && !string.IsNullOrEmpty(_windowSettings.DockLayoutXml))
-        {
-            RestoreCustomLayout();
-        }
-
-        // Now start monitoring for layout changes
-        DockManager.LayoutUpdated += DockManager_LayoutUpdated;
-        _isLayoutLoaded = true;
+        LayoutManager.InitializeLayoutManagement(this);
 
         VideoMetadataViewer.DataContext = VideoPreview;
+        CheckForFfmpeg();
+    }
+
+    private async Task CheckForFfmpeg()
+    {
+        var updateService = new FFmpegUpdateService();
+        try
+        {
+            await updateService.EnsureFFmpegAsync(Globals.ExternalPath);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogDebug("FFmpeg update failed " + ex.GetFullDetails());
+        }
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
-
-    }
-
-    private void InitializeLayoutSaveTimer()
-    {
-        _layoutSaveTimer = new DispatcherTimer();
-        _layoutSaveTimer.Interval = TimeSpan.FromMilliseconds(1000); // Save 1 second after last change
-        _layoutSaveTimer.Tick += (s, e) =>
+        // Force save the layout before the window actually closes
+        if (SaveLayoutCommand?.CanExecute(null) == true)
         {
-            _layoutSaveTimer.Stop();
-            SaveDockLayout();
-        };
+            var parameter = new OpenFrame.Behaviors.DockLayoutParameter
+            {
+                DockingManager = EditingDockManager,
+                ManagerName = "EditingDockManager" // or whatever name you're using
+            };
+
+            // Manually serialize and save
+            try
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    var xmlLayout = new AvalonDock.Layout.Serialization.XmlLayoutSerializer(EditingDockManager);
+                    xmlLayout.Serialize(stringWriter);
+                    parameter.LayoutXml = stringWriter.ToString();
+                }
+
+                SaveLayoutCommand.Execute(parameter);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Manual save failed: {ex.Message}");
+            }
+        }
     }
 
     private void OpenVideoButton_Click(object sender, RoutedEventArgs e)
     {
-        System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
+        string title = "Select Video File";
+        string filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v|" +
+                "MP4 Files|*.mp4|" +
+                "MOV Files|*.mov|" +
+                "All Files|*.*";
+        string selectedFile = DialogHelper.ChooseFile(title, filter);
+
+        if (selectedFile.IsNullOrEmpty())
+            return;
+
+        // Validate file exists and is accessible
+        if (!File.Exists(selectedFile))
         {
-            Title = "Select Video File",
-            Filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v|" +
-                    "MP4 Files|*.mp4|" +
-                    "MOV Files|*.mov|" +
-                    "All Files|*.*",
-            FilterIndex = 1,
-            RestoreDirectory = true
-        };
-
-        if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-            string selectedFile = openFileDialog.FileName;
-
-            // Validate file exists and is accessible
-            if (!File.Exists(selectedFile))
-            {
-                UpdateStatus("Error: Selected file does not exist.", true);
-                return;
-            }
-
-            LoadVideoFile(selectedFile);
+            UpdateStatus("Error: Selected file does not exist.", true);
+            return;
         }
+
+        LoadVideoFile(selectedFile);
     }
 
     #region File Loading
@@ -142,7 +150,7 @@ public partial class MainWindow : Window
             CurrentFileLabel.Text = $"Loading: {Path.GetFileName(filePath)}";
             UpdateStatus("Loading video...", false);
 
-            ApplySidecarContent(GetSidecarContent(filePath));
+            ApplySidecarContent(SidecarService.GetSidecarContent(filePath));
 
             VideoPreview.LoadVideo(filePath);
         }
@@ -161,7 +169,7 @@ public partial class MainWindow : Window
             UpdateStatus("No video loaded to reload sidecar content.", true);
             return;
         }
-        ApplySidecarContent(GetSidecarContent(VideoPreview.CurrentVideoPath));
+        ApplySidecarContent(SidecarService.GetSidecarContent(VideoPreview.CurrentVideoPath));
     }
 
     private void SaveSidecarButton_Click(object sender, RoutedEventArgs e)
@@ -171,46 +179,7 @@ public partial class MainWindow : Window
             UpdateStatus("No video loaded to save sidecar content.", true);
             return;
         }
-        SaveSidecarContent(VideoPreview?.CurrentVideoPath);
-    }
-
-    public SidecarContent GetSidecarContent(string videoFile)
-    {
-        string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
-        if (!File.Exists(sidecarPath))
-        {
-            UpdateStatus($"No sidecar file found for {Path.GetFileName(videoFile)}", false);
-            return new SidecarContent();
-        }
-
-        var sidecarContent = Globals.DeserializeFromFile<SidecarContent>(sidecarPath);
-        if (sidecarContent != null)
-            return sidecarContent;
-
-        UpdateStatus($"Failed to load sidecar content from {Path.GetFileName(sidecarPath)}", true);
-        throw new InvalidDataException("Invalid sidecar content format.");
-    }
-
-    public void SaveSidecarContent(string videoFile)
-    {
-        string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
-        var currentSidecar = GetCurrentStateAsSidecar();
-        if (currentSidecar == null)
-        {
-            UpdateStatus("No sidecar content to save.", true);
-            Logger.LogInfo("No sidecar content to save.");
-            return;
-        }
-        try
-        {
-            Globals.SerializeToFile(currentSidecar, sidecarPath);
-            UpdateStatus($"Sidecar content saved to {Path.GetFileName(sidecarPath)}", false);
-            Logger.LogInfo($"Sidecar content saved to {sidecarPath}");
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError("Failed to save sidecar content", ex);
-        }
+        SidecarService.SaveSidecarContent(GetCurrentStateAsSidecar(), VideoPreview?.CurrentVideoPath);
     }
 
     public SidecarContent GetCurrentStateAsSidecar()
@@ -337,174 +306,10 @@ public partial class MainWindow : Window
         return videoExtensions.Contains(Path.GetExtension(filePath).ToLower());
     }
     #endregion
-
-    #region Window Position Persistence
-
-    private void RestoreWindowPosition()
-    {
-        try
-        {
-            this.Left = _windowSettings.Left;
-            this.Top = _windowSettings.Top;
-            this.Width = _windowSettings.Width;
-            this.Height = _windowSettings.Height;
-            this.WindowState = _windowSettings.WindowState;
-
-            EnsureWindowIsVisible();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError("Failed to restore window position", ex);
-            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        }
-    }
-
-    private void EnsureWindowIsVisible()
-    {
-        var windowRect = new System.Drawing.Rectangle(
-            (int)this.Left, (int)this.Top,
-            (int)this.Width, (int)this.Height);
-
-        bool isVisible = false;
-        foreach (var screen in System.Windows.Forms.Screen.AllScreens)
-        {
-            if (screen.WorkingArea.IntersectsWith(windowRect))
-            {
-                isVisible = true;
-                break;
-            }
-        }
-
-        if (!isVisible)
-        {
-            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        }
-    }
-
-    private void UpdateWindowSettings()
-    {
-        if (this.WindowState == WindowState.Normal)
-        {
-            _windowSettings.Left = this.Left;
-            _windowSettings.Top = this.Top;
-            _windowSettings.Width = this.ActualWidth;
-            _windowSettings.Height = this.ActualHeight;
-        }
-        _windowSettings.WindowState = this.WindowState;
-    }
-
-    #endregion
-
-    #region Dock Layout Persistence
-
-    private void RestoreCustomLayout()
-    {
-        try
-        {
-            var layoutSerializer = new XmlLayoutSerializer(DockManager);
-            layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
-
-            using (var stringReader = new StringReader(_windowSettings.DockLayoutXml))
-            {
-                layoutSerializer.Deserialize(stringReader);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError("Failed to restore custom layout, using default", ex);
-            // Don't reset flag here - let user keep their preference
-        }
-    }
-
-    private void LayoutSerializer_LayoutSerializationCallback(object sender, LayoutSerializationCallbackEventArgs e)
-    {
-        // Match ContentId from XAML to actual controls
-        switch (e.Model.ContentId)
-        {
-            case "videoPreview":
-                e.Content = FindName("VideoPreview");
-                break;
-            case "timeline":
-                e.Content = FindName("TimelineControl");
-                break;
-            case "properties":
-                e.Content = FindPropertiesPanel();
-                break;
-            case "markers":
-                e.Content = FindMarkersPanel();
-                break;
-            default:
-                e.Cancel = true; // Don't restore unknown panels
-                break;
-        }
-    }
-
-    private object FindPropertiesPanel()
-    {
-        // Find the properties panel content from your XAML
-        // This should match whatever you have inside the Properties LayoutAnchorable
-        // You might need to adjust this based on your actual XAML structure
-        return FindName("PropertiesContent") ?? CreatePropertiesContent();
-    }
-
-    private object FindMarkersPanel()
-    {
-        // Find the markers panel content from your XAML
-        return FindName("MarkersContent") ?? CreateMarkersContent();
-    }
-
-    private UIElement CreatePropertiesContent()
-    {
-        // Fallback: recreate properties content if not found
-        var stackPanel = new System.Windows.Controls.StackPanel();
-        // Add your properties controls here
-        return stackPanel;
-    }
-
-    private UIElement CreateMarkersContent()
-    {
-        // Fallback: recreate markers content if not found
-        var stackPanel = new System.Windows.Controls.StackPanel();
-        // Add your markers controls here
-        return stackPanel;
-    }
-
-    private void DockManager_LayoutUpdated(object sender, EventArgs e)
-    {
-        if (!_isLayoutLoaded) return; // Don't save during initial load
-
-        // Restart the timer - only save after user stops moving things
-        _layoutSaveTimer.Stop();
-        _layoutSaveTimer.Start();
-    }
-
-    private void SaveDockLayout()
-    {
-        try
-        {
-            var layoutSerializer = new XmlLayoutSerializer(DockManager);
-            using (var stringWriter = new StringWriter())
-            {
-                layoutSerializer.Serialize(stringWriter);
-                _windowSettings.DockLayoutXml = stringWriter.ToString();
-                _windowSettings.HasCustomLayout = true; // Mark that user has customized
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError("Failed to save dock layout", ex);
-        }
-    }
-
-    #endregion
-
-    private void AddMarkerButton_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private void ResetLayoutButton_Click(object sender, RoutedEventArgs e)
     {
-
+        LayoutManager.ResetLayout("EditingDockManager");
+        MessageBox.Show("Layout has been reset. Please restart the application to see the changes.",
+                       "Layout Reset", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

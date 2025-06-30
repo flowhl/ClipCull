@@ -17,6 +17,9 @@
     <Compile Update="Controls\TimelineControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\VideoClipBrowserControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\VideoMetadataControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

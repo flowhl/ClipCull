@@ -21,8 +21,9 @@ namespace OpenFrame.Core
         public static string LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppName, "Logs");
         public static string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName, "Settings");
 
-        public static string FFProbePath = Path.Combine(RootPath, "External", "ffprobe.exe");
-        public static string FFmpegPath = Path.Combine(RootPath, "External", "ffmpeg.exe");
+        public static string ExternalPath = Path.Combine(RootPath, "External");
+        public static string FFProbePath = Path.Combine(ExternalPath, "ffprobe.exe");
+        public static string FFmpegPath = Path.Combine(ExternalPath, "ffmpeg.exe");
 
         static public void CopyFolder(string sourceFolder, string destFolder)
         {

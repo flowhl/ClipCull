@@ -3,183 +3,193 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xcad="https://github.com/Dirkster99/AvalonDock"        
         xmlns:uc="clr-namespace:OpenFrame.Controls"
+        xmlns:behaviors="clr-namespace:OpenFrame.Behaviors"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:avalondocktheme="clr-namespace:TTOOWA.AvalonDockTheme;assembly=TTOOWA.AvalonDockThemes"
-        Title="FPV Footage Manager" 
+        Title="OpenFrame" 
         Height="900" Width="1400"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <TabControl Background="Transparent" BorderThickness="0">
+            <TabItem Header="Editing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- Header Toolbar -->
-        <Border Grid.Row="0" 
+                    <!-- Header Toolbar -->
+                    <Border Grid.Row="0" 
                 Style="{StaticResource card}" 
                 Margin="8,8,8,4"
                 CornerRadius="8,8,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                <!-- Left Actions -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="OpenVideoButton" 
+                            <!-- Left Actions -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="OpenVideoButton" 
                             Content="Open Video File" 
                             Click="OpenVideoButton_Click"
                             Style="{StaticResource primary-lg}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="FolderOpen" 
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="FolderOpen" 
                                                            Width="16" Height="16"
                                                            Foreground="{StaticResource PrimaryForegroundBrush}"
                                                            Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
-                </StackPanel>
+                                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
+                            </StackPanel>
 
-                <!-- Center Info -->
-                <StackPanel Grid.Column="1" 
+                            <!-- Center Info -->
+                            <StackPanel Grid.Column="1" 
                            VerticalAlignment="Center" 
                            HorizontalAlignment="Center">
-                    <TextBlock x:Name="CurrentFileLabel" 
+                                <TextBlock x:Name="CurrentFileLabel" 
                               Text="No video loaded" 
                               Style="{StaticResource h4}"
                               HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="FileDetailsLabel"
+                                <TextBlock x:Name="FileDetailsLabel"
                               Text="Select a video file to begin editing"
                               Style="{StaticResource muted}"
                               HorizontalAlignment="Center"
                               Margin="0,4,0,0"/>
-                </StackPanel>
+                            </StackPanel>
 
-                <!-- Right Actions -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="SaveSidecarButton" 
+                            <!-- Right Actions -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="SaveSidecarButton" 
                             Content="Save" 
                             Click="SaveSidecarButton_Click"
                             Style="{StaticResource secondary}">
-                        <Button.ContentTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="ContentSave" 
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="ContentSave" 
                                                            Width="14" Height="14"
                                                            Foreground="{StaticResource SecondaryForegroundBrush}"
                                                            Margin="0,0,6,0"/>
-                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </Button.ContentTemplate>
-                    </Button>
+                                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
 
-                    <Button x:Name="ReloadSidecarButton" 
+                                <Button x:Name="ReloadSidecarButton" 
                             Click="ReloadSidecarButton_Click"
                             Style="{StaticResource icon}"
                             ToolTip="Reload Sidecar"
                             Margin="8,0,0,0">
-                        <materialDesign:PackIcon Kind="Refresh" 
+                                    <materialDesign:PackIcon Kind="Refresh" 
                                                Width="16" Height="16"
                                                Foreground="{StaticResource ForegroundBrush}"/>
-                    </Button>
+                                </Button>
 
-                    <!-- Reset Layout Button -->
-                    <Button Click="ResetLayoutButton_Click"
+                                <!-- Reset Layout Button -->
+                                <Button Click="ResetLayoutButton_Click"
                             Style="{StaticResource icon}"
                             ToolTip="Reset Layout"
                             Margin="4,0,0,0">
-                        <materialDesign:PackIcon Kind="ViewDashboard" 
+                                    <materialDesign:PackIcon Kind="ViewDashboard" 
                                                Width="16" Height="16"
                                                Foreground="{StaticResource ForegroundBrush}"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-        <!-- Docking Manager -->
-        <xcad:DockingManager Grid.Row="1" 
-                            x:Name="DockManager"
-                            Margin="8,0,8,4">
-            <xcad:DockingManager.Theme>
-                <avalondocktheme:FlatDarkTheme/>
-            </xcad:DockingManager.Theme>
+                    <!-- Docking Manager -->
+                    <xcad:DockingManager Grid.Row="1" 
+                            x:Name="EditingDockManager"
+                            behaviors:AvalonDockLayoutSerializer.LoadLayoutCommand="{Binding LoadLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            behaviors:AvalonDockLayoutSerializer.SaveLayoutCommand="{Binding SaveLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            behaviors:AvalonDockLayoutSerializer.ManagerName="EditingDockManager"
+                                         Margin="8,0,8,4">
+                        <xcad:DockingManager.Theme>
+                            <avalondocktheme:FlatDarkTheme/>
+                        </xcad:DockingManager.Theme>
 
-            <!-- Layout Root -->
-            <xcad:LayoutRoot>
-                <xcad:LayoutPanel Orientation="Horizontal">
+                        <!-- Layout Root -->
+                        <xcad:LayoutRoot>
+                            <xcad:LayoutPanel Orientation="Horizontal">
 
-                    <!-- Main Video Panel -->
-                    <xcad:LayoutDocumentPane DockWidth="2*">
-                        <xcad:LayoutDocument Title="Video Preview" 
+                                <!-- Main Video Panel -->
+                                <xcad:LayoutDocumentPane DockWidth="2*">
+                                    <xcad:LayoutDocument Title="Video Preview" 
                                             ContentId="videoPreview"
                                             CanClose="False">
-                            <Border Style="{StaticResource card}" Margin="4">
-                                <uc:VideoPreviewControl x:Name="VideoPreview"/>
-                            </Border>
-                        </xcad:LayoutDocument>
-                    </xcad:LayoutDocumentPane>
+                                        <Border Style="{StaticResource card}" Margin="4">
+                                            <uc:VideoPreviewControl x:Name="VideoPreview"/>
+                                        </Border>
+                                    </xcad:LayoutDocument>
+                                </xcad:LayoutDocumentPane>
 
-                    <!-- Side Panel -->
-                    <xcad:LayoutAnchorablePane DockWidth="300" DockMinWidth="250">
-                        <xcad:LayoutAnchorable Title="Files" 
+                                <!-- Side Panel -->
+                                <xcad:LayoutAnchorablePane DockWidth="300" DockMinWidth="250">
+                                    <xcad:LayoutAnchorable Title="Files" 
                                               ContentId="filebrowser"
                                               CanClose="False"
                                               CanHide="True">
-                            <Border Style="{StaticResource card}" Margin="4">
-                                <uc:FolderTreeControl ShowFiles="True" x:Name="FolderTree"/>
-                            </Border>
-                        </xcad:LayoutAnchorable>
+                                        <Border Style="{StaticResource card}" Margin="4">
+                                            <uc:FolderTreeControl ShowFiles="True" x:Name="FolderTree"/>
+                                        </Border>
+                                    </xcad:LayoutAnchorable>
 
-                        <xcad:LayoutAnchorable Title="Properties" 
+                                    <xcad:LayoutAnchorable Title="Properties" 
                                               ContentId="properties"
                                               CanClose="False"
                                               CanHide="True">
-                            <Border Style="{StaticResource card}" Margin="4" x:Name="PropertiesContent">
-                                <uc:VideoMetadataControl x:Name="VideoMetadataViewer" Metadata="{Binding Path=CurrentVideoMetadata}"/>
-                            </Border>
-                        </xcad:LayoutAnchorable>
-                    </xcad:LayoutAnchorablePane>
+                                        <Border Style="{StaticResource card}" Margin="4" x:Name="PropertiesContent">
+                                            <uc:VideoMetadataControl x:Name="VideoMetadataViewer" Metadata="{Binding Path=CurrentVideoMetadata}"/>
+                                        </Border>
+                                    </xcad:LayoutAnchorable>
+                                </xcad:LayoutAnchorablePane>
 
-                </xcad:LayoutPanel>
-            </xcad:LayoutRoot>
-        </xcad:DockingManager>
+                            </xcad:LayoutPanel>
+                        </xcad:LayoutRoot>
+                    </xcad:DockingManager>
 
-        <!-- Status Bar -->
-        <Border Grid.Row="2" 
+                    <!-- Status Bar -->
+                    <Border Grid.Row="2" 
                 Style="{StaticResource card}" 
                 Margin="8,4,8,8"
                 CornerRadius="0,0,8,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <materialDesign:PackIcon Kind="Information" 
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <materialDesign:PackIcon Kind="Information" 
                                            Width="14" Height="14"
                                            Foreground="{StaticResource MutedForegroundBrush}"
                                            Margin="0,0,8,0"/>
-                    <TextBlock x:Name="StatusLabel" 
+                                <TextBlock x:Name="StatusLabel" 
                               Text="Ready" 
                               Style="{StaticResource small}"/>
-                </StackPanel>
+                            </StackPanel>
 
-                <TextBlock Grid.Column="2"
+                            <TextBlock Grid.Column="2"
                           Text="FPV Footage Manager v1.0"
                           Style="{StaticResource muted}"
                           VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
