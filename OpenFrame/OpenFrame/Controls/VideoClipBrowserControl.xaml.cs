@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -9,7 +10,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using OpenFrame.Core;
+using OpenFrame.Core.Gyroflow;
 using OpenFrame.Models;
+using static OpenFrame.Core.Gyroflow.GyroflowSubclipExtractor;
+using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
@@ -128,6 +132,16 @@ namespace OpenFrame.Controls
         /// </summary>
         public bool IsEmpty => !IsLoading && ClipCount == 0;
 
+        /// <summary>
+        /// Number of selected clips
+        /// </summary>
+        public int SelectedClipCount => VideoClips?.Count(c => c.IsSelected) ?? 0;
+
+        /// <summary>
+        /// Collection of selected clips
+        /// </summary>
+        public IEnumerable<VideoClipInfo> SelectedClips => VideoClips?.Where(c => c.IsSelected) ?? Enumerable.Empty<VideoClipInfo>();
+
         #endregion
 
         #region Events
@@ -136,6 +150,11 @@ namespace OpenFrame.Controls
         /// Fired when clip selection changes
         /// </summary>
         public event EventHandler<ClipSelectionChangedEventArgs> ClipSelectionChanged;
+
+        /// <summary>
+        /// Fired when clip checkbox selection changes
+        /// </summary>
+        public event EventHandler<ClipCheckboxSelectionChangedEventArgs> ClipCheckboxSelectionChanged;
 
         #endregion
 
@@ -165,6 +184,7 @@ namespace OpenFrame.Controls
                     StatusText = "No folder selected";
                     OnPropertyChanged(nameof(ClipCount));
                     OnPropertyChanged(nameof(IsEmpty));
+                    OnPropertyChanged(nameof(SelectedClipCount));
                 });
                 return;
             }
@@ -216,8 +236,34 @@ namespace OpenFrame.Controls
             StatusText = "Ready";
             OnPropertyChanged(nameof(ClipCount));
             OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(SelectedClipCount));
         }
 
+        /// <summary>
+        /// Select all clips
+        /// </summary>
+        public void SelectAllClips()
+        {
+            foreach (var clip in VideoClips)
+            {
+                clip.IsSelected = true;
+            }
+            OnPropertyChanged(nameof(SelectedClipCount));
+            ClipCheckboxSelectionChanged?.Invoke(this, new ClipCheckboxSelectionChangedEventArgs(SelectedClips.ToList()));
+        }
+
+        /// <summary>
+        /// Deselect all clips
+        /// </summary>
+        public void DeselectAllClips()
+        {
+            foreach (var clip in VideoClips)
+            {
+                clip.IsSelected = false;
+            }
+            OnPropertyChanged(nameof(SelectedClipCount));
+            ClipCheckboxSelectionChanged?.Invoke(this, new ClipCheckboxSelectionChangedEventArgs(SelectedClips.ToList()));
+        }
         #endregion
 
         #region Private Methods
@@ -265,9 +311,13 @@ namespace OpenFrame.Controls
                                         StartTimeDisplay = subClip.StartTimeDisplay,
                                         EndTimeDisplay = subClip.EndTimeDisplay,
                                         ClipColor = subClip.Color,
+                                        IsSelected = false,
                                         // Don't access ColorBrush on background thread - let it be created on UI thread
                                         IsLoadingThumbnail = true
                                     };
+
+                                    // Subscribe to selection changes
+                                    clipInfo.PropertyChanged += ClipInfo_PropertyChanged;
 
                                     fileClips.Add(clipInfo);
                                     clips.Add(clipInfo);
@@ -300,6 +350,7 @@ namespace OpenFrame.Controls
                     }
 
                     OnPropertyChanged(nameof(ClipCount));
+                    OnPropertyChanged(nameof(SelectedClipCount));
                     StatusText = $"Loaded {ClipCount} clips from {processedFiles.Count} files";
                 });
 
@@ -341,6 +392,78 @@ namespace OpenFrame.Controls
             });
         }
 
+        private void ShowFileInExplorer(string filePath)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+                }
+                else
+                {
+                    Logger.LogError($"File not found: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to open explorer for {filePath}", ex);
+            }
+        }
+
+        private void OpenFileWithDefaultProgram(string filePath)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    Logger.LogError($"File not found: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to open file {filePath}", ex);
+            }
+        }
+
+        private void AddSelectedClipsToRenderQueue()
+        {
+            var selectedClips = SelectedClips.ToList();
+            if (selectedClips.Count == 0)
+            {
+                Logger.LogWarning("No clips selected for rendering.");
+                return;
+            }
+
+            foreach (var clip in selectedClips)
+            {
+                var subclipInfo = new SubclipInfo()
+                {
+                    VideoFile = clip.VideoFilePath,
+                    StartTime = TimeSpan.FromMilliseconds(clip.StartTimeMs),
+                    EndTime = TimeSpan.FromMilliseconds(clip.EndTimeMs),
+                    OutputName = $"{clip.VideoFileName}_{clip.ClipTitle}.mp4"
+                };
+                try
+                {
+                    // Add to render queue (assuming a method exists for this)
+                    GyroFlowRenderQueue.AddToQueue(subclipInfo);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to add clip {clip.ClipTitle} to render queue", ex);
+                }
+            }
+        }
+
         #endregion
 
         #region Event Handlers
@@ -355,6 +478,50 @@ namespace OpenFrame.Controls
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is VideoClipInfo clip)
             {
                 SelectedClip = clip;
+            }
+        }
+
+        private void SelectAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            SelectAllClips();
+        }
+
+        private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeselectAllClips();
+        }
+
+        private void OpenWithDefaultButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if this is a button click from within a list item
+            if (sender is System.Windows.Controls.Button button && button.Tag is VideoClipInfo clipInfo)
+            {
+                // Individual clip action
+                OpenFileWithDefaultProgram(clipInfo.VideoFilePath);
+            }
+        }
+
+        private void ShowInExplorerButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if this is a button click from within a list item
+            if (sender is System.Windows.Controls.Button button && button.Tag is VideoClipInfo clipInfo)
+            {
+                // Individual clip action
+                ShowFileInExplorer(clipInfo.VideoFilePath);
+            }
+        }
+
+        private void AddToRenderQueueButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddSelectedClipsToRenderQueue();
+        }
+
+        private void ClipInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(VideoClipInfo.IsSelected))
+            {
+                OnPropertyChanged(nameof(SelectedClipCount));
+                ClipCheckboxSelectionChanged?.Invoke(this, new ClipCheckboxSelectionChangedEventArgs(SelectedClips.ToList()));
             }
         }
 
@@ -389,6 +556,7 @@ namespace OpenFrame.Controls
     {
         private string _thumbnailPath;
         private bool _isLoadingThumbnail;
+        private bool _isSelected;
         private System.Windows.Media.SolidColorBrush _clipColorBrush;
 
         public string VideoFilePath { get; set; }
@@ -402,6 +570,22 @@ namespace OpenFrame.Controls
         public string EndTimeDisplay { get; set; }
         public System.Windows.Media.Color ClipColor { get; set; }
         public bool IsFirstClipOfFile { get; set; }
+
+        /// <summary>
+        /// Whether this clip is selected via checkbox
+        /// </summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public System.Windows.Media.SolidColorBrush ClipColorBrush
         {
@@ -462,6 +646,19 @@ namespace OpenFrame.Controls
         {
             SelectedClip = selectedClip;
             SelectedFile = selectedFile;
+        }
+    }
+
+    /// <summary>
+    /// Event arguments for clip checkbox selection changed event
+    /// </summary>
+    public class ClipCheckboxSelectionChangedEventArgs : EventArgs
+    {
+        public IReadOnlyList<VideoClipInfo> SelectedClips { get; }
+
+        public ClipCheckboxSelectionChangedEventArgs(IReadOnlyList<VideoClipInfo> selectedClips)
+        {
+            SelectedClips = selectedClips;
         }
     }
 }

@@ -229,7 +229,35 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-                    <uc:VideoClipBrowserControl Grid.Row="1" x:Name="VideoClipBrowser"/>
+                    <!-- Docking Manager -->
+                    <xcad:DockingManager Grid.Row="1" x:Name="ClipDockManager" Margin="8,0,8,4">
+                        <xcad:DockingManager.Theme>
+                            <avalondocktheme:FlatDarkTheme/>
+                        </xcad:DockingManager.Theme>
+                        <xcad:LayoutRoot>
+                            <xcad:LayoutPanel Orientation="Horizontal">
+                                <!-- Left side - Test with simple TextBlock -->
+                                <xcad:LayoutDocumentPane DockWidth="1*">
+                                    <xcad:LayoutDocument Title="Clips" 
+                    ContentId="clips"
+                    CanClose="False"
+                    IsSelected="True">
+                                        <uc:VideoClipBrowserControl x:Name="VideoClipBrowser"/>
+                                    </xcad:LayoutDocument>
+                                </xcad:LayoutDocumentPane>
+
+                                <!-- Right side - Test with simple TextBlock -->
+                                <xcad:LayoutDocumentPane DockWidth="1.5*">
+                                    <xcad:LayoutDocument Title="Preview" 
+                    ContentId="preview"
+                    CanClose="False"
+                    IsSelected="True">
+                                        <uc:VideoPreviewControl x:Name="clipPreview"/>
+                                    </xcad:LayoutDocument>
+                                </xcad:LayoutDocumentPane>
+                            </xcad:LayoutPanel>
+                        </xcad:LayoutRoot>
+                    </xcad:DockingManager>
                 </Grid>
             </TabItem>
         </TabControl>

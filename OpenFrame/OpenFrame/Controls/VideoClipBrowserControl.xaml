@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:OpenFrame.Controls"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
              x:Name="UserControlRoot">
@@ -20,14 +19,25 @@
                     Padding="8">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- Checkbox -->
                         <ColumnDefinition Width="120"/>
                         <!-- Thumbnail -->
                         <ColumnDefinition Width="*"/>
                         <!-- Content -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- Action Buttons -->
                     </Grid.ColumnDefinitions>
 
+                    <!-- Selection Checkbox -->
+                    <CheckBox Grid.Column="0"
+                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                              VerticalAlignment="Top"
+                              Margin="0,0,8,0"
+                              ToolTip="Select this clip"/>
+
                     <!-- Thumbnail -->
-                    <Border Grid.Column="0"
+                    <Border Grid.Column="1"
                             Background="{StaticResource MutedBrush}"
                             CornerRadius="4"
                             Width="110"
@@ -56,14 +66,13 @@
                             </Image>
 
                             <!-- Placeholder Icon when no thumbnail -->
-                            <materialDesign:PackIcon Kind="Video"
-                                                   Width="32"
-                                                   Height="32"
-                                                   Foreground="{StaticResource MutedForegroundBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center">
-                                <materialDesign:PackIcon.Style>
-                                    <Style TargetType="materialDesign:PackIcon">
+                            <TextBlock Text="📹"
+                                      FontSize="24"
+                                      Foreground="{StaticResource MutedForegroundBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Null}">
@@ -74,8 +83,8 @@
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </materialDesign:PackIcon.Style>
-                            </materialDesign:PackIcon>
+                                </TextBlock.Style>
+                            </TextBlock>
 
                             <!-- Loading Indicator -->
                             <ProgressBar IsIndeterminate="True"
@@ -90,7 +99,7 @@
                     </Border>
 
                     <!-- Content -->
-                    <StackPanel Grid.Column="1" 
+                    <StackPanel Grid.Column="2" 
                                 Margin="12,0,0,0"
                                 VerticalAlignment="Top">
 
@@ -107,13 +116,12 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <materialDesign:PackIcon Grid.Column="0"
-                                                       Kind="VideoBox"
-                                                       Width="16"
-                                                       Height="16"
-                                                       Foreground="{StaticResource AccentForegroundBrush}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,6,0"/>
+                                <TextBlock Grid.Column="0"
+                                          Text="📁"
+                                          FontSize="12"
+                                          Foreground="{StaticResource AccentForegroundBrush}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,6,0"/>
 
                                 <TextBlock Grid.Column="1"
                                           Text="{Binding VideoFileName}"
@@ -139,12 +147,11 @@
                                    Margin="0,0,0,4">
 
                             <!-- Duration -->
-                            <materialDesign:PackIcon Kind="Timer"
-                                                   Width="12"
-                                                   Height="12"
-                                                   Foreground="{StaticResource MutedForegroundBrush}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,4,0"/>
+                            <TextBlock Text="⏱"
+                                      FontSize="10"
+                                      Foreground="{StaticResource MutedForegroundBrush}"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,4,0"/>
 
                             <TextBlock Text="{Binding Duration}"
                                        FontFamily="{StaticResource FontSans}"
@@ -171,6 +178,32 @@
                                 CornerRadius="2"
                                 Margin="0,4,0,0"
                                 HorizontalAlignment="Left"/>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="3"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Top"
+                                Margin="8,0,0,0">
+
+                        <!-- Show in Explorer Button -->
+                        <Button x:Name="ShowInExplorerButton"
+                                Style="{StaticResource icon-sm}"
+                                ToolTip="Show in Explorer"
+                                Click="ShowInExplorerButton_Click"
+                                Tag="{Binding}"
+                                Margin="0,0,4,0">
+                            <TextBlock Text="📁" FontSize="12"/>
+                        </Button>
+
+                        <!-- Open with Default Program Button -->
+                        <Button x:Name="OpenWithDefaultButton"
+                                Style="{StaticResource icon-sm}"
+                                ToolTip="Open with default program"
+                                Click="OpenWithDefaultButton_Click"
+                                Tag="{Binding}">
+                            <TextBlock Text="▶" FontSize="12"/>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -218,6 +251,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -233,16 +267,14 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="Video"
-                                               Width="20"
-                                               Height="20"
-                                               Foreground="{StaticResource SecondaryForegroundBrush}"
-                                               VerticalAlignment="Center"
-                                               Margin="0,0,8,0"/>
+                        <TextBlock Text="🎥"
+                                  FontSize="16"
+                                  Foreground="{StaticResource SecondaryForegroundBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,8,0"/>
 
                         <TextBlock Text="Video Clips" 
                                   FontFamily="{StaticResource FontSans}"
@@ -258,23 +290,92 @@
                                   Foreground="{StaticResource MutedForegroundBrush}"
                                   VerticalAlignment="Center"
                                   Margin="8,0,0,0"/>
+
+                        <TextBlock x:Name="SelectedCountLabel"
+                                  Text="{Binding SelectedClipCount, StringFormat='- {0} selected'}"
+                                  FontFamily="{StaticResource FontSans}"
+                                  FontSize="14"
+                                  Foreground="{StaticResource AccentBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="8,0,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedClipCount}" Value="0">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </StackPanel>
 
                     <Button Grid.Column="1"
                            x:Name="RefreshButton"
                            Click="RefreshButton_Click"
                            Style="{StaticResource icon}"
-                           Margin="0,0,8,0"
                            ToolTip="Refresh clips">
-                        <materialDesign:PackIcon Kind="Refresh" 
-                                               Width="16" 
-                                               Height="16"/>
+                        <TextBlock Text="🔄" FontSize="14"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Selection Controls -->
+            <Border Grid.Row="1"
+                    Background="{StaticResource SecondaryBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Selection Buttons -->
+                    <Button Grid.Column="0"
+                            x:Name="SelectAllButton"
+                            Click="SelectAllButton_Click"
+                            Style="{StaticResource secondary-sm}"
+                            Margin="0,0,8,0"
+                            ToolTip="Select all clips">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="☑" FontSize="12" Margin="0,0,4,0"/>
+                            <TextBlock Text="Select All" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="1"
+                            x:Name="DeselectAllButton"
+                            Click="DeselectAllButton_Click"
+                            Style="{StaticResource secondary-sm}"
+                            Margin="0,0,16,0"
+                            ToolTip="Deselect all clips">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="☐" FontSize="12" Margin="0,0,4,0"/>
+                            <TextBlock Text="Deselect All" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="4"
+                            x:Name="AddToRenderQueueButton"
+                            Click="AddToRenderQueueButton_Click"
+                            Style="{StaticResource primary-sm}"
+                            ToolTip="Open selected clips with default program">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▶" FontSize="12" Margin="0,0,4,0"/>
+                            <TextBlock Text="Add to Render Queue" FontSize="12"/>
+                        </StackPanel>
                     </Button>
                 </Grid>
             </Border>
 
             <!-- Content -->
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="2">
                 <!-- Loading Indicator -->
                 <Grid x:Name="LoadingPanel"
                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -283,7 +384,6 @@
                         <ProgressBar IsIndeterminate="True" 
                                    Width="50" 
                                    Height="50"
-                                   Style="{DynamicResource MaterialDesignCircularProgressBar}"
                                    Foreground="{StaticResource AccentBrush}"/>
                         <TextBlock Text="Loading video clips..."
                                  FontFamily="{StaticResource FontSans}"
@@ -299,11 +399,11 @@
                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" 
                                VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="VideoOff"
-                                               Width="64"
-                                               Height="64"
-                                               Foreground="{StaticResource MutedForegroundBrush}"
-                                               HorizontalAlignment="Center"/>
+                        <TextBlock Text="📹"
+                                  FontSize="48"
+                                  Foreground="{StaticResource MutedForegroundBrush}"
+                                  HorizontalAlignment="Center"
+                                  Opacity="0.5"/>
                         <TextBlock Text="No video clips found"
                                  FontFamily="{StaticResource FontSans}"
                                  FontSize="16"
@@ -347,7 +447,7 @@
             </Grid>
 
             <!-- Status Bar -->
-            <Border Grid.Row="2"
+            <Border Grid.Row="3"
                     Background="{StaticResource SecondaryBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="0,1,0,0"

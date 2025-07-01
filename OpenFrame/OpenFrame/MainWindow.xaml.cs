@@ -19,6 +19,8 @@ using System.ComponentModel;
 using OpenFrame.Core.Update;
 using OpenFrame.Extensions;
 using MessageBox = System.Windows.MessageBox;
+using System.Collections.ObjectModel;
+using FFMpegCore.Enums;
 
 namespace OpenFrame;
 
@@ -64,8 +66,25 @@ public partial class MainWindow : Window
         FolderTree.FolderSelected += FolderTree_FolderSelected;
         FolderTree.FileSelected += FolderTree_FileSelected;
 
+        VideoClipBrowser.ClipSelectionChanged += VideoClipBrowser_ClipSelectionChanged;
+        clipPreview.VideoLoaded += ClipPreview_VideoLoaded;
+
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
+    }
+
+    private void ClipPreview_VideoLoaded(object? sender, VideoLoadedEventArgs e)
+    {
+        var selectedClip = VideoClipBrowser.SelectedClip;
+        var seekTo = TimeSpan.FromMilliseconds(selectedClip.StartTimeMs);
+        clipPreview.SeekTo(seekTo);
+        clipPreview.timelineControl.SubClips.Clear();
+        clipPreview.timelineControl.SubClips.Add(selectedClip.SubClip);
+    }
+
+    private void VideoClipBrowser_ClipSelectionChanged(object? sender, ClipSelectionChangedEventArgs e)
+    {
+        clipPreview.LoadVideo(e.SelectedFile);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
