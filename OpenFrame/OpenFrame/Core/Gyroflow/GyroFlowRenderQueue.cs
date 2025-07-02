@@ -11,7 +11,8 @@ namespace OpenFrame.Core.Gyroflow
     public static class GyroFlowRenderQueue
     {
         public static ObservableCollection<SubclipInfo> Subclips = new ObservableCollection<SubclipInfo>();
-        public static void AddToQueue(SubclipInfo info)
+        
+        public static void Enqueue(SubclipInfo info)
         {
             //Check if the subclip already exists in the queue
             if (Subclips.Any(x => x.VideoFile == info.VideoFile && x.StartTime == info.StartTime && x.EndTime == info.EndTime))
@@ -25,6 +26,18 @@ namespace OpenFrame.Core.Gyroflow
                 throw new ArgumentException("Invalid video file path provided.");
             }
             Subclips.Add(info);
+        }
+
+        public static void Dequeue(SubclipInfo info)
+        {
+            if (Subclips.Contains(info))
+            {
+                Subclips.Remove(info);
+            }
+            else
+            {
+                Logger.LogWarning("Attempted to remove a subclip that is not in the queue.", "GyroFlow Render Queue");
+            }
         }
     }
 }

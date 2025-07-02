@@ -455,7 +455,7 @@ namespace OpenFrame.Controls
                 try
                 {
                     // Add to render queue (assuming a method exists for this)
-                    GyroFlowRenderQueue.AddToQueue(subclipInfo);
+                    GyroFlowRenderQueue.Enqueue(subclipInfo);
                 }
                 catch (Exception ex)
                 {
