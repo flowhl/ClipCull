@@ -260,6 +260,9 @@
                     </xcad:DockingManager>
                 </Grid>
             </TabItem>
+            <TabItem Header="Render Queue">
+                <uc:GyroflowRenderQueueControl x:Name="GyroflowRenderQueueControl"/>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

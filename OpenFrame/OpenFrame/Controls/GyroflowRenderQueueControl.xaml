@@ -1,0 +1,198 @@
+﻿<UserControl x:Class="OpenFrame.Controls.GyroflowRenderQueueControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:OpenFrame.Controls"
+             xmlns:gyroflow="clr-namespace:OpenFrame.Core.Gyroflow"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="600">
+
+    <UserControl.Resources>
+        <!-- Queue item container style -->
+        <Style x:Key="QueueItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- File name style -->
+        <Style x:Key="FileNameStyle" TargetType="TextBlock" BasedOn="{StaticResource h4}">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+
+        <!-- Info text style -->
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock" BasedOn="{StaticResource small}">
+            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+
+        <!-- Time range style -->
+        <Style x:Key="TimeRangeStyle" TargetType="TextBlock" BasedOn="{StaticResource body}">
+            <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <!-- Remove button style -->
+        <Style x:Key="RemoveButtonStyle" TargetType="Button" BasedOn="{StaticResource destructive}">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Content" Value="Remove"/>
+            <Setter Property="MinWidth" Value="70"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource CardBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,0,1" 
+                Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" 
+                          Style="{StaticResource h2}" 
+                          Text="Gyroflow Render Queue"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource muted}" 
+                              VerticalAlignment="Center"
+                              Text="{Binding QueueCount, StringFormat={}{0} items}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Start Render Button -->
+        <Border Grid.Row="1" 
+                Background="{StaticResource CardBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,0,1" 
+                Padding="16,12">
+            <Button x:Name="StartRenderButton"
+                    Style="{StaticResource primary}"
+                    Content="Start Render"
+                    HorizontalAlignment="Left"
+                    MinWidth="120"
+                    Click="StartRenderButton_Click"/>
+        </Border>
+
+        <!-- Queue Items -->
+        <ScrollViewer Grid.Row="2" 
+                      VerticalScrollBarVisibility="Auto" 
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="16">
+            <ItemsControl x:Name="QueueItemsControl" 
+                         ItemsSource="{x:Static gyroflow:GyroFlowRenderQueue.Subclips}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource QueueItemStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- File Name -->
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                          Style="{StaticResource FileNameStyle}"
+                                          Text="{Binding VideoFile}"/>
+
+                                <!-- Remove Button -->
+                                <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="4"
+                                       Style="{StaticResource RemoveButtonStyle}"
+                                       VerticalAlignment="Top"
+                                       Tag="{Binding}"
+                                       Click="RemoveButton_Click"/>
+
+                                <!-- Output Name -->
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                          Style="{StaticResource InfoTextStyle}">
+                                    <Run Text="Output: "/>
+                                    <Run Text="{Binding OutputName, Mode=OneWay}"/>
+                                </TextBlock>
+
+                                <!-- Time Range -->
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                          Style="{StaticResource TimeRangeStyle}">
+                                    <Run Text="{Binding StartTime, Mode=OneWay}"/>
+                                    <Run Text=" → "/>
+                                    <Run Text="{Binding EndTime, Mode=OneWay}"/>
+                                </TextBlock>
+
+                                <!-- Duration -->
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                          Style="{StaticResource InfoTextStyle}"
+                                          Text="Duration: (calculated from time range)"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Empty State -->
+        <Grid Grid.Row="2" 
+              Visibility="{Binding IsQueueEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" 
+                       VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource h3}" 
+                          Text="No items in queue"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,16"/>
+                <TextBlock Style="{StaticResource muted}" 
+                          Text="Add video clips to the render queue to get started"
+                          HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Rendering Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="3"
+              Background="#80000000"
+              Visibility="{Binding IsRendering, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border Background="{StaticResource CardBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MinWidth="200">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource h3}" 
+                              Text="Rendering..."
+                              HorizontalAlignment="Center"
+                              Margin="0,0,0,16"/>
+                    <TextBlock Style="{StaticResource muted}" 
+                              Text="Processing video clips with Gyroflow"
+                              HorizontalAlignment="Center"
+                              Margin="0,0,0,16"/>
+                    <ProgressBar Height="4" 
+                                IsIndeterminate="True"
+                                Background="{StaticResource MutedBrush}"
+                                Foreground="{StaticResource PrimaryBrush}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
