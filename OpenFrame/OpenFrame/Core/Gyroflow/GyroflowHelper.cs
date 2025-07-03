@@ -35,8 +35,9 @@ namespace OpenFrame.Core.Gyroflow
             if (!File.Exists(gyroflowExe))
             {
                 Trace.WriteLine("GyroflowHelper: 'GyroFlow.exe' executable does not exist.");
+                return null;
             }
-            return null;
+            return gyroflowExe;
 
         }
         /// <summary>
@@ -72,15 +73,24 @@ namespace OpenFrame.Core.Gyroflow
             if (directories.Length > 1)
             {
                 Trace.WriteLine("GyroflowHelper: Multiple Gyroflow installations found, using the first one.");
-                var highestVersion = directories
+                var versions = directories
                     .Where(d => d.IsNotNullOrEmpty())
                     .Select(d => new DirectoryInfo(d))
                     .OrderByDescending(d => d.Name)
-                    .FirstOrDefault();
-                if (highestVersion != null)
+                    .Select(d => d.FullName);
+
+                foreach (var version in versions)
                 {
-                    Trace.WriteLine($"GyroflowHelper: Using Gyroflow installation at {highestVersion.FullName}.");
-                    return highestVersion.FullName;
+                    string[] gyroflowPaths = {
+                        Path.Combine(version, "gyroflow.exe"),
+                        Path.Combine(version, "Gyroflow.exe"),
+                        Path.Combine(version, "GyroFlow.exe")
+                    };
+                    if (gyroflowPaths.Any(File.Exists))
+                    {
+                        Trace.WriteLine($"GyroflowHelper: Found Gyroflow executable at {version}.");
+                        return version;
+                    }
                 }
             }
             var firstDirectory = directories.FirstOrDefault();

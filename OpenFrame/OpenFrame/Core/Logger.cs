@@ -127,6 +127,17 @@ namespace OpenFrame.Core
             });
         }
 
+        public static void LogSuccess(string message, string title = null)
+        {
+            _logger?.Information(message);
+            _notificationManager.Show(new NotificationContent
+            {
+                Title = title ?? "Success",
+                Message = message,
+                Type = NotificationType.Success
+            });
+        }
+
         public static void LogWarning(string message, string title = null)
         {
             _logger?.Warning(message);

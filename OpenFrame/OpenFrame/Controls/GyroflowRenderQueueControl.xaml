@@ -107,6 +107,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -143,7 +144,21 @@
                                 <!-- Duration -->
                                 <TextBlock Grid.Row="3" Grid.Column="0"
                                           Style="{StaticResource InfoTextStyle}"
-                                          Text="Duration: (calculated from time range)"/>
+                                          Text="{Binding DurationString, Mode=OneTime}"/>
+
+                                <!--IsRendering-->
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                           Style="{StaticResource InfoTextStyle}"
+                                           Visibility="{Binding Rendering, Converter={StaticResource BoolToVisibilityConverter}}"
+                                           Foreground="Orange"
+                                           Text="Rendering..."/>
+                                
+                                <!--Rendered-->
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                           Style="{StaticResource InfoTextStyle}"
+                                           Visibility="{Binding Rendered, Converter={StaticResource BoolToVisibilityConverter}}"
+                                           Foreground="Green"
+                                           Text="Rendered"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

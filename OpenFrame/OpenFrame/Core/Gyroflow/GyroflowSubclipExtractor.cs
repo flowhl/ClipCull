@@ -1,8 +1,11 @@
-﻿using OpenFrame.Extensions;
+﻿using CliWrap;
+using OpenFrame.Extensions;
 using OpenFrame.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,12 +15,88 @@ namespace OpenFrame.Core.Gyroflow
 {
     public class GyroflowSubclipExtractor
     {
-        public class SubclipInfo
+        public class SubclipInfo : INotifyPropertyChanged
         {
-            public string VideoFile { get; set; }
-            public TimeSpan StartTime { get; set; }
-            public TimeSpan EndTime { get; set; }
-            public string OutputName { get; set; }
+            private string _videoFile;
+            public string VideoFile
+            {
+                get => _videoFile;
+                set
+                {
+                    _videoFile = value;
+                    OnPropertyChanged(nameof(VideoFile));
+                }
+            }
+            private TimeSpan _startTime;
+            public TimeSpan StartTime
+            {
+                get => _startTime;
+                set
+                {
+                    _startTime = value;
+                    OnPropertyChanged(nameof(StartTime));
+                    OnPropertyChanged(nameof(DurationString));
+                }
+            }
+            private TimeSpan _endTime;
+            public TimeSpan EndTime
+            {
+                get => _endTime;
+                set
+                {
+                    _endTime = value;
+                    OnPropertyChanged(nameof(EndTime));
+                    OnPropertyChanged(nameof(DurationString));
+                }
+            }
+
+            private string _outputName;
+            public string OutputName
+            {
+                get => _outputName;
+                set
+                {
+                    _outputName = value;
+                    OnPropertyChanged(nameof(OutputName));
+                }
+            }
+
+            private bool _rendering;
+            public bool Rendering
+            {
+                get => _rendering;
+                set
+                {
+                    _rendering = value;
+                    OnPropertyChanged(nameof(Rendering));
+                }
+            }
+
+            private bool _rendered;
+            public bool Rendered
+            {
+                get => _rendered;
+                set
+                {
+                    _rendered = value;
+                    OnPropertyChanged(nameof(Rendered));
+                }
+            }
+
+            public string DurationString
+            {
+                get
+                {
+                    return "Duration: " +
+                        (EndTime - StartTime).TotalSeconds.ToString("0.00") + " seconds";
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         private readonly string _gyroflowExePath;
@@ -67,10 +146,11 @@ namespace OpenFrame.Core.Gyroflow
             Trace.WriteLine($"Processing: {subclip.VideoFile} ({subclip.StartTime} - {subclip.EndTime})");
 
             // Generate output filename
-            var outputFile = Path.Combine(_outputDirectory,
-            string.IsNullOrEmpty(subclip.OutputName)
-            ? $"{Path.GetFileNameWithoutExtension(subclip.VideoFile)}_subclip_{subclip.StartTime:mm\\-ss}_{subclip.EndTime:mm\\-ss}_stabilized.mp4"
-            : subclip.OutputName);
+            if (subclip.OutputName.IsNullOrEmpty())
+            {
+                throw new ArgumentException("Output name for subclip cannot be null or empty.");
+            }
+            var outputFile = Path.Combine(_outputDirectory, subclip.OutputName);
 
             // Build Gyroflow CLI arguments
             var args = BuildGyroflowArgs(subclip, outputFile, overwrite, parallelRenders);
@@ -86,7 +166,6 @@ namespace OpenFrame.Core.Gyroflow
 
             // Input files - video file first, then optional settings file
             args.Add($"\"{subclip.VideoFile}\"");
-
             if (!string.IsNullOrEmpty(_settingsFile) && File.Exists(_settingsFile))
             {
                 args.Add($"\"{_settingsFile}\"");
@@ -104,74 +183,89 @@ namespace OpenFrame.Core.Gyroflow
                 args.Add("-f");
             }
 
-            // Output parameters - specify output path and trim settings
-            var outputParams = new List<string>
-        {
-            $"'output_path': '{outputFile.Replace("\\", "\\\\").Replace("'", "\\'")}'",
-            "'use_gpu': true",
-            "'audio': true"
-        };
+            // Build output parameters object manually with single quotes and double braces
+            var paramParts = new List<string>();
+            paramParts.Add($"'output_path': '{outputFile}'");
+            paramParts.Add("'use_gpu': true");
+            paramParts.Add("'audio': true");
 
             // Add trim settings if we have time ranges
             if (subclip.StartTime != TimeSpan.Zero || subclip.EndTime != TimeSpan.Zero)
             {
-                outputParams.Add($"'trim_start': {subclip.StartTime.TotalSeconds}");
+                paramParts.Add($"'trim_start': {subclip.StartTime.TotalSeconds}");
                 if (subclip.EndTime != TimeSpan.Zero)
                 {
-                    outputParams.Add($"'trim_end': {subclip.EndTime.TotalSeconds}");
+                    paramParts.Add($"'trim_end': {subclip.EndTime.TotalSeconds}");
                 }
             }
 
-            args.Add("-p");
-            args.Add($"\"{{ {string.Join(", ", outputParams)} }}\"");
+            // Format JSON with single quotes and double braces like their documentation
+            string jsonParams = "{{ " + string.Join(", ", paramParts) + " }}";
+            args.Add("--out-params");
+            args.Add($"{jsonParams}");
+
+            //Suffix
+            string outputFileName = Path.GetFileName(outputFile);
+            string inputFileName = Path.GetFileName(subclip.VideoFile);
+            string suffix = outputFileName.StartsWith(inputFileName)
+                ? outputFileName.Substring(inputFileName.Length)
+                : "_" + outputFileName;
 
             return string.Join(" ", args);
         }
 
         private async Task RunGyroflowCli(string arguments)
         {
-            var startInfo = new ProcessStartInfo
+            Trace.WriteLine($"Running: {_gyroflowExePath} {arguments}");
+
+            var stdOutBuffer = new StringBuilder();
+            var stdErrBuffer = new StringBuilder();
+
+            var processStartInfo = new ProcessStartInfo
             {
                 FileName = _gyroflowExePath,
                 Arguments = arguments,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
 
-            Trace.WriteLine($"Running: {_gyroflowExePath} {arguments}");
+            using var process = new Process { StartInfo = processStartInfo };
 
-            using var process = Process.Start(startInfo);
+            // Handle output data
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                {
+                    stdOutBuffer.AppendLine(e.Data);
+                    Trace.WriteLine($"Output: {e.Data}");
+                }
+            };
 
-            // Read output asynchronously to show progress
-            var outputTask = ReadOutputAsync(process.StandardOutput);
-            var errorTask = ReadOutputAsync(process.StandardError);
+            // Handle error data
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                {
+                    stdErrBuffer.AppendLine(e.Data);
+                    Trace.WriteLine($"Error: {e.Data}");
+                }
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
 
             await process.WaitForExitAsync();
 
-            var output = await outputTask;
-            var error = await errorTask;
-
             if (process.ExitCode != 0)
             {
-                Trace.WriteLine($"Gyroflow CLI failed with exit code {process.ExitCode}");
-                if (!string.IsNullOrEmpty(error))
-                    Trace.WriteLine($"Error: {error}");
-                throw new Exception($"Gyroflow CLI failed with exit code {process.ExitCode}");
+                string error = stdErrBuffer.ToString().Trim();
+                string msg = $"Gyroflow CLI failed with exit code {process.ExitCode}; Error: {error}";
+                throw new Exception(msg);
             }
-        }
-
-        private async Task<string> ReadOutputAsync(StreamReader reader)
-        {
-            var output = "";
-            string line;
-            while ((line = await reader.ReadLineAsync()) != null)
-            {
-                Trace.WriteLine(line); // Show real-time output
-                output += line + Environment.NewLine;
-            }
-            return output;
         }
 
         private string GetGyroflowInstallationPath()
@@ -189,70 +283,6 @@ namespace OpenFrame.Core.Gyroflow
                 return defaultPath;
             }
             return null;
-        }
-    }
-
-    // Usage example
-    public class Program
-    {
-        public static async Task Main(string[] args)
-        {
-            // Option 1: Use default settings (no .gyroflow file)
-            var extractorDefault = new GyroflowSubclipExtractor(
-                outputDirectory: @"D:\Output\Stabilized\"
-            );
-
-            // Option 2: Use custom settings file
-            var extractorCustom = new GyroflowSubclipExtractor(
-                outputDirectory: @"D:\Output\Stabilized\",
-                settingsFile: @"D:\Settings\my_settings.gyroflow"
-            );
-
-            var subclips = new List<GyroflowSubclipExtractor.SubclipInfo>
-        {
-            new GyroflowSubclipExtractor.SubclipInfo
-            {
-                VideoFile = @"D:\Videos\FileA.mp4",
-                StartTime = TimeSpan.FromSeconds(20),
-                EndTime = TimeSpan.FromSeconds(45),
-                OutputName = "FileA_clip1.mp4"
-            },
-            new GyroflowSubclipExtractor.SubclipInfo
-            {
-                VideoFile = @"D:\Videos\FileB.mp4",
-                StartTime = TimeSpan.FromSeconds(38),
-                EndTime = TimeSpan.FromSeconds(83), // 1:23
-                OutputName = "FileB_clip1.mp4"
-            },
-            new GyroflowSubclipExtractor.SubclipInfo
-            {
-                VideoFile = @"D:\Videos\FileB.mp4",
-                StartTime = TimeSpan.FromSeconds(75), // 1:15
-                EndTime = TimeSpan.FromSeconds(157), // 2:37
-                OutputName = "FileB_clip2.mp4"
-            }
-        };
-
-            try
-            {
-                // Use custom settings extractor
-                var outputFiles = await extractorCustom.ExtractSubclips(
-                    subclips,
-                    overwrite: true,
-                    parallelRenders: 2
-                );
-
-                Trace.WriteLine("Extraction completed successfully!");
-                Trace.WriteLine("Output files:");
-                foreach (var file in outputFiles)
-                {
-                    Trace.WriteLine($"  - {file}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Error: {ex.Message}");
-            }
         }
     }
 }

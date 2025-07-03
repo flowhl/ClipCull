@@ -7,7 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Newtonsoft.Json.Linq;
+using OpenFrame.Core;
 using OpenFrame.Core.Gyroflow;
+using OpenFrame.Extensions;
 using static OpenFrame.Core.Gyroflow.GyroflowSubclipExtractor;
 using Application = System.Windows.Application;
 using Button = System.Windows.Controls.Button;
@@ -26,7 +29,14 @@ namespace OpenFrame.Controls
         public GyroflowRenderQueueControl()
         {
             InitializeComponent();
+            GyroFlowRenderQueue.Subclips.CollectionChanged += Subclips_CollectionChanged;
+            UpdateUI();
             DataContext = this;
+        }
+
+        private void Subclips_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            UpdateUI();
         }
 
         public bool IsRendering
@@ -38,7 +48,7 @@ namespace OpenFrame.Controls
                 OnPropertyChanged();
 
                 // Update button state
-                StartRenderButton.IsEnabled = !value && GyroFlowRenderQueue.Subclips.Count > 0;
+                UpdateUI();
             }
         }
 
@@ -46,45 +56,25 @@ namespace OpenFrame.Controls
 
         public bool IsQueueEmpty => QueueCount == 0;
 
+        private void UpdateUI()
+        {
+            StartRenderButton.IsEnabled = !IsRendering && GyroFlowRenderQueue.Subclips.Count > 0;
+            OnPropertyChanged(nameof(QueueCount));
+            OnPropertyChanged(nameof(IsQueueEmpty));
+        }
+
         private async void StartRenderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (GyroFlowRenderQueue.Subclips.Count == 0)
-            {
-                MessageBox.Show("No items in the render queue.", "Render Queue", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
             IsRendering = true;
 
             try
             {
-                // Create a copy of the queue items to process
-                var itemsToRender = GyroFlowRenderQueue.Subclips.ToList();
-
-                // TODO: Replace this with actual Gyroflow rendering
-                // For now, simulate rendering with Thread.Sleep as requested
-                await Task.Run(() =>
-                {
-                    foreach (var item in itemsToRender)
-                    {
-                        // Simulate processing time per item
-                        Thread.Sleep(2000); // Replace with actual rendering call
-
-                        // Remove completed item from queue (on UI thread)
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            GyroFlowRenderQueue.Dequeue(item);
-                            OnPropertyChanged(nameof(QueueCount));
-                            OnPropertyChanged(nameof(IsQueueEmpty));
-                        });
-                    }
-                });
-
-                MessageBox.Show($"Successfully rendered {itemsToRender.Count} clips!", "Render Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                await GyroFlowRenderQueue.RenderAllItemsInQueue();
+                Logger.LogSuccess("All items in the render queue have been processed.", "GyroFlow Render Queue");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Rendering failed: {ex.Message}", "Render Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.LogError("An error occurred while processing the render queue.", ex, "GyroFlow Render Queue");
             }
             finally
             {

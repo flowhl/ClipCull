@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         Logger.Init();
+        SettingsHandler.Initialize();
         Directory.CreateDirectory(Globals.ExternalPath);
         try
         {

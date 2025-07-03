@@ -445,12 +445,15 @@ namespace OpenFrame.Controls
 
             foreach (var clip in selectedClips)
             {
+                TimeSpan startTime = TimeSpan.FromMilliseconds(clip.StartTimeMs);
+                TimeSpan endTime = TimeSpan.FromMilliseconds(clip.EndTimeMs);
+
                 var subclipInfo = new SubclipInfo()
                 {
                     VideoFile = clip.VideoFilePath,
                     StartTime = TimeSpan.FromMilliseconds(clip.StartTimeMs),
                     EndTime = TimeSpan.FromMilliseconds(clip.EndTimeMs),
-                    OutputName = $"{clip.VideoFileName}_{clip.ClipTitle}.mp4"
+                    OutputName = $"{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}_stabilized.mp4"
                 };
                 try
                 {
