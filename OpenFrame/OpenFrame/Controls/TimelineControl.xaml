@@ -89,6 +89,7 @@
                        x:Name="SetInPointButton"
                        Click="SetInPointButton_Click"
                        Style="{StaticResource timeline-button-in}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Set In Point (I)"
                        Margin="0,0,4,0">
                     <materialDesign:PackIcon Kind="SkipPrevious" 
@@ -100,6 +101,7 @@
                        x:Name="SetOutPointButton"
                        Click="SetOutPointButton_Click"
                        Style="{StaticResource timeline-button-out}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Set Out Point (O)"
                        Margin="0,0,4,0">
                     <materialDesign:PackIcon Kind="SkipNext" 
@@ -111,6 +113,7 @@
                        x:Name="ClearInOutButton"
                        Click="ClearInOutButton_Click"
                        Style="{StaticResource timeline-button}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Clear In/Out Points"
                        Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
@@ -129,6 +132,7 @@
                           Width="1" 
                           Height="20"
                           Fill="{StaticResource BorderBrush}" 
+                          Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                           Margin="0,0,8,0"/>
 
                 <!-- SubClip Controls -->
@@ -136,6 +140,7 @@
                        x:Name="StartSubClipButton"
                        Click="StartSubClipButton_Click"
                        Style="{StaticResource timeline-button-subclip}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Start SubClip ([)"
                        Margin="0,0,4,0">
                     <materialDesign:PackIcon Kind="Play" 
@@ -147,6 +152,7 @@
                        x:Name="FinishSubClipButton"
                        Click="FinishSubClipButton_Click"
                        Style="{StaticResource timeline-button-subclip}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Finish SubClip (])"
                        Margin="0,0,8,0">
                     <materialDesign:PackIcon Kind="Stop" 
@@ -162,6 +168,7 @@
                        x:Name="AddMarkerButton"
                        Click="AddMarkerButton_Click"
                        Style="{StaticResource timeline-button}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Add Marker (M)"
                        Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal">
@@ -180,6 +187,7 @@
                        x:Name="ClearAllButton"
                        Click="ClearAllButton_Click"
                        Style="{StaticResource destructive}"
+                       Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        Height="32"
                        ToolTip="Clear All Markers and Clips">
                     <StackPanel Orientation="Horizontal">

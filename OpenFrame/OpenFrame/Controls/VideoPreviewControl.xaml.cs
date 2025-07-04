@@ -86,6 +86,32 @@ namespace OpenFrame.Controls
                 }
             }
         }
+
+        private bool _readonly;
+        public bool Readonly
+        {
+            get
+            {
+                return _readonly;
+            }
+            set
+            {
+                _readonly = value;
+                OnPropertyChanged(nameof(Readonly));
+            }
+        }
+
+        private UserMetadataContent _userMetadata;
+        public UserMetadataContent UserMetadata
+        {
+            get => _userMetadata;
+            set
+            {
+                _userMetadata = value;
+                OnPropertyChanged(nameof(UserMetadata));
+            }
+        }
+
         #endregion
 
         #region Events
@@ -309,7 +335,6 @@ namespace OpenFrame.Controls
             FrameForwardButton.IsEnabled = enabled;
             Skip10BackwardButton.IsEnabled = enabled;
             Skip10ForwardButton.IsEnabled = enabled;
-            AddMarkerButton.IsEnabled = enabled;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -432,14 +457,6 @@ namespace OpenFrame.Controls
                 var currentTime = MediaPlayer.Time;
                 var newTime = Math.Min(MediaPlayer.Length, currentTime + 10000); // 10 seconds = 10000ms
                 MediaPlayer.Time = newTime;
-            }
-        }
-
-        private void AddMarkerButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (MediaPlayer?.Media != null)
-            {
-                timelineControl.AddMarkerAtCurrentTime($"Marker {timelineControl.Markers.Count + 1}");
             }
         }
 

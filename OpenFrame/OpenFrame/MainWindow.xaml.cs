@@ -214,6 +214,7 @@ public partial class MainWindow : Window
         sidecarContent.Markers = VideoPreview.timelineControl.Markers.ToList();
         sidecarContent.InPoint = VideoPreview.timelineControl.InPoint;
         sidecarContent.OutPoint = VideoPreview.timelineControl.OutPoint;
+        sidecarContent.UserMetadata = VideoPreview.UserMetadata;
 
         return sidecarContent;
     }
@@ -258,6 +259,7 @@ public partial class MainWindow : Window
 
         VideoPreview.timelineControl.InPoint = sidecarContent.InPoint;
         VideoPreview.timelineControl.OutPoint = sidecarContent.OutPoint;
+        VideoPreview.UserMetadata = sidecarContent.UserMetadata;
 
         UpdateStatus("Sidecar content applied successfully.", false);
     }

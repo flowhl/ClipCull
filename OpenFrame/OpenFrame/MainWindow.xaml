@@ -252,7 +252,7 @@
                     ContentId="preview"
                     CanClose="False"
                     IsSelected="True">
-                                        <uc:VideoPreviewControl x:Name="clipPreview"/>
+                                        <uc:VideoPreviewControl x:Name="clipPreview" Readonly="True"/>
                                     </xcad:LayoutDocument>
                                 </xcad:LayoutDocumentPane>
                             </xcad:LayoutPanel>

@@ -118,6 +118,20 @@ namespace OpenFrame.Controls
             }
         }
 
+        private bool _readonly;
+        public bool Readonly
+        {
+            get
+            {
+                return _readonly;
+            }
+            set
+            {
+                _readonly = value;
+                OnPropertyChanged(nameof(Readonly));
+            }
+        }
+
         public ObservableCollection<Marker> Markers { get; }
         public ObservableCollection<SubClip> SubClips { get; }
         #endregion
@@ -134,6 +148,7 @@ namespace OpenFrame.Controls
         public TimelineControl()
         {
             InitializeComponent();
+            OnPropertyChanged(nameof(Readonly));
             Markers = new ObservableCollection<Marker>();
             SubClips = new ObservableCollection<SubClip>();
 
@@ -177,6 +192,8 @@ namespace OpenFrame.Controls
 
         public void ShowMarkerEditDialog(Marker marker)
         {
+            if (Readonly)
+                return;
             var dialog = new MarkerEditDialog(marker, CurrentTime)
             {
                 Owner = Window.GetWindow(this)
@@ -267,6 +284,8 @@ namespace OpenFrame.Controls
 
         public void ShowClipPointEditDialog(ClipPoint clipPoint)
         {
+            if (Readonly)
+                return;
             var dialog = new ClipPointEditDialog(clipPoint, CurrentTime)
             {
                 Owner = Window.GetWindow(this)
@@ -286,6 +305,8 @@ namespace OpenFrame.Controls
 
         public void ShowSubClipEditDialog(SubClip subClip)
         {
+            if (Readonly)
+                return;
             var dialog = new SubClipEditDialog(subClip, CurrentTime)
             {
                 Owner = Window.GetWindow(this)
@@ -624,6 +645,7 @@ namespace OpenFrame.Controls
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
         #endregion
 
         #region Event Handlers
