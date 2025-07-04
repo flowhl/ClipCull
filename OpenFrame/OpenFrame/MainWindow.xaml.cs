@@ -93,6 +93,7 @@ public partial class MainWindow : Window
         LayoutManager.InitializeLayoutManagement(this);
 
         VideoMetadataViewer.DataContext = VideoPreview;
+        UserMetadataViewer.DataContext = VideoPreview;
         CheckForFfmpeg();
     }
 

@@ -20,7 +20,11 @@ namespace OpenFrame.Core
 
             var sidecarContent = Globals.DeserializeFromFile<SidecarContent>(sidecarPath);
             if (sidecarContent != null)
+            {
+                if (sidecarContent.UserMetadata == null)
+                    sidecarContent.UserMetadata = new UserMetadataContent();
                 return sidecarContent;
+            }
 
             Logger.LogError($"Failed to load sidecar content from {Path.GetFileName(sidecarPath)}");
             throw new InvalidDataException("Invalid sidecar content format.");

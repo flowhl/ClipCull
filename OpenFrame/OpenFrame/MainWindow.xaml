@@ -154,6 +154,15 @@
                                             <uc:VideoMetadataControl x:Name="VideoMetadataViewer" Metadata="{Binding Path=CurrentVideoMetadata}"/>
                                         </Border>
                                     </xcad:LayoutAnchorable>
+                                    
+                                    <xcad:LayoutAnchorable Title="Metadata" 
+                                              ContentId="userMetadata"
+                                              CanClose="False"
+                                              CanHide="True">
+                                        <Border Style="{StaticResource card}" Margin="4" x:Name="UserMetadataContent">
+                                            <uc:UserMetadataControl UserMetadata="{Binding Path=UserMetadata}" x:Name="UserMetadataViewer"/>
+                                        </Border>
+                                    </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
 
                             </xcad:LayoutPanel>

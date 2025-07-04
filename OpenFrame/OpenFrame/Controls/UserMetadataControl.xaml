@@ -1,0 +1,257 @@
+﻿<UserControl x:Class="OpenFrame.Controls.UserMetadataControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="400">
+    <UserControl.Resources>
+        <Style x:Key="MetadataTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="{StaticResource FontSans}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                          Focusable="false" 
+                                          HorizontalScrollBarVisibility="Hidden" 
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="true">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MetadataLabelStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="{StaticResource FontSans}"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,8,0,4"/>
+        </Style>
+
+        <Style x:Key="StarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="{TemplateBinding Background}">
+                            <materialDesign:PackIcon x:Name="StarIcon" 
+                                                   Kind="Star" 
+                                                   Width="20" Height="20"
+                                                   Foreground="{StaticResource MutedForegroundBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="StarIcon" Property="Foreground" Value="#FFFBBF24"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                <Setter TargetName="StarIcon" Property="Foreground" Value="#FFFBBF24"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PickButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="{TemplateBinding Background}">
+                            <materialDesign:PackIcon x:Name="FlagIcon" 
+                                                   Kind="Flag" 
+                                                   Width="24" Height="24"
+                                                   Foreground="{StaticResource MutedForegroundBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FF22C55E"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FF22C55E"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="False">
+                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FFEF4444"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TagTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MetadataTextBoxStyle}">
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="MinHeight" Value="60"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer 
+                  x:Name="svMain"
+                  VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled"
+                  Background="{StaticResource BackgroundBrush}">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title -->
+            <Label Grid.Row="0" Content="Title" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="1" x:Name="TitleTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Description -->
+            <Label Grid.Row="2" Content="Description" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="3" x:Name="DescriptionTextBox" Style="{StaticResource TagTextBoxStyle}"/>
+
+            <!-- Author -->
+            <Label Grid.Row="4" Content="Author" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="5" x:Name="AuthorTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Location -->
+            <Label Grid.Row="6" Content="Location" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="7" x:Name="LocationTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Reel -->
+            <Label Grid.Row="8" Content="Reel" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="9" x:Name="ReelTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Shot -->
+            <Label Grid.Row="10" Content="Shot" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="11" x:Name="ShotTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Camera -->
+            <Label Grid.Row="12" Content="Camera" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="13" x:Name="CameraTextBox" Style="{StaticResource MetadataTextBoxStyle}"/>
+
+            <!-- Rating -->
+            <Label Grid.Row="14" Content="Rating" Style="{StaticResource MetadataLabelStyle}"/>
+            <StackPanel Grid.Row="15" Orientation="Horizontal" Margin="0,4">
+                <Button x:Name="Star1" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="1"/>
+                <Button x:Name="Star2" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="2"/>
+                <Button x:Name="Star3" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="3"/>
+                <Button x:Name="Star4" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="4"/>
+                <Button x:Name="Star5" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="5"/>
+            </StackPanel>
+
+            <!-- Pick Status -->
+            <Label Grid.Row="16" Content="Pick Status" Style="{StaticResource MetadataLabelStyle}"/>
+            <StackPanel Grid.Row="17" Orientation="Horizontal" Margin="0,4">
+                <Button x:Name="PickedButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="True" 
+                        ToolTip="Mark as Picked"/>
+                <Button x:Name="RejectedButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="False" 
+                        ToolTip="Mark as Rejected">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="{TemplateBinding Background}">
+                                <materialDesign:PackIcon x:Name="RejectIcon" 
+                                                       Kind="Close" 
+                                                       Width="24" Height="24"
+                                                       Foreground="{StaticResource MutedForegroundBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="RejectIcon" Property="Foreground" Value="#FFEF4444"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="False">
+                                    <Setter TargetName="RejectIcon" Property="Foreground" Value="#FFEF4444"/>
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button x:Name="NoneButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="{x:Null}" 
+                        ToolTip="Clear Pick Status">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="{TemplateBinding Background}">
+                                <materialDesign:PackIcon x:Name="NoneIcon" 
+                                                       Kind="CircleOutline" 
+                                                       Width="20" Height="20"
+                                                       Foreground="{StaticResource MutedForegroundBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="NoneIcon" Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="{x:Null}">
+                                    <Setter TargetName="NoneIcon" Property="Kind" Value="Circle"/>
+                                    <Setter TargetName="NoneIcon" Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+
+            <!-- Tags -->
+            <Label Grid.Row="18" Content="Tags" Style="{StaticResource MetadataLabelStyle}"/>
+            <TextBox Grid.Row="19" x:Name="TagsTextBox" Style="{StaticResource TagTextBoxStyle}" 
+                     ToolTip="Enter tags separated by commas"/>
+
+        </Grid>
+    </ScrollViewer>
+</UserControl>
