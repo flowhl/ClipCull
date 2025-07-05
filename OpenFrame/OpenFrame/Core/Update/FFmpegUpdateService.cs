@@ -53,7 +53,7 @@ namespace OpenFrame.Core.Update
                 }
 
                 Trace.WriteLine("FFmpeg installation completed successfully.");
-                Logger.LogInfo($"FFmpeg updated successfully. Installed: {string.Join(", ", _requiredExecutables)}", "FFmpeg update completed");
+                Logger.LogSuccess($"FFmpeg updated successfully. Installed: {string.Join(", ", _requiredExecutables)}", "FFmpeg update completed");
                 return true;
             }
             catch (Exception ex)

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:OpenFrame.Controls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
              x:Name="UserControlRoot">
@@ -12,15 +13,17 @@
         <!-- Video Clip Item Data Template -->
         <DataTemplate x:Key="VideoClipItemTemplate">
             <Border Background="{StaticResource SecondaryBrush}"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Margin="2"
-                    Padding="8">
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Margin="2"
+            Padding="8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <!-- Checkbox -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- Icon -->
                         <ColumnDefinition Width="120"/>
                         <!-- Thumbnail -->
                         <ColumnDefinition Width="*"/>
@@ -31,177 +34,209 @@
 
                     <!-- Selection Checkbox -->
                     <CheckBox Grid.Column="0"
-                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                              VerticalAlignment="Top"
-                              Margin="0,0,8,0"
-                              ToolTip="Select this clip"/>
+                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                      VerticalAlignment="Top"
+                      Margin="0,0,8,0"
+                      ToolTip="Select this clip"/>
+
+                    <!-- Clip Type Icon -->
+                    <Border Grid.Column="1"
+                    Width="24"
+                    Height="24"
+                    Background="Transparent"
+                    VerticalAlignment="Top"
+                    Margin="0,0,8,0">
+                        <Grid>
+                            <!-- Main Clip Icon -->
+                            <materialDesign:PackIcon x:Name="MainClipIcon"
+                                            Kind="Video"
+                                            Width="16"
+                                            Height="16"
+                                            Foreground="{StaticResource AccentBrush}"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            ToolTip="Main Clip">
+                                <materialDesign:PackIcon.Style>
+                                    <Style TargetType="materialDesign:PackIcon">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMainClip}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </materialDesign:PackIcon.Style>
+                            </materialDesign:PackIcon>
+
+                            <!-- Sub Clip Icon -->
+                            <materialDesign:PackIcon x:Name="SubClipIcon"
+                                            Kind="ContentCut"
+                                            Width="16"
+                                            Height="16"
+                                            Foreground="{StaticResource MutedForegroundBrush}"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            ToolTip="Sub Clip">
+                                <materialDesign:PackIcon.Style>
+                                    <Style TargetType="materialDesign:PackIcon">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSubClip}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </materialDesign:PackIcon.Style>
+                            </materialDesign:PackIcon>
+                        </Grid>
+                    </Border>
 
                     <!-- Thumbnail -->
-                    <Border Grid.Column="1"
-                            Background="{StaticResource MutedBrush}"
-                            CornerRadius="4"
-                            Width="110"
-                            Height="62"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top">
+                    <Border Grid.Column="2"
+                    Background="{StaticResource MutedBrush}"
+                    CornerRadius="4"
+                    Width="110"
+                    Height="62"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top">
                         <Grid>
                             <!-- Thumbnail Image -->
                             <Image x:Name="ThumbnailImage"
-                                   Source="{Binding ThumbnailPath}"
-                                   Stretch="UniformToFill"
-                                   StretchDirection="Both"
-                                   RenderOptions.BitmapScalingMode="HighQuality">
+                           Source="{Binding ThumbnailPath}"
+                           Stretch="UniformToFill"
+                           StretchDirection="Both"
+                           RenderOptions.BitmapScalingMode="HighQuality">
                                 <Image.Style>
                                     <Style TargetType="Image">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            <DataTrigger Binding="{Binding IsLoadingThumbnail}" Value="True">
+                                                <Setter Property="Visibility" Value="Hidden"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Image.Style>
                             </Image>
 
-                            <!-- Placeholder Icon when no thumbnail -->
-                            <TextBlock Text="📹"
-                                      FontSize="24"
-                                      Foreground="{StaticResource MutedForegroundBrush}"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                            <!-- Loading Indicator -->
+                            <ProgressBar x:Name="ThumbnailProgress"
+                                IsIndeterminate="True"
+                                Width="40"
+                                Height="4"
+                                Foreground="{StaticResource AccentBrush}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                                <ProgressBar.Style>
+                                    <Style TargetType="ProgressBar">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="">
+                                            <DataTrigger Binding="{Binding IsLoadingThumbnail}" Value="True">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                                </ProgressBar.Style>
+                            </ProgressBar>
 
-                            <!-- Loading Indicator -->
-                            <ProgressBar IsIndeterminate="True"
-                                        Width="30"
-                                        Height="4"
-                                        Background="Transparent"
-                                        Foreground="{StaticResource AccentBrush}"
-                                        VerticalAlignment="Bottom"
-                                        Margin="4"
-                                        Visibility="{Binding IsLoadingThumbnail, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <!-- Duration Badge -->
+                            <Border Background="#80000000"
+                            CornerRadius="2"
+                            Padding="4,2"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="4">
+                                <TextBlock Text="{Binding Duration}"
+                                  FontFamily="{StaticResource FontMono}"
+                                  FontSize="10"
+                                  Foreground="White"
+                                  FontWeight="Medium"/>
+                            </Border>
+
+                            <!-- Color Stripe -->
+                            <Rectangle Fill="{Binding ClipColorBrush}"
+                              Height="4"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Stretch"/>
                         </Grid>
                     </Border>
 
                     <!-- Content -->
-                    <StackPanel Grid.Column="2" 
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Top">
+                    <Grid Grid.Column="3"
+                  Margin="12,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                        <!-- File Header (only show for first clip of each file) -->
-                        <Border x:Name="FileHeader"
-                                Background="{StaticResource AccentBrush}"
-                                CornerRadius="4"
-                                Padding="8,4"
-                                Margin="0,0,0,6"
-                                Visibility="{Binding IsFirstClipOfFile, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                        <!-- Title -->
+                        <TextBlock Grid.Row="0"
+                          Text="{Binding ClipTitle}"
+                          FontFamily="{StaticResource FontSans}"
+                          FontSize="14"
+                          FontWeight="Medium"
+                          Foreground="{StaticResource ForegroundBrush}"
+                          TextTrimming="CharacterEllipsis"
+                          MaxWidth="300"/>
 
-                                <TextBlock Grid.Column="0"
-                                          Text="📁"
-                                          FontSize="12"
-                                          Foreground="{StaticResource AccentForegroundBrush}"
-                                          VerticalAlignment="Center"
-                                          Margin="0,0,6,0"/>
+                        <!-- File name (show only for first clip of file) -->
+                        <TextBlock Grid.Row="1"
+                          Text="{Binding VideoFileName}"
+                          FontFamily="{StaticResource FontSans}"
+                          FontSize="12"
+                          Foreground="{StaticResource MutedForegroundBrush}"
+                          TextTrimming="CharacterEllipsis"
+                          MaxWidth="300"
+                          Margin="0,2,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsFirstClipOfFile}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
-                                <TextBlock Grid.Column="1"
-                                          Text="{Binding VideoFileName}"
-                                          Foreground="{StaticResource AccentForegroundBrush}"
-                                          FontWeight="SemiBold"
-                                          FontSize="13"
-                                          TextTrimming="CharacterEllipsis"
-                                          VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Clip Title -->
-                        <TextBlock Text="{Binding ClipTitle}"
-                                   FontFamily="{StaticResource FontSans}"
-                                   FontSize="14"
-                                   FontWeight="Medium"
-                                   Foreground="{StaticResource ForegroundBrush}"
-                                   TextTrimming="CharacterEllipsis"
-                                   Margin="0,0,0,4"/>
-
-                        <!-- Clip Details -->
-                        <StackPanel Orientation="Horizontal" 
-                                   Margin="0,0,0,4">
-
-                            <!-- Duration -->
-                            <TextBlock Text="⏱"
-                                      FontSize="10"
-                                      Foreground="{StaticResource MutedForegroundBrush}"
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,4,0"/>
-
-                            <TextBlock Text="{Binding Duration}"
-                                       FontFamily="{StaticResource FontSans}"
-                                       FontSize="12"
-                                       Foreground="{StaticResource MutedForegroundBrush}"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,12,0"/>
-
-                            <!-- Start/End Times -->
-                            <TextBlock FontFamily="{StaticResource FontSans}"
-                                       FontSize="12"
-                                       Foreground="{StaticResource MutedForegroundBrush}"
-                                       VerticalAlignment="Center">
-                                <Run Text="{Binding StartTimeDisplay}" Foreground="#FF22C55E"/>
-                                <Run Text=" - " Foreground="{StaticResource MutedForegroundBrush}"/>
-                                <Run Text="{Binding EndTimeDisplay}" Foreground="#FFEF4444"/>
-                            </TextBlock>
-                        </StackPanel>
-
-                        <!-- Clip Color Indicator -->
-                        <Border Background="{Binding ClipColorBrush}"
-                                Width="60"
-                                Height="4"
-                                CornerRadius="2"
-                                Margin="0,4,0,0"
-                                HorizontalAlignment="Left"/>
-                    </StackPanel>
+                        <!-- Time Range -->
+                        <TextBlock Grid.Row="2"
+                          FontFamily="{StaticResource FontMono}"
+                          FontSize="12"
+                          Foreground="{StaticResource MutedForegroundBrush}"
+                          Margin="0,4,0,0">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} - {1}">
+                                    <Binding Path="StartTimeDisplay"/>
+                                    <Binding Path="EndTimeDisplay"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Grid>
 
                     <!-- Action Buttons -->
-                    <StackPanel Grid.Column="3"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Top"
-                                Margin="8,0,0,0">
+                    <StackPanel Grid.Column="4"
+                       Orientation="Horizontal"
+                       VerticalAlignment="Top"
+                       Margin="8,0,0,0">
 
                         <!-- Show in Explorer Button -->
                         <Button x:Name="ShowInExplorerButton"
-                                Style="{StaticResource icon-sm}"
-                                ToolTip="Show in Explorer"
-                                Click="ShowInExplorerButton_Click"
-                                Tag="{Binding}"
-                                Margin="0,0,4,0">
+                        Style="{StaticResource icon-sm}"
+                        ToolTip="Show in Explorer"
+                        Click="ShowInExplorerButton_Click"
+                        Tag="{Binding}"
+                        Margin="0,0,4,0">
                             <TextBlock Text="📁" FontSize="12"/>
                         </Button>
 
                         <!-- Open with Default Program Button -->
                         <Button x:Name="OpenWithDefaultButton"
-                                Style="{StaticResource icon-sm}"
-                                ToolTip="Open with default program"
-                                Click="OpenWithDefaultButton_Click"
-                                Tag="{Binding}">
+                        Style="{StaticResource icon-sm}"
+                        ToolTip="Open with default program"
+                        Click="OpenWithDefaultButton_Click"
+                        Tag="{Binding}">
                             <TextBlock Text="▶" FontSize="12"/>
                         </Button>
                     </StackPanel>

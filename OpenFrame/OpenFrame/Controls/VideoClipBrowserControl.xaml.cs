@@ -293,10 +293,21 @@ namespace OpenFrame.Controls
                         try
                         {
                             var sidecarContent = SidecarService.GetSidecarContent(videoFile);
+                            var fileClips = new List<VideoClipInfo>();
+
+                            // Check if there's a main clip (InPoint/OutPoint)
+                            if (sidecarContent?.InPoint != null && sidecarContent?.OutPoint != null)
+                            {
+                                var mainClipInfo = CreateMainClipInfo(videoFile, sidecarContent);
+                                if (mainClipInfo != null)
+                                {
+                                    fileClips.Add(mainClipInfo);
+                                }
+                            }
+
+                            // Add subclips if they exist
                             if (sidecarContent?.SubClips != null && sidecarContent.SubClips.Any())
                             {
-                                var fileClips = new List<VideoClipInfo>();
-
                                 foreach (var subClip in sidecarContent.SubClips)
                                 {
                                     var clipInfo = new VideoClipInfo
@@ -304,32 +315,31 @@ namespace OpenFrame.Controls
                                         VideoFilePath = videoFile,
                                         VideoFileName = Path.GetFileName(videoFile),
                                         SubClip = subClip,
-                                        ClipTitle = !string.IsNullOrEmpty(subClip.Title) ? subClip.Title : $"Clip {subClip.Id.ToString().Substring(0, 8)}",
+                                        ClipTitle = !string.IsNullOrEmpty(subClip.Title) ?
+                                            subClip.Title : $"Clip {subClip.Id.ToString().Substring(0, 8)}",
                                         StartTimeMs = subClip.StartTime,
                                         EndTimeMs = subClip.EndTime,
                                         Duration = subClip.DurationDisplay,
                                         StartTimeDisplay = subClip.StartTimeDisplay,
                                         EndTimeDisplay = subClip.EndTimeDisplay,
                                         ClipColor = subClip.Color,
+                                        ClipType = ClipType.SubClip,
                                         IsSelected = false,
-                                        // Don't access ColorBrush on background thread - let it be created on UI thread
                                         IsLoadingThumbnail = true
                                     };
 
                                     // Subscribe to selection changes
                                     clipInfo.PropertyChanged += ClipInfo_PropertyChanged;
-
                                     fileClips.Add(clipInfo);
-                                    clips.Add(clipInfo);
                                 }
+                            }
 
-                                // Mark the first clip of each file
-                                if (fileClips.Any())
-                                {
-                                    fileClips[0].IsFirstClipOfFile = true;
-                                }
-
+                            // Mark the first clip of each file (whether main or sub)
+                            if (fileClips.Any())
+                            {
+                                fileClips[0].IsFirstClipOfFile = true;
                                 processedFiles[videoFile] = fileClips;
+                                clips.AddRange(fileClips);
                             }
                         }
                         catch (Exception ex)
@@ -340,18 +350,20 @@ namespace OpenFrame.Controls
                     }
                 });
 
-                // Update UI on main thread
+
+                // Update UI on UI thread
                 Dispatcher.Invoke(() =>
                 {
                     VideoClips.Clear();
-                    foreach (var clip in clips.OrderBy(c => c.VideoFileName).ThenBy(c => c.StartTimeMs))
+                    foreach (var clip in clips)
                     {
                         VideoClips.Add(clip);
                     }
 
+                    StatusText = $"Loaded {clips.Count} clips from {processedFiles.Count} video files";
                     OnPropertyChanged(nameof(ClipCount));
+                    OnPropertyChanged(nameof(IsEmpty));
                     OnPropertyChanged(nameof(SelectedClipCount));
-                    StatusText = $"Loaded {ClipCount} clips from {processedFiles.Count} files";
                 });
 
                 // Load thumbnails asynchronously without blocking
@@ -359,7 +371,51 @@ namespace OpenFrame.Controls
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => StatusText = $"Error: {ex.Message}");
+                Dispatcher.Invoke(() =>
+                {
+                    StatusText = $"Error loading clips: {ex.Message}";
+                });
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Creates a main clip info from InPoint/OutPoint data
+        /// </summary>
+        private VideoClipInfo CreateMainClipInfo(string videoFile, SidecarContent sidecarContent)
+        {
+            try
+            {
+                var startTime = Math.Min(sidecarContent.InPoint.Timestamp, sidecarContent.OutPoint.Timestamp);
+                var endTime = Math.Max(sidecarContent.InPoint.Timestamp, sidecarContent.OutPoint.Timestamp);
+                var duration = endTime - startTime;
+
+                var mainClipInfo = new VideoClipInfo
+                {
+                    VideoFilePath = videoFile,
+                    VideoFileName = Path.GetFileName(videoFile),
+                    SubClip = null, // Main clips don't have a SubClip object
+                    ClipTitle = "Main Clip",
+                    StartTimeMs = startTime,
+                    EndTimeMs = endTime,
+                    Duration = TimeSpan.FromMilliseconds(duration).ToString(@"mm\:ss\.fff"),
+                    StartTimeDisplay = TimeSpan.FromMilliseconds(startTime).ToString(@"mm\:ss\.fff"),
+                    EndTimeDisplay = TimeSpan.FromMilliseconds(endTime).ToString(@"mm\:ss\.fff"),
+                    ClipColor = System.Windows.Media.Colors.DodgerBlue, // Default color for main clips
+                    ClipType = ClipType.MainClip,
+                    IsSelected = false,
+                    IsLoadingThumbnail = true
+                };
+
+                // Subscribe to selection changes
+                mainClipInfo.PropertyChanged += ClipInfo_PropertyChanged;
+
+                return mainClipInfo;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating main clip info for {videoFile}: {ex.Message}");
+                return null;
             }
         }
 
@@ -573,6 +629,21 @@ namespace OpenFrame.Controls
         public string EndTimeDisplay { get; set; }
         public System.Windows.Media.Color ClipColor { get; set; }
         public bool IsFirstClipOfFile { get; set; }
+
+        /// <summary>
+        /// Type of clip (Main or Sub)
+        /// </summary>
+        public ClipType ClipType { get; set; }
+
+        /// <summary>
+        /// Whether this is a main clip (convenience property)
+        /// </summary>
+        public bool IsMainClip => ClipType == ClipType.MainClip;
+
+        /// <summary>
+        /// Whether this is a sub clip (convenience property)
+        /// </summary>
+        public bool IsSubClip => ClipType == ClipType.SubClip;
 
         /// <summary>
         /// Whether this clip is selected via checkbox

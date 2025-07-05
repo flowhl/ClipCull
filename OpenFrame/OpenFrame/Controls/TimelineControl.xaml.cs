@@ -194,6 +194,7 @@ namespace OpenFrame.Controls
         {
             if (Readonly)
                 return;
+
             var dialog = new MarkerEditDialog(marker, CurrentTime)
             {
                 Owner = Window.GetWindow(this)
@@ -286,6 +287,7 @@ namespace OpenFrame.Controls
         {
             if (Readonly)
                 return;
+
             var dialog = new ClipPointEditDialog(clipPoint, CurrentTime)
             {
                 Owner = Window.GetWindow(this)

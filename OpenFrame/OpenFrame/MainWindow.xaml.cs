@@ -80,7 +80,17 @@ public partial class MainWindow : Window
         var seekTo = TimeSpan.FromMilliseconds(selectedClip.StartTimeMs);
         clipPreview.SeekTo(seekTo);
         clipPreview.timelineControl.SubClips.Clear();
-        clipPreview.timelineControl.SubClips.Add(selectedClip.SubClip);
+        clipPreview.timelineControl.InPoint = null;
+        clipPreview.timelineControl.OutPoint = null;
+        if (selectedClip.SubClip != null)
+        {
+            clipPreview.timelineControl.SubClips.Add(selectedClip.SubClip);
+        }
+        else
+        {
+            clipPreview.timelineControl.InPoint = new ClipPoint(selectedClip.StartTimeMs, ClipPointType.InPoint);
+            clipPreview.timelineControl.OutPoint = new ClipPoint(selectedClip.EndTimeMs, ClipPointType.OutPoint);
+        }
     }
 
     private void VideoClipBrowser_ClipSelectionChanged(object? sender, ClipSelectionChangedEventArgs e)
@@ -142,6 +152,10 @@ public partial class MainWindow : Window
 
     private void OpenVideoButton_Click(object sender, RoutedEventArgs e)
     {
+        // Check for unsaved changes before opening a new video
+        if (!AllowNavigation())
+            return;
+
         string title = "Select Video File";
         string filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v|" +
                 "MP4 Files|*.mp4|" +
@@ -166,6 +180,10 @@ public partial class MainWindow : Window
 
     public void LoadVideoFile(string filePath)
     {
+        // Check for unsaved changes before opening a new video
+        if (!AllowNavigation())
+            return;
+
         try
         {
             CurrentFileLabel.Text = $"Loading: {Path.GetFileName(filePath)}";
@@ -205,6 +223,10 @@ public partial class MainWindow : Window
 
     public SidecarContent GetCurrentStateAsSidecar()
     {
+        //Return null if no video is loaded
+        if (VideoPreview.CurrentVideoPath == null)
+            return null;
+
         var sidecarContent = new SidecarContent();
         if (VideoPreview == null || VideoPreview.timelineControl == null)
         {
@@ -263,6 +285,30 @@ public partial class MainWindow : Window
         VideoPreview.UserMetadata = sidecarContent.UserMetadata;
 
         UpdateStatus("Sidecar content applied successfully.", false);
+    }
+
+    /// <summary>
+    /// Checks if the current state of the video preview allows navigation to a new video.
+    /// </summary>
+    /// <returns></returns>
+    public bool AllowNavigation()
+    {
+        SidecarContent currentState = GetCurrentStateAsSidecar();
+        SidecarContent savedState = SidecarService.GetSidecarContent(VideoPreview.CurrentVideoPath);
+        if (currentState != null && !SidecarService.Equals(currentState, savedState))
+        {
+            var result = MessageBox.Show("You have unsaved changes. Do you want to save them before loading a new video?",
+                                         "Unsaved Changes", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.Yes)
+            {
+                SaveSidecarButton_Click(null, null);
+            }
+            else if (result == MessageBoxResult.Cancel)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     #endregion

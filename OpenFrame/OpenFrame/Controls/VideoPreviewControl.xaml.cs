@@ -97,6 +97,8 @@ namespace OpenFrame.Controls
             set
             {
                 _readonly = value;
+                if (timelineControl != null)
+                    timelineControl.Readonly = value;
                 OnPropertyChanged(nameof(Readonly));
             }
         }
