@@ -53,71 +53,6 @@
             <Setter Property="Margin" Value="0,8,0,4"/>
         </Style>
 
-        <Style x:Key="StarButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Width" Value="24"/>
-            <Setter Property="Height" Value="24"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid Background="{TemplateBinding Background}">
-                            <materialDesign:PackIcon x:Name="StarIcon" 
-                                                   Kind="Star" 
-                                                   Width="20" Height="20"
-                                                   Foreground="{StaticResource MutedForegroundBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="StarIcon" Property="Foreground" Value="#FFFBBF24"/>
-                            </Trigger>
-                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                <Setter TargetName="StarIcon" Property="Foreground" Value="#FFFBBF24"/>
-                            </DataTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PickButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid Background="{TemplateBinding Background}">
-                            <materialDesign:PackIcon x:Name="FlagIcon" 
-                                                   Kind="Flag" 
-                                                   Width="24" Height="24"
-                                                   Foreground="{StaticResource MutedForegroundBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FF22C55E"/>
-                            </Trigger>
-                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FF22C55E"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="False">
-                                <Setter TargetName="FlagIcon" Property="Foreground" Value="#FFEF4444"/>
-                            </DataTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="TagTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MetadataTextBoxStyle}">
             <Setter Property="AcceptsReturn" Value="True"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -126,14 +61,12 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer 
-                  x:Name="svMain"
-                  VerticalScrollBarVisibility="Auto" 
+    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                  Name="svMain"
                   HorizontalScrollBarVisibility="Disabled"
                   Background="{StaticResource BackgroundBrush}">
         <Grid Margin="16">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -186,72 +119,47 @@
             <!-- Rating -->
             <Label Grid.Row="14" Content="Rating" Style="{StaticResource MetadataLabelStyle}"/>
             <StackPanel Grid.Row="15" Orientation="Horizontal" Margin="0,4">
-                <Button x:Name="Star1" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="1"/>
-                <Button x:Name="Star2" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="2"/>
-                <Button x:Name="Star3" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="3"/>
-                <Button x:Name="Star4" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="4"/>
-                <Button x:Name="Star5" Style="{StaticResource StarButtonStyle}" Click="Star_Click" Tag="5"/>
+                <Button x:Name="Star1" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="24" Height="24" Margin="2" Click="Star_Click" Tag="1">
+                    <materialDesign:PackIcon x:Name="Star1Icon" Kind="Star" Width="20" Height="20" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
+                </Button>
+                <Button x:Name="Star2" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="24" Height="24" Margin="2" Click="Star_Click" Tag="2">
+                    <materialDesign:PackIcon x:Name="Star2Icon" Kind="Star" Width="20" Height="20" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
+                </Button>
+                <Button x:Name="Star3" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="24" Height="24" Margin="2" Click="Star_Click" Tag="3">
+                    <materialDesign:PackIcon x:Name="Star3Icon" Kind="Star" Width="20" Height="20" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
+                </Button>
+                <Button x:Name="Star4" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="24" Height="24" Margin="2" Click="Star_Click" Tag="4">
+                    <materialDesign:PackIcon x:Name="Star4Icon" Kind="Star" Width="20" Height="20" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
+                </Button>
+                <Button x:Name="Star5" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="24" Height="24" Margin="2" Click="Star_Click" Tag="5">
+                    <materialDesign:PackIcon x:Name="Star5Icon" Kind="Star" Width="20" Height="20" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
+                </Button>
             </StackPanel>
 
             <!-- Pick Status -->
             <Label Grid.Row="16" Content="Pick Status" Style="{StaticResource MetadataLabelStyle}"/>
             <StackPanel Grid.Row="17" Orientation="Horizontal" Margin="0,4">
-                <Button x:Name="PickedButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="True" 
-                        ToolTip="Mark as Picked"/>
-                <Button x:Name="RejectedButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="False" 
-                        ToolTip="Mark as Rejected">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Grid Background="{TemplateBinding Background}">
-                                <materialDesign:PackIcon x:Name="RejectIcon" 
-                                                       Kind="Close" 
-                                                       Width="24" Height="24"
-                                                       Foreground="{StaticResource MutedForegroundBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="RejectIcon" Property="Foreground" Value="#FFEF4444"/>
-                                </Trigger>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="False">
-                                    <Setter TargetName="RejectIcon" Property="Foreground" Value="#FFEF4444"/>
-                                </DataTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button x:Name="PickedButton" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="32" Height="32" Margin="4" Click="Pick_Click" ToolTip="Mark as Picked">
+                    <materialDesign:PackIcon x:Name="PickedIcon" Kind="Flag" Width="24" Height="24" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
                 </Button>
-                <Button x:Name="NoneButton" Style="{StaticResource PickButtonStyle}" Click="Pick_Click" Tag="{x:Null}" 
-                        ToolTip="Clear Pick Status">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Grid Background="{TemplateBinding Background}">
-                                <materialDesign:PackIcon x:Name="NoneIcon" 
-                                                       Kind="CircleOutline" 
-                                                       Width="20" Height="20"
-                                                       Foreground="{StaticResource MutedForegroundBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="NoneIcon" Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-                                </Trigger>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="{x:Null}">
-                                    <Setter TargetName="NoneIcon" Property="Kind" Value="Circle"/>
-                                    <Setter TargetName="NoneIcon" Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
-                                </DataTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button x:Name="RejectedButton" Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                        Width="32" Height="32" Margin="4" Click="Pick_Click" ToolTip="Mark as Rejected">
+                    <materialDesign:PackIcon x:Name="RejectedIcon" Kind="Close" Width="24" Height="24" 
+                                           Foreground="{StaticResource MutedForegroundBrush}"/>
                 </Button>
             </StackPanel>
-
-            <!-- Tags -->
-            <Label Grid.Row="18" Content="Tags" Style="{StaticResource MetadataLabelStyle}"/>
-            <TextBox Grid.Row="19" x:Name="TagsTextBox" Style="{StaticResource TagTextBoxStyle}" 
-                     ToolTip="Enter tags separated by commas"/>
-
         </Grid>
     </ScrollViewer>
 </UserControl>

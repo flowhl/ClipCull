@@ -5,9 +5,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using OpenFrame.Models;
 using Button = System.Windows.Controls.Button;
 using UserControl = System.Windows.Controls.UserControl;
+using Color = System.Windows.Media.Color;
 
 namespace OpenFrame.Controls
 {
@@ -62,8 +64,9 @@ namespace OpenFrame.Controls
             ReelTextBox.TextChanged += OnTextChanged;
             ShotTextBox.TextChanged += OnTextChanged;
             CameraTextBox.TextChanged += OnTextChanged;
-            TagsTextBox.TextChanged += OnTextChanged;
-            UpdateUI();
+
+            // Ensure templates are loaded before we try to update them
+            this.Loaded += (s, e) => UpdateUI();
         }
 
         #endregion
@@ -98,9 +101,6 @@ namespace OpenFrame.Controls
                 ShotTextBox.Text = _userMetadata.Shot ?? string.Empty;
                 CameraTextBox.Text = _userMetadata.Camera ?? string.Empty;
 
-                // Update tags
-                TagsTextBox.Text = _userMetadata.Tags != null ? string.Join(", ", _userMetadata.Tags) : string.Empty;
-
                 // Update rating stars
                 UpdateRatingStars(_userMetadata.Rating);
 
@@ -115,19 +115,45 @@ namespace OpenFrame.Controls
 
         private void UpdateRatingStars(int? rating)
         {
-            var stars = new[] { Star1, Star2, Star3, Star4, Star5 };
+            var starIcons = new[] { Star1Icon, Star2Icon, Star3Icon, Star4Icon, Star5Icon };
+            var yellowBrush = new SolidColorBrush(Color.FromRgb(255, 187, 36)); // #FFFBBF24
+            var grayBrush = FindResource("MutedForegroundBrush") as SolidColorBrush;
 
-            for (int i = 0; i < stars.Length; i++)
+            for (int i = 0; i < starIcons.Length; i++)
             {
-                stars[i].Tag = rating.HasValue && rating.Value > i;
+                var icon = starIcons[i];
+                if (icon != null)
+                {
+                    // Color the star yellow if it's within the rating, gray otherwise
+                    if (rating.HasValue && rating.Value > i)
+                    {
+                        icon.Foreground = yellowBrush;
+                    }
+                    else
+                    {
+                        icon.Foreground = grayBrush;
+                    }
+                }
             }
         }
 
         private void UpdatePickStatus(bool? pick)
         {
-            PickedButton.Tag = pick == true;
-            RejectedButton.Tag = pick == false;
-            NoneButton.Tag = pick == null;
+            var greenBrush = new SolidColorBrush(Color.FromRgb(34, 197, 94)); // #FF22C55E
+            var redBrush = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // #FFEF4444
+            var grayBrush = FindResource("MutedForegroundBrush") as SolidColorBrush;
+
+            // Update picked button (green flag)
+            if (PickedIcon != null)
+            {
+                PickedIcon.Foreground = pick == true ? greenBrush : grayBrush;
+            }
+
+            // Update rejected button (red cross)
+            if (RejectedIcon != null)
+            {
+                RejectedIcon.Foreground = pick == false ? redBrush : grayBrush;
+            }
         }
 
         private void ClearAllFields()
@@ -142,7 +168,6 @@ namespace OpenFrame.Controls
                 ReelTextBox.Text = string.Empty;
                 ShotTextBox.Text = string.Empty;
                 CameraTextBox.Text = string.Empty;
-                TagsTextBox.Text = string.Empty;
 
                 UpdateRatingStars(null);
                 UpdatePickStatus(null);
@@ -165,24 +190,6 @@ namespace OpenFrame.Controls
             _userMetadata.Reel = string.IsNullOrWhiteSpace(ReelTextBox.Text) ? null : ReelTextBox.Text.Trim();
             _userMetadata.Shot = string.IsNullOrWhiteSpace(ShotTextBox.Text) ? null : ShotTextBox.Text.Trim();
             _userMetadata.Camera = string.IsNullOrWhiteSpace(CameraTextBox.Text) ? null : CameraTextBox.Text.Trim();
-
-            // Parse tags
-            var tagsText = TagsTextBox.Text?.Trim();
-            if (string.IsNullOrWhiteSpace(tagsText))
-            {
-                _userMetadata.Tags = null;
-            }
-            else
-            {
-                _userMetadata.Tags = tagsText
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(tag => tag.Trim())
-                    .Where(tag => !string.IsNullOrEmpty(tag))
-                    .ToList();
-
-                if (_userMetadata.Tags.Count == 0)
-                    _userMetadata.Tags = null;
-            }
         }
 
         #endregion
@@ -224,22 +231,15 @@ namespace OpenFrame.Controls
             {
                 bool? newPickValue = null;
 
-                if (button.Tag is bool boolValue)
+                if (button == PickedButton)
                 {
-                    // If clicking the same pick status that's already selected, clear it
-                    if (_userMetadata.Pick == boolValue)
-                    {
-                        newPickValue = null;
-                    }
-                    else
-                    {
-                        newPickValue = boolValue;
-                    }
+                    // If already picked, clear it; otherwise set to picked
+                    newPickValue = _userMetadata.Pick == true ? null : true;
                 }
-                else
+                else if (button == RejectedButton)
                 {
-                    // This is the "None" button
-                    newPickValue = null;
+                    // If already rejected, clear it; otherwise set to rejected
+                    newPickValue = _userMetadata.Pick == false ? null : false;
                 }
 
                 _userMetadata.Pick = newPickValue;
