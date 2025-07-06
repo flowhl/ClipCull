@@ -16,15 +16,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Color = System.Windows.Media.Color;
-using Cursors = System.Windows.Input.Cursors;
-using FontFamily = System.Windows.Media.FontFamily;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using MessageBox = System.Windows.MessageBox;
-using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using Point = System.Windows.Point;
-using Rectangle = System.Windows.Shapes.Rectangle;
-using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
 {

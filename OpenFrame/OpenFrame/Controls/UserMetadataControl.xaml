@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:controls="clr-namespace:OpenFrame.Controls"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="400">
     <UserControl.Resources>
@@ -67,6 +67,7 @@
                   Background="{StaticResource BackgroundBrush}">
         <Grid Margin="16">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -160,6 +161,10 @@
                                            Foreground="{StaticResource MutedForegroundBrush}"/>
                 </Button>
             </StackPanel>
+
+            <!-- Tags -->
+            <Label Grid.Row="16" Content="Tags" Style="{StaticResource MetadataLabelStyle}"/>
+            <controls:TaggingControl x:Name="TagControl" />
         </Grid>
     </ScrollViewer>
 </UserControl>

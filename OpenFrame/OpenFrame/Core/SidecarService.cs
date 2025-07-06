@@ -86,19 +86,17 @@ namespace OpenFrame.Core
                    a.Camera == b.Camera &&
                    a.Rating == b.Rating &&
                    a.Pick == b.Pick &&
-                   EqualsStringList(a.Tags, b.Tags);
+                   EqualsTags(a.Tags.ToList(), b.Tags.ToList());
         }
 
-        private static bool EqualsStringList(List<string> a, List<string> b)
+        private static bool EqualsTags(List<Tag> a, List<Tag> b)
         {
             if (ReferenceEquals(a, b)) return true;
             if (a == null || b == null) return false;
             if (a.Count != b.Count) return false;
-
             // Order-independent comparison using HashSet
-            var setA = new HashSet<string>(a ?? Enumerable.Empty<string>());
-            var setB = new HashSet<string>(b ?? Enumerable.Empty<string>());
-
+            var setA = new HashSet<Tag>(a ?? Enumerable.Empty<Tag>());
+            var setB = new HashSet<Tag>(b ?? Enumerable.Empty<Tag>());
             return setA.SetEquals(setB);
         }
 

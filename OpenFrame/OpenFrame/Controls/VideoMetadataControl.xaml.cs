@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
 {

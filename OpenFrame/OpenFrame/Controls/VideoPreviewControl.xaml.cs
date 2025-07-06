@@ -19,11 +19,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using Brushes = System.Windows.Media.Brushes;
-using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
-using MessageBox = System.Windows.MessageBox;
-using Panel = System.Windows.Controls.Panel;
-using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
 {

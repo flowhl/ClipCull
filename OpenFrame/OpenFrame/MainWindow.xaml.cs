@@ -18,7 +18,6 @@ using System.Windows.Threading;
 using System.ComponentModel;
 using OpenFrame.Core.Update;
 using OpenFrame.Extensions;
-using MessageBox = System.Windows.MessageBox;
 using System.Collections.ObjectModel;
 using FFMpegCore.Enums;
 

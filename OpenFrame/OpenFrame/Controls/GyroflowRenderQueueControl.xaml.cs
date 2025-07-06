@@ -12,10 +12,6 @@ using OpenFrame.Core;
 using OpenFrame.Core.Gyroflow;
 using OpenFrame.Extensions;
 using static OpenFrame.Core.Gyroflow.GyroflowSubclipExtractor;
-using Application = System.Windows.Application;
-using Button = System.Windows.Controls.Button;
-using MessageBox = System.Windows.MessageBox;
-using UserControl = System.Windows.Controls.UserControl;
 
 namespace OpenFrame.Controls
 {

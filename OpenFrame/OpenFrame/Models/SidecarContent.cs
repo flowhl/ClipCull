@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -34,7 +35,7 @@ namespace OpenFrame.Models
         private string _camera;
         private int? _rating;
         private bool? _pick;
-        private List<string> _tags;
+        private ObservableCollection<Tag> _tags;
 
         public string Title
         {
@@ -96,7 +97,7 @@ namespace OpenFrame.Models
             set { _pick = value; OnPropertyChanged(); }
         }
 
-        public List<string> Tags
+        public ObservableCollection<Tag> Tags
         {
             get => _tags;
             set { _tags = value; OnPropertyChanged(); }

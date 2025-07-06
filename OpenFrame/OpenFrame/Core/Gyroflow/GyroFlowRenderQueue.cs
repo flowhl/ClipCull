@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using static OpenFrame.Core.Gyroflow.GyroflowSubclipExtractor;
-using MessageBox = System.Windows.MessageBox;
 
 namespace OpenFrame.Core.Gyroflow
 {

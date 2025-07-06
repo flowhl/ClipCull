@@ -14,7 +14,16 @@
     <Compile Update="Controls\MarkerEditDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\SettingsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\SubClipEditDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TaggingControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TagManagementControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Controls\TimelineControl.xaml.cs">

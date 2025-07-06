@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using OpenFrame.Core;
 using OpenFrame.Models;
-using Button = System.Windows.Controls.Button;
-using UserControl = System.Windows.Controls.UserControl;
-using Color = System.Windows.Media.Color;
 
 namespace OpenFrame.Controls
 {
@@ -47,12 +46,19 @@ namespace OpenFrame.Controls
             }
         }
 
+        private ObservableCollection<Tag> AvailableTags;
+
         #endregion
 
         #region Constructor
 
         public UserMetadataControl()
         {
+            //Tags
+            AvailableTags = new ObservableCollection<Tag>();
+            SettingsHandler.Settings.Tags.ForEach(tag => AvailableTags.Add(tag));
+            AvailableTags.CollectionChanged += AvailableTags_CollectionChanged;
+
             InitializeComponent();
             DataContext = this;
 
@@ -67,6 +73,16 @@ namespace OpenFrame.Controls
 
             // Ensure templates are loaded before we try to update them
             this.Loaded += (s, e) => UpdateUI();
+        }
+
+        private void AvailableTags_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            //Lets try not to break the tags
+            if (AvailableTags == null || AvailableTags.Count == 0)
+                return;
+
+            SettingsHandler.Settings.Tags = AvailableTags.ToList();
+            SettingsHandler.Save();
         }
 
         #endregion
@@ -100,6 +116,12 @@ namespace OpenFrame.Controls
                 ReelTextBox.Text = _userMetadata.Reel ?? string.Empty;
                 ShotTextBox.Text = _userMetadata.Shot ?? string.Empty;
                 CameraTextBox.Text = _userMetadata.Camera ?? string.Empty;
+
+                //Tags
+                TagControl.CurrentTags = _userMetadata.Tags;
+                TagControl.AvailableTags = AvailableTags;
+                TagControl.AllowModifyAvailableTags = true;
+                TagControl.IsReadOnly = false;
 
                 // Update rating stars
                 UpdateRatingStars(_userMetadata.Rating);
@@ -168,6 +190,7 @@ namespace OpenFrame.Controls
                 ReelTextBox.Text = string.Empty;
                 ShotTextBox.Text = string.Empty;
                 CameraTextBox.Text = string.Empty;
+                TagControl.CurrentTags = new ObservableCollection<Tag>();
 
                 UpdateRatingStars(null);
                 UpdatePickStatus(null);
@@ -190,6 +213,7 @@ namespace OpenFrame.Controls
             _userMetadata.Reel = string.IsNullOrWhiteSpace(ReelTextBox.Text) ? null : ReelTextBox.Text.Trim();
             _userMetadata.Shot = string.IsNullOrWhiteSpace(ShotTextBox.Text) ? null : ShotTextBox.Text.Trim();
             _userMetadata.Camera = string.IsNullOrWhiteSpace(CameraTextBox.Text) ? null : CameraTextBox.Text.Trim();
+            _userMetadata.Tags = TagControl.CurrentTags ?? new ObservableCollection<Tag>();
         }
 
         #endregion

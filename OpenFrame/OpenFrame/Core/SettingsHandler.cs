@@ -30,6 +30,10 @@ namespace OpenFrame.Core
         public static void Load()
         {
             Settings = Globals.DeserializeFromFile<SettingsModel>(SettingsFile);
+            if (Settings.Tags == null)
+            {
+                Settings.Tags = new List<Tag>();
+            }
         }
 
         public static void Save()
