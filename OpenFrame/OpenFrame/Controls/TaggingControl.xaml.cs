@@ -98,7 +98,13 @@ namespace OpenFrame.Controls
             {
                 _searchText = value;
                 OnPropertyChanged();
-                FilterAvailableTags();
+
+                // Only filter and update button state if we're not in the middle of updating search text
+                if (!_isUpdatingSearchText)
+                {
+                    FilterAvailableTags();
+                    UpdateCanAddTag();
+                }
             }
         }
 
@@ -115,9 +121,22 @@ namespace OpenFrame.Controls
             }
         }
 
+        private Tag _selectedTag;
+        public Tag SelectedTag
+        {
+            get => _selectedTag;
+            set
+            {
+                _selectedTag = value;
+                OnPropertyChanged();
+                UpdateCanAddTag();
+            }
+        }
+
         public bool HasCurrentTags => CurrentTags?.Count > 0;
 
-        public bool HasSelectedAvailableTag => AvailableTagsComboBox?.SelectedItem != null;
+        // Fixed logic for determining if we can add a tag (now only for typed text, not selections)
+        public bool CanAddTag => SelectedTag == null && !string.IsNullOrWhiteSpace(SearchText) && HasExactMatch();
 
         public bool CanCreateNewTags => !IsReadOnly && AllowModifyAvailableTags;
 
@@ -177,6 +196,10 @@ namespace OpenFrame.Controls
 
         #endregion
 
+        #region Private Fields
+        private bool _isUpdatingSearchText = false;
+        #endregion
+
         public TaggingControl()
         {
             InitializeComponent();
@@ -190,27 +213,10 @@ namespace OpenFrame.Controls
             FilteredAvailableTags = new ObservableCollection<Tag>();
 
             // Set placeholder text
-            AvailableTagsComboBox.Text = "Search or select tag...";
-            NewTagNameTextBox.Text = "Enter new tag name";
+            SetPlaceholderText();
 
             // Handle text box focus for placeholder behavior
-            NewTagNameTextBox.GotFocus += (s, e) =>
-            {
-                if (NewTagNameTextBox.Text == "Enter new tag name")
-                {
-                    NewTagNameTextBox.Text = "";
-                    NewTagNameTextBox.Foreground = (SolidColorBrush)FindResource("ForegroundBrush");
-                }
-            };
-
-            NewTagNameTextBox.LostFocus += (s, e) =>
-            {
-                if (string.IsNullOrWhiteSpace(NewTagNameTextBox.Text))
-                {
-                    NewTagNameTextBox.Text = "Enter new tag name";
-                    NewTagNameTextBox.Foreground = (SolidColorBrush)FindResource("MutedForegroundBrush");
-                }
-            };
+            SetupPlaceholderBehavior();
         }
 
         #region Event Handlers
@@ -225,10 +231,17 @@ namespace OpenFrame.Controls
 
         private void AddTag_Click(object sender, RoutedEventArgs e)
         {
-            if (AvailableTagsComboBox.SelectedItem is Tag selectedTag)
+            // This button is now only for adding tags by exact text match (when typing)
+            if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                AddCurrentTag(selectedTag);
-                ClearDropdownSelection();
+                var tagToAdd = FilteredAvailableTags.FirstOrDefault(t =>
+                    string.Equals(t.Name, SearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                if (tagToAdd != null)
+                {
+                    AddCurrentTag(tagToAdd);
+                    ClearDropdownSelection();
+                }
             }
         }
 
@@ -239,21 +252,79 @@ namespace OpenFrame.Controls
 
         private void AvailableTagsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(HasSelectedAvailableTag));
+            // Prevent recursive calls during our own updates
+            if (_isUpdatingSearchText) return;
+
+            // Update our selected tag
+            SelectedTag = AvailableTagsComboBox.SelectedItem as Tag;
+
+            // If a tag is selected, automatically add it
+            if (SelectedTag != null)
+            {
+                AddCurrentTag(SelectedTag);
+                ClearDropdownSelection();
+            }
+            else
+            {
+                // Selection was cleared, update button state
+                UpdateCanAddTag();
+            }
+        }
+
+        private void AvailableTagsComboBox_DropDownOpened(object sender, EventArgs e)
+        {
+            // Don't interfere if we're updating programmatically
+            if (_isUpdatingSearchText) return;
+
+            // Check if user has been typing (text differs from selected item)
+            var currentText = AvailableTagsComboBox.Text?.Trim() ?? "";
+            var selectedTag = AvailableTagsComboBox.SelectedItem as Tag;
+
+            if (selectedTag != null && !string.Equals(currentText, selectedTag.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                // User has been typing, clear the selection
+                AvailableTagsComboBox.SelectedItem = null;
+                SelectedTag = null;
+            }
+
+            // Refresh the filtered list when dropdown opens to prevent duplicates
+            FilterAvailableTags();
         }
 
         private void AvailableTagsComboBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Allow typing in the combo box for search
+            // When user starts typing, clear any existing selection
+            if (AvailableTagsComboBox.SelectedItem != null && !_isUpdatingSearchText)
+            {
+                AvailableTagsComboBox.SelectedItem = null;
+                SelectedTag = null;
+            }
         }
 
         private void AvailableTagsComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && AvailableTagsComboBox.SelectedItem is Tag selectedTag)
+            if (e.Key == Key.Enter)
             {
-                AddCurrentTag(selectedTag);
-                ClearDropdownSelection();
-                e.Handled = true;
+                Tag tagToAdd = null;
+
+                // First check if we have a selected tag
+                if (SelectedTag != null)
+                {
+                    tagToAdd = SelectedTag;
+                }
+                // If no selection but we have search text, try to find exact match
+                else if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    tagToAdd = FilteredAvailableTags.FirstOrDefault(t =>
+                        string.Equals(t.Name, SearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (tagToAdd != null)
+                {
+                    AddCurrentTag(tagToAdd);
+                    ClearDropdownSelection();
+                    e.Handled = true;
+                }
             }
         }
 
@@ -342,8 +413,7 @@ namespace OpenFrame.Controls
 
             // Clear the input
             NewTagName = "";
-            NewTagNameTextBox.Text = "Enter new tag name";
-            NewTagNameTextBox.Foreground = (SolidColorBrush)FindResource("MutedForegroundBrush");
+            SetNewTagPlaceholder();
 
             ClearValidationMessage();
         }
@@ -378,10 +448,29 @@ namespace OpenFrame.Controls
 
         private void ClearDropdownSelection()
         {
+            _isUpdatingSearchText = true;
+
+            SelectedTag = null;
             AvailableTagsComboBox.SelectedItem = null;
-            AvailableTagsComboBox.Text = "Search or select tag...";
             SearchText = "";
-            OnPropertyChanged(nameof(HasSelectedAvailableTag));
+            AvailableTagsComboBox.Text = "Search or select tag...";
+
+            _isUpdatingSearchText = false;
+
+            UpdateCanAddTag();
+        }
+
+        private bool HasExactMatch()
+        {
+            if (string.IsNullOrWhiteSpace(SearchText)) return false;
+
+            return FilteredAvailableTags.Any(t =>
+                string.Equals(t.Name, SearchText.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void UpdateCanAddTag()
+        {
+            OnPropertyChanged(nameof(CanAddTag));
         }
 
         private bool IsValidNewTagName(string tagName)
@@ -433,6 +522,38 @@ namespace OpenFrame.Controls
         private void ClearValidationMessage()
         {
             ValidationMessageTextBlock.Visibility = Visibility.Collapsed;
+        }
+
+        private void SetPlaceholderText()
+        {
+            AvailableTagsComboBox.Text = "Search or select tag...";
+            SetNewTagPlaceholder();
+        }
+
+        private void SetNewTagPlaceholder()
+        {
+            NewTagNameTextBox.Text = "Enter new tag name";
+            NewTagNameTextBox.Foreground = (SolidColorBrush)FindResource("MutedForegroundBrush");
+        }
+
+        private void SetupPlaceholderBehavior()
+        {
+            NewTagNameTextBox.GotFocus += (s, e) =>
+            {
+                if (NewTagNameTextBox.Text == "Enter new tag name")
+                {
+                    NewTagNameTextBox.Text = "";
+                    NewTagNameTextBox.Foreground = (SolidColorBrush)FindResource("ForegroundBrush");
+                }
+            };
+
+            NewTagNameTextBox.LostFocus += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(NewTagNameTextBox.Text))
+                {
+                    SetNewTagPlaceholder();
+                }
+            };
         }
 
         private string GenerateRandomColor()

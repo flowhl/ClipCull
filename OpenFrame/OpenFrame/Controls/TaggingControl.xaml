@@ -51,52 +51,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!-- Dropdown item style -->
-        <Style x:Key="DropdownItemStyle" TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border Background="{TemplateBinding Background}" 
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsHighlighted" Value="True">
-                                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ComboBox style -->
-        <Style x:Key="TagDropdownStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="ItemContainerStyle" Value="{StaticResource DropdownItemStyle}"/>
-        </Style>
-
-        <!-- TextBox style -->
-        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="14"/>
-        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -124,6 +78,7 @@
                                 <TextBlock Text="{Binding Name}" 
                                            Foreground="White"
                                            FontWeight="Medium"
+                                           MaxWidth="140"
                                            VerticalAlignment="Center"/>
 
                                 <!-- Remove button - only show if not readonly -->
@@ -161,7 +116,6 @@
 
                     <ComboBox x:Name="AvailableTagsComboBox"
                               Grid.Column="0"
-                              Style="{StaticResource CustomComboBox}"
                               ItemsSource="{Binding FilteredAvailableTags, RelativeSource={RelativeSource AncestorType=UserControl}}"
                               IsEditable="True"
                               IsTextSearchEnabled="False"
@@ -169,7 +123,8 @@
                               Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
                               SelectionChanged="AvailableTagsComboBox_SelectionChanged"
                               PreviewTextInput="AvailableTagsComboBox_PreviewTextInput"
-                              PreviewKeyDown="AvailableTagsComboBox_PreviewKeyDown">
+                              PreviewKeyDown="AvailableTagsComboBox_PreviewKeyDown"
+                              DropDownOpened="AvailableTagsComboBox_DropDownOpened">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -193,7 +148,7 @@
                             Style="{StaticResource primary}"
                             Margin="8,0,0,0"
                             Click="AddTag_Click"
-                            IsEnabled="{Binding HasSelectedAvailableTag, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                            IsEnabled="{Binding CanAddTag, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                 </Grid>
             </StackPanel>
 
@@ -213,7 +168,7 @@
 
                     <TextBox x:Name="NewTagNameTextBox"
                              Grid.Column="0"
-                             Style="{StaticResource InputTextBoxStyle}"
+                             Style="{StaticResource input}"
                              Text="{Binding NewTagName, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
                              KeyDown="NewTagNameTextBox_KeyDown"/>
 

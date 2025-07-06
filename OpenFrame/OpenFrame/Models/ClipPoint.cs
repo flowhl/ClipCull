@@ -89,5 +89,16 @@ namespace OpenFrame.Models
         {
             return $"{DisplayName} ({TimeDisplay})";
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ClipPoint other)
+            {
+                return Timestamp == other.Timestamp &&
+                       Type == other.Type &&
+                       string.Equals(Title, other.Title, StringComparison.OrdinalIgnoreCase);
+            }
+            return base.Equals(obj);
+        }
     }
 }
