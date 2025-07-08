@@ -60,8 +60,13 @@
                 BorderThickness="0,0,0,1" 
                 Padding="16">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
@@ -69,11 +74,14 @@
                           Style="{StaticResource h2}" 
                           Text="Gyroflow Render Queue"/>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
+
+                <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
                     <TextBlock Style="{StaticResource muted}" 
                               VerticalAlignment="Center"
                               Text="{Binding QueueCount, StringFormat={}{0} items}"/>
                 </StackPanel>
+                
+                <TextBlock Grid.Column="1" Grid.Row="0" Style="{StaticResource muted}" Name="TxGyroflowSettingsPath" VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
@@ -152,7 +160,7 @@
                                            Visibility="{Binding Rendering, Converter={StaticResource BoolToVisibilityConverter}}"
                                            Foreground="Orange"
                                            Text="Rendering..."/>
-                                
+
                                 <!--Rendered-->
                                 <TextBlock Grid.Row="4" Grid.Column="0"
                                            Style="{StaticResource InfoTextStyle}"

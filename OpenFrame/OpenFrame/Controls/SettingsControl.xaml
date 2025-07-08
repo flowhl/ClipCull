@@ -34,6 +34,15 @@
                                     <Button Name="BtnPickGyroflowExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowExe_Click"/>
                                     <Button Name="BtnDiscoverGyroflowExe" Content="Discover automatically" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnDiscoverGyroflowExe_Click"/>
                                 </StackPanel>
+
+                                <!--Gyroflow Lensprofile-->
+                                <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Gyroflow Lensprofile Path</TextBlock>
+                                <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentGyroflowSettingsPath" Text="{Binding Path=CurrentGyroflowSettingsPath}" Style="{StaticResource muted}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Name="BtnPickGyroflowSettings" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowSettings_Click"/>
+                                    <Button Name="BtnResetGyroflowSettings" Content="Reset" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnResetGyroflowSettings_Click"/>
+                                </StackPanel>
+
                             </StackPanel>
                         </Border>
                     </StackPanel>

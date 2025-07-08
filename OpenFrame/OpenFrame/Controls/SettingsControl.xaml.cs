@@ -35,6 +35,7 @@ namespace OpenFrame.Controls
             SettingsHandler.Load();
             DataContext = this;
             TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
+            TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
 
             var tagCollection = new ObservableCollection<EditableTag>();
             SettingsHandler.Settings.Tags.ForEach(x => tagCollection.Add(new EditableTag
@@ -73,8 +74,24 @@ namespace OpenFrame.Controls
         {
             //Auto discover Gyroflow executable path
             SettingsHandler.Settings.GyroflowPath = null;
-            TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
+            TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
             Logger.LogInfo("Gyroflow path will be discovered automatically when needed.");
+        }
+
+        private void BtnPickGyroflowSettings_Click(object sender, RoutedEventArgs e)
+        {
+            string gyroflowSettingsPath = DialogHelper.ChooseFile("Select Gyroflow Settings", "Gyroflow Settings|*.gyroflow", SettingsHandler.Settings.GyroflowSettingsPath, "default.gyroflow");
+            if (gyroflowSettingsPath.IsNullOrEmpty())
+                return;
+            SettingsHandler.Settings.GyroflowSettingsPath = gyroflowSettingsPath;
+            TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
+        }
+
+        private void BtnResetGyroflowSettings_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsHandler.Settings.GyroflowSettingsPath = null;
+            TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
+            Logger.LogInfo("Gyroflow settings path reset to default.");
         }
     }
 }

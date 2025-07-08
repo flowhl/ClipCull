@@ -59,7 +59,8 @@ namespace OpenFrame.Core.Gyroflow
                 overwrite = result == System.Windows.MessageBoxResult.Yes;
             }
 
-            var _renderer = new GyroflowSubclipExtractor(outputDirectory);
+            string settingsFile = SettingsHandler.Settings.GyroflowSettingsPath;
+            var _renderer = new GyroflowSubclipExtractor(outputDirectory, settingsFile);
 
             await Task.Run(async Task () =>
             {

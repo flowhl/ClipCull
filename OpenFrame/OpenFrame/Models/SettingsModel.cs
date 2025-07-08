@@ -18,6 +18,7 @@ namespace OpenFrame.Models
         /// If null, it will be discovered automatically
         /// </summary>
         public string GyroflowPath { get; set; }
+        public string GyroflowSettingsPath { get; set; }
 
         public List<Tag> Tags { get; set; }
     }

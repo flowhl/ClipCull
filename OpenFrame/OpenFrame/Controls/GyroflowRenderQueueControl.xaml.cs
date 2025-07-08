@@ -54,6 +54,7 @@ namespace OpenFrame.Controls
 
         private void UpdateUI()
         {
+            TxGyroflowSettingsPath.Text = "Gyroflow Settingsfile: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Default");
             StartRenderButton.IsEnabled = !IsRendering && GyroFlowRenderQueue.Subclips.Count > 0;
             OnPropertyChanged(nameof(QueueCount));
             OnPropertyChanged(nameof(IsQueueEmpty));
