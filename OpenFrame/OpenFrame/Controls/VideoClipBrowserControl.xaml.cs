@@ -30,7 +30,6 @@ namespace OpenFrame.Controls
         private VideoClipInfo _selectedClip;
         private string _selectedFile;
         private string _statusText = "Ready";
-        private ObservableCollection<VideoClipInfo> _videoClips = new ObservableCollection<VideoClipInfo>();
         #endregion
 
         #region Filtering Fields
@@ -261,7 +260,7 @@ namespace OpenFrame.Controls
                 return true;
 
             // Check UserMetadata from sidecar
-            var metadata = GetClipUserMetadata(clip);
+            var metadata = clip.UserMetadata;
             if (metadata != null && _filterCriteria.Matches(metadata))
                 return true;
 
@@ -478,8 +477,10 @@ namespace OpenFrame.Controls
                                             subClip.Title : $"Clip {subClip.Id}",
                                         StartTimeMs = subClip.StartTime,
                                         EndTimeMs = subClip.EndTime,
-                                        ClipColor = subClip.Color
+                                        ClipColor = subClip.Color,
                                     };
+
+                                    clipInfo.UserMetadata = GetClipUserMetadata(clipInfo);
 
                                     // Subscribe to property changes for UI updates
                                     clipInfo.PropertyChanged += ClipInfo_PropertyChanged;
@@ -765,6 +766,8 @@ namespace OpenFrame.Controls
         private bool _isLoadingThumbnail;
         private bool _isSelected;
         private System.Windows.Media.SolidColorBrush _clipColorBrush;
+
+        public UserMetadataContent UserMetadata { get; set; }
 
         public string VideoFilePath { get; set; }
         public string VideoFileName { get; set; }

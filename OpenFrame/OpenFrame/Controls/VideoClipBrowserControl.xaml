@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:OpenFrame.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:conv="clr-namespace:OpenFrame.Controls.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
              x:Name="UserControlRoot">
@@ -144,68 +145,170 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
                             Margin="4">
-                                <TextBlock Text="{Binding Duration}"
-                                  FontFamily="{StaticResource FontMono}"
-                                  FontSize="10"
-                                  Foreground="White"
-                                  FontWeight="Medium"/>
+                                <TextBlock Text="{Binding DurationString}"
+                                   FontFamily="{StaticResource FontMono}"
+                                   FontSize="10"
+                                   Foreground="White"
+                                   FontWeight="Medium"/>
                             </Border>
 
                             <!-- Color Stripe -->
                             <Rectangle Fill="{Binding ClipColorBrush}"
-                              Height="4"
-                              VerticalAlignment="Top"
-                              HorizontalAlignment="Stretch"/>
+                               Height="4"
+                               VerticalAlignment="Top"
+                               HorizontalAlignment="Stretch"/>
                         </Grid>
                     </Border>
 
                     <!-- Content -->
-                    <Grid Grid.Column="3"
-                  Margin="12,0,0,0">
+                    <Grid Grid.Column="3" Margin="12,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <!-- Main title row -->
                             <RowDefinition Height="Auto"/>
+                            <!-- Metadata row -->
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <!-- Time range row -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Rating and Pick row -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Tags row -->
                         </Grid.RowDefinitions>
 
-                        <!-- Title -->
-                        <TextBlock Grid.Row="0"
-                          Text="{Binding ClipTitle}"
-                          FontFamily="{StaticResource FontSans}"
-                          FontSize="14"
-                          FontWeight="Medium"
-                          Foreground="{StaticResource ForegroundBrush}"
-                          TextTrimming="CharacterEllipsis"
-                          MaxWidth="300"/>
+                        <!-- Title and File Name Row -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- File name (show only for first clip of file) -->
-                        <TextBlock Grid.Row="1"
-                          Text="{Binding VideoFileName}"
-                          FontFamily="{StaticResource FontSans}"
-                          FontSize="12"
-                          Foreground="{StaticResource MutedForegroundBrush}"
-                          TextTrimming="CharacterEllipsis"
-                          MaxWidth="300"
-                          Margin="0,2,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsFirstClipOfFile}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                            <!-- Primary Title (UserMetadata.Title or ClipTitle) -->
+                            <TextBlock Grid.Column="0"
+                               FontFamily="{StaticResource FontSans}"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource ForegroundBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="350">
+                                <TextBlock.Text>
+                                    <PriorityBinding>
+                                        <Binding Path="UserMetadata.Title"/>
+                                        <Binding Path="ClipTitle"/>
+                                    </PriorityBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+
+                            <!-- File name (show only for first clip of file) -->
+                            <TextBlock Grid.Column="1"
+                               Text="{Binding VideoFileName}"
+                               FontFamily="{StaticResource FontSans}"
+                               FontSize="11"
+                               Foreground="{StaticResource MutedForegroundBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="200"
+                               HorizontalAlignment="Right">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFirstClipOfFile}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <!-- Description and Location Row -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,2,0,0">
+                            <!-- Description -->
+                            <TextBlock Text="{Binding UserMetadata.Description}"
+                               FontFamily="{StaticResource FontSans}"
+                               FontSize="12"
+                               Foreground="{StaticResource MutedForegroundBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="250">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UserMetadata.Description, Converter={x:Static conv:StringNullOrEmptyConverter.Instance}}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Separator (only if both description and location exist) -->
+                            <TextBlock Text=" • "
+                               FontFamily="{StaticResource FontSans}"
+                               FontSize="12"
+                               Foreground="{StaticResource MutedForegroundBrush}"
+                               Margin="4,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding UserMetadata.Description, Converter={x:Static conv:StringNullOrEmptyConverter.Instance}}" Value="False"/>
+                                                    <Condition Binding="{Binding UserMetadata.Location, Converter={x:Static conv:StringNullOrEmptyConverter.Instance}}" Value="False"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Location -->
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="MapMarker"
+                                                Width="12"
+                                                Height="12"
+                                                Foreground="{StaticResource MutedForegroundBrush}"
+                                                VerticalAlignment="Center"
+                                                Margin="0,0,4,0">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Location, Converter={x:Static conv:StringNullOrEmptyConverter.Instance}}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <TextBlock Text="{Binding UserMetadata.Location}"
+                                   FontFamily="{StaticResource FontSans}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource MutedForegroundBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="150">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Location, Converter={x:Static conv:StringNullOrEmptyConverter.Instance}}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
 
                         <!-- Time Range -->
                         <TextBlock Grid.Row="2"
-                          FontFamily="{StaticResource FontMono}"
-                          FontSize="12"
-                          Foreground="{StaticResource MutedForegroundBrush}"
-                          Margin="0,4,0,0">
+                           FontFamily="{StaticResource FontMono}"
+                           FontSize="12"
+                           Foreground="{StaticResource MutedForegroundBrush}"
+                           Margin="0,4,0,0">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} - {1}">
                                     <Binding Path="StartTimeDisplay"/>
@@ -213,13 +316,177 @@
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
+
+                        <!-- Rating and Pick Status Row -->
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,4,0,0">
+                            <!-- Rating Stars -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,12,0">
+                                <!-- Star 1 -->
+                                <materialDesign:PackIcon Kind="Star" Width="12" Height="12" Margin="0,0,1,0">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=0}" Value="True">
+                                                    <Setter Property="Foreground" Value="#FFFBBF24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Star 2 -->
+                                <materialDesign:PackIcon Kind="Star" Width="12" Height="12" Margin="0,0,1,0">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=1}" Value="True">
+                                                    <Setter Property="Foreground" Value="#FFFBBF24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Star 3 -->
+                                <materialDesign:PackIcon Kind="Star" Width="12" Height="12" Margin="0,0,1,0">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=2}" Value="True">
+                                                    <Setter Property="Foreground" Value="#FFFBBF24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Star 4 -->
+                                <materialDesign:PackIcon Kind="Star" Width="12" Height="12" Margin="0,0,1,0">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=3}" Value="True">
+                                                    <Setter Property="Foreground" Value="#FFFBBF24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Star 5 -->
+                                <materialDesign:PackIcon Kind="Star" Width="12" Height="12">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=4}" Value="True">
+                                                    <Setter Property="Foreground" Value="#FFFBBF24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Hide entire star group if no rating -->
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UserMetadata.Rating, Converter={x:Static conv:NullToVisibilityConverter.Instance}}" Value="Visible">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                            </StackPanel>
+
+                            <!-- Pick Status -->
+                            <Grid>
+                                <!-- Picked Icon -->
+                                <materialDesign:PackIcon Kind="Flag" Width="14" Height="14" 
+                                                Foreground="#FF22C55E"
+                                                ToolTip="Picked">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Pick}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+
+                                <!-- Rejected Icon -->
+                                <materialDesign:PackIcon Kind="Close" Width="14" Height="14" 
+                                                Foreground="{StaticResource DestructiveBrush}"
+                                                ToolTip="Rejected">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UserMetadata.Pick}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Tags Row -->
+                        <ItemsControl Grid.Row="4" 
+                              ItemsSource="{Binding UserMetadata.Tags}"
+                              Margin="0,4,0,0">
+                            <ItemsControl.Style>
+                                <Style TargetType="ItemsControl">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding UserMetadata.Tags.Count, Converter={x:Static conv:IntegerGreaterThanConverter.Instance}, ConverterParameter=0}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="8"
+                                    Padding="6,2"
+                                    Margin="0,0,4,2"
+                                    BorderThickness="1"
+                                    BorderBrush="{StaticResource BorderBrush}">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding ColorValue}"/>
+                                        </Border.Background>
+                                        <TextBlock Text="{Binding Name}" 
+                                           Foreground="White"
+                                           FontFamily="{StaticResource FontSans}"
+                                           FontSize="10"
+                                           FontWeight="Medium"
+                                           MaxWidth="80"
+                                           TextTrimming="CharacterEllipsis"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
 
                     <!-- Action Buttons -->
                     <StackPanel Grid.Column="4"
-                       Orientation="Horizontal"
-                       VerticalAlignment="Top"
-                       Margin="8,0,0,0">
+                        Orientation="Horizontal"
+                        VerticalAlignment="Top"
+                        Margin="8,0,0,0">
 
                         <!-- Show in Explorer Button -->
                         <Button x:Name="ShowInExplorerButton"
