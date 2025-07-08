@@ -244,7 +244,17 @@
                             <avalondocktheme:FlatDarkTheme/>
                         </xcad:DockingManager.Theme>
                         <xcad:LayoutRoot>
-                            <xcad:LayoutPanel Orientation="Horizontal">
+                            <xcad:LayoutPanel Orientation="Vertical">
+                                <LayoutDocumentPane DockHeight="Auto" DockMinHeight="10">
+                                    <xcad:LayoutDocument Title="ClipsFilter"
+                                                         ContentId="clipsFilter"
+                                                         CanClose="False"
+                                                            IsSelected="True">
+                                        <uc:ClipFilterControl x:Name="ClipFilter"/>
+                                    </xcad:LayoutDocument>
+                                </LayoutDocumentPane>
+
+                                <xcad:LayoutPanel Orientation="Horizontal">
                                 <!-- Left side - Test with simple TextBlock -->
                                 <xcad:LayoutDocumentPane DockWidth="1*">
                                     <xcad:LayoutDocument Title="Clips" 
@@ -264,6 +274,7 @@
                                         <uc:VideoPreviewControl x:Name="clipPreview" Readonly="True"/>
                                     </xcad:LayoutDocument>
                                 </xcad:LayoutDocumentPane>
+                                </xcad:LayoutPanel>
                             </xcad:LayoutPanel>
                         </xcad:LayoutRoot>
                     </xcad:DockingManager>

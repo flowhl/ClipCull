@@ -11,7 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using OpenFrame.Core;
 using OpenFrame.Core.Gyroflow;
+using OpenFrame.Extensions;
 using OpenFrame.Models;
+using OpenFrame.Models.OpenFrame.Models;
 using static OpenFrame.Core.Gyroflow.GyroflowSubclipExtractor;
 
 namespace OpenFrame.Controls
@@ -30,6 +32,21 @@ namespace OpenFrame.Controls
         private string _statusText = "Ready";
         private ObservableCollection<VideoClipInfo> _videoClips = new ObservableCollection<VideoClipInfo>();
         #endregion
+
+        #region Filtering Fields
+        private FilterCriteria _filterCriteria;
+        private ObservableCollection<VideoClipInfo> _allVideoClips = new ObservableCollection<VideoClipInfo>();
+        private ObservableCollection<VideoClipInfo> _filteredVideoClips = new ObservableCollection<VideoClipInfo>();
+        #endregion
+
+        /// <summary>
+        /// Collection of video clips (filtered view)
+        /// </summary>
+        public ObservableCollection<VideoClipInfo> VideoClips
+        {
+            get => _filteredVideoClips;
+            private set => SetProperty(ref _filteredVideoClips, value);
+        }
 
         #region Properties
 
@@ -94,15 +111,6 @@ namespace OpenFrame.Controls
         }
 
         /// <summary>
-        /// Collection of video clips
-        /// </summary>
-        public ObservableCollection<VideoClipInfo> VideoClips
-        {
-            get => _videoClips;
-            private set => SetProperty(ref _videoClips, value);
-        }
-
-        /// <summary>
         /// Whether the control is currently loading
         /// </summary>
         public bool IsLoading
@@ -121,9 +129,14 @@ namespace OpenFrame.Controls
         }
 
         /// <summary>
-        /// Number of clips loaded
+        /// Number of clips loaded (filtered count)
         /// </summary>
-        public int ClipCount => VideoClips?.Count ?? 0;
+        public int ClipCount => _filteredVideoClips?.Count ?? 0;
+
+        /// <summary>
+        /// Total number of clips (unfiltered)
+        /// </summary>
+        public int TotalClipCount => _allVideoClips?.Count ?? 0;
 
         /// <summary>
         /// Whether the clips collection is empty
@@ -133,12 +146,12 @@ namespace OpenFrame.Controls
         /// <summary>
         /// Number of selected clips
         /// </summary>
-        public int SelectedClipCount => VideoClips?.Count(c => c.IsSelected) ?? 0;
+        public int SelectedClipCount => _filteredVideoClips?.Count(c => c.IsSelected) ?? 0;
 
         /// <summary>
         /// Collection of selected clips
         /// </summary>
-        public IEnumerable<VideoClipInfo> SelectedClips => VideoClips?.Where(c => c.IsSelected) ?? Enumerable.Empty<VideoClipInfo>();
+        public IEnumerable<VideoClipInfo> SelectedClips => _filteredVideoClips?.Where(c => c.IsSelected) ?? Enumerable.Empty<VideoClipInfo>();
 
         #endregion
 
@@ -167,6 +180,153 @@ namespace OpenFrame.Controls
         #endregion
 
         #region Public Methods
+
+        #region Filtering Methods
+
+        /// <summary>
+        /// Apply filter criteria to the clips collection
+        /// </summary>
+        /// <param name="filterCriteria">The filter criteria to apply</param>
+        public void ApplyFilter(FilterCriteria filterCriteria)
+        {
+            _filterCriteria = filterCriteria;
+            UpdateFilteredView();
+        }
+
+        /// <summary>
+        /// Update the filtered view based on current filter criteria
+        /// </summary>
+        private void UpdateFilteredView()
+        {
+            if (_filterCriteria == null || !_filterCriteria.IsActive)
+            {
+                // No filter active - show all clips
+                UpdateFilteredClips(_allVideoClips);
+                return;
+            }
+
+            // Apply filtering
+            var filteredClips = _allVideoClips.Where(clip => MatchesFilter(clip)).ToList();
+            UpdateFilteredClips(filteredClips);
+        }
+
+        /// <summary>
+        /// Update the filtered clips collection on the UI thread
+        /// </summary>
+        private void UpdateFilteredClips(IEnumerable<VideoClipInfo> clips)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _filteredVideoClips.Clear();
+                foreach (var clip in clips)
+                {
+                    _filteredVideoClips.Add(clip);
+                }
+
+                // Update related properties
+                OnPropertyChanged(nameof(ClipCount));
+                OnPropertyChanged(nameof(IsEmpty));
+                OnPropertyChanged(nameof(SelectedClipCount));
+
+                // Update status text to show filtering
+                if (_filterCriteria?.IsActive == true)
+                {
+                    var totalClips = _allVideoClips.Count;
+                    var filteredCount = _filteredVideoClips.Count;
+                    StatusText = $"Showing {filteredCount} of {totalClips} clips (filtered)";
+                }
+                else
+                {
+                    StatusText = $"Loaded {_filteredVideoClips.Count} clips";
+                }
+            });
+        }
+
+        #region Filtermatching
+        /// <summary>
+        /// Check if a clip matches the current filter criteria
+        /// </summary>
+        private bool MatchesFilter(VideoClipInfo clip)
+        {
+            // No filter means show everything
+            if (_filterCriteria == null || !_filterCriteria.IsActive)
+                return true;
+
+            // Check clip title first (from VideoClipInfo itself)
+            if (MatchesClipTitle(clip))
+                return true;
+
+            // Check SubClip data if present
+            if (clip.SubClip != null && _filterCriteria.Matches(clip.SubClip))
+                return true;
+
+            // Check UserMetadata from sidecar
+            var metadata = GetClipUserMetadata(clip);
+            if (metadata != null && _filterCriteria.Matches(metadata))
+                return true;
+
+            // Handle clips with no metadata - show them only if no specific criteria are set
+            if (metadata == null)
+                return AllowEmptyMetadata();
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check if clip title matches search criteria
+        /// </summary>
+        private bool MatchesClipTitle(VideoClipInfo clip)
+        {
+            if (string.IsNullOrWhiteSpace(_filterCriteria.SearchText))
+                return false;
+
+            if (clip.ClipTitle.IsNullOrEmpty())
+                return false;
+
+            var searchLower = _filterCriteria.SearchText.ToLowerInvariant();
+            return clip.ClipTitle.ToLowerInvariant().Contains(searchLower);
+        }
+
+        /// <summary>
+        /// Determine if clips without metadata should be shown
+        /// Only show them if no specific criteria are active
+        /// Tags are always exclusive - if filtering by tags, clips without metadata should not appear
+        /// </summary>
+        private bool AllowEmptyMetadata()
+        {
+            // If any tags are selected, don't show clips without metadata
+            if ((_filterCriteria.SelectedTags?.Count ?? 0) > 0)
+                return false;
+
+            // For other criteria, only show if no specific criteria are active
+            return _filterCriteria.PickStatus == null &&
+                   _filterCriteria.MinRating == null &&
+                   _filterCriteria.MaxRating == null &&
+                   string.IsNullOrWhiteSpace(_filterCriteria.SearchText);
+        }
+        #endregion
+
+        /// <summary>
+        /// Get UserMetadata for a clip (handles both main clips and subclips)
+        /// </summary>
+        private UserMetadataContent GetClipUserMetadata(VideoClipInfo clip)
+        {
+            try
+            {
+                // For both main clips and subclips, we need to get the sidecar content
+                // since that's where UserMetadata is stored
+                var sidecarContent = SidecarService.GetSidecarContent(clip.VideoFilePath);
+                return sidecarContent?.UserMetadata;
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't break filtering
+                Logger.LogError($"Error getting metadata for clip {clip.VideoFileName}: {ex.Message}", ex);
+                return null;
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Refresh the clips list asynchronously
@@ -229,7 +389,8 @@ namespace OpenFrame.Controls
         /// </summary>
         public void ClearClips()
         {
-            VideoClips.Clear();
+            _allVideoClips.Clear();
+            _filteredVideoClips.Clear();
             SelectedClip = null;
             StatusText = "Ready";
             OnPropertyChanged(nameof(ClipCount));
@@ -314,54 +475,44 @@ namespace OpenFrame.Controls
                                         VideoFileName = Path.GetFileName(videoFile),
                                         SubClip = subClip,
                                         ClipTitle = !string.IsNullOrEmpty(subClip.Title) ?
-                                            subClip.Title : $"Clip {subClip.Id.ToString().Substring(0, 8)}",
+                                            subClip.Title : $"Clip {subClip.Id}",
                                         StartTimeMs = subClip.StartTime,
                                         EndTimeMs = subClip.EndTime,
-                                        Duration = subClip.DurationDisplay,
-                                        StartTimeDisplay = subClip.StartTimeDisplay,
-                                        EndTimeDisplay = subClip.EndTimeDisplay,
-                                        ClipColor = subClip.Color,
-                                        ClipType = ClipType.SubClip,
-                                        IsSelected = false,
-                                        IsLoadingThumbnail = true
+                                        ClipColor = subClip.Color
                                     };
 
-                                    // Subscribe to selection changes
+                                    // Subscribe to property changes for UI updates
                                     clipInfo.PropertyChanged += ClipInfo_PropertyChanged;
                                     fileClips.Add(clipInfo);
                                 }
                             }
 
-                            // Mark the first clip of each file (whether main or sub)
                             if (fileClips.Any())
                             {
-                                fileClips[0].IsFirstClipOfFile = true;
                                 processedFiles[videoFile] = fileClips;
                                 clips.AddRange(fileClips);
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Log error but continue processing other files
-                            System.Diagnostics.Debug.WriteLine($"Error processing {videoFile}: {ex.Message}");
+                            Logger.LogError($"Error processing video file {videoFile}: {ex.Message}", ex);
+                            // Continue with other files
                         }
                     }
                 });
 
-
                 // Update UI on UI thread
                 Dispatcher.Invoke(() =>
                 {
-                    VideoClips.Clear();
+                    // Update the master collection
+                    _allVideoClips.Clear();
                     foreach (var clip in clips)
                     {
-                        VideoClips.Add(clip);
+                        _allVideoClips.Add(clip);
                     }
 
-                    StatusText = $"Loaded {clips.Count} clips from {processedFiles.Count} video files";
-                    OnPropertyChanged(nameof(ClipCount));
-                    OnPropertyChanged(nameof(IsEmpty));
-                    OnPropertyChanged(nameof(SelectedClipCount));
+                    // Apply current filter (or show all if no filter)
+                    UpdateFilteredView();
                 });
 
                 // Load thumbnails asynchronously without blocking
@@ -396,7 +547,6 @@ namespace OpenFrame.Controls
                     ClipTitle = "Main Clip",
                     StartTimeMs = startTime,
                     EndTimeMs = endTime,
-                    Duration = TimeSpan.FromMilliseconds(duration).ToString(@"mm\:ss\.fff"),
                     StartTimeDisplay = TimeSpan.FromMilliseconds(startTime).ToString(@"mm\:ss\.fff"),
                     EndTimeDisplay = TimeSpan.FromMilliseconds(endTime).ToString(@"mm\:ss\.fff"),
                     ClipColor = System.Windows.Media.Colors.DodgerBlue, // Default color for main clips
@@ -622,7 +772,20 @@ namespace OpenFrame.Controls
         public string ClipTitle { get; set; }
         public long StartTimeMs { get; set; }
         public long EndTimeMs { get; set; }
-        public string Duration { get; set; }
+        public long DurationMs
+        {
+            get
+            {
+                return EndTimeMs - StartTimeMs;
+            }
+        }
+        public string DurationString
+        {
+            get
+            {
+                return TimeSpan.FromMilliseconds(EndTimeMs - StartTimeMs).ToString(@"mm\:ss\.fff");
+            }
+        }
         public string StartTimeDisplay { get; set; }
         public string EndTimeDisplay { get; set; }
         public System.Windows.Media.Color ClipColor { get; set; }

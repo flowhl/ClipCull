@@ -65,7 +65,14 @@
                   Name="svMain"
                   HorizontalScrollBarVisibility="Disabled"
                   Background="{StaticResource BackgroundBrush}">
-        <Grid Margin="16">
+        <StackPanel Orientation="Vertical">
+            <!-- Tags -->
+            <StackPanel Orientation="Vertical">
+                <controls:TaggingControl x:Name="TagControl" />
+            </StackPanel>
+            <!--<Separator/>-->
+            <!--<TextBlock Text="Metadata" Margin="0,5,0,0" Style="{StaticResource h4}"/>-->
+            <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -161,10 +168,7 @@
                                            Foreground="{StaticResource MutedForegroundBrush}"/>
                 </Button>
             </StackPanel>
-
-            <!-- Tags -->
-            <Label Grid.Row="16" Content="Tags" Style="{StaticResource MetadataLabelStyle}"/>
-            <controls:TaggingControl x:Name="TagControl" />
-        </Grid>
+            </Grid>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

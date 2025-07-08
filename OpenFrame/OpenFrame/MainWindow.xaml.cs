@@ -20,6 +20,7 @@ using OpenFrame.Core.Update;
 using OpenFrame.Extensions;
 using System.Collections.ObjectModel;
 using FFMpegCore.Enums;
+using OpenFrame.Models.OpenFrame.Models;
 
 namespace OpenFrame;
 
@@ -30,6 +31,8 @@ public partial class MainWindow : Window
 {
     public ICommand LoadLayoutCommand { get; private set; }
     public ICommand SaveLayoutCommand { get; private set; }
+
+    private FilterCriteria _filterCriteria;
 
     public MainWindow()
     {
@@ -48,12 +51,22 @@ public partial class MainWindow : Window
             Logger.LogError("Error checking for updates: " + ex.Message, ex);
         }
 
+        _filterCriteria = new FilterCriteria();
+        _filterCriteria.MatchAllTags = true;
+
         //Call before InitializeComponent
         LoadLayoutCommand = LayoutManager.CreateLoadLayoutCommand();
         SaveLayoutCommand = LayoutManager.CreateSaveLayoutCommand();
 
         InitializeComponent();
         InitializeEventHandlers();
+
+        Loaded += MainWindow_Loaded1;
+    }
+
+    private void MainWindow_Loaded1(object sender, RoutedEventArgs e)
+    {
+        ClipFilter.FilterCriteria = _filterCriteria;
     }
 
     private void InitializeEventHandlers()
@@ -69,8 +82,15 @@ public partial class MainWindow : Window
         VideoClipBrowser.ClipSelectionChanged += VideoClipBrowser_ClipSelectionChanged;
         clipPreview.VideoLoaded += ClipPreview_VideoLoaded;
 
+        ClipFilter.FilterChanged += ClipFilter_FilterChanged;
+
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
+    }
+
+    private void ClipFilter_FilterChanged(object? sender, EventArgs e)
+    {
+        VideoClipBrowser.ApplyFilter(_filterCriteria);
     }
 
     private void ClipPreview_VideoLoaded(object? sender, VideoLoadedEventArgs e)

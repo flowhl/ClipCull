@@ -54,12 +54,10 @@ namespace OpenFrame.Controls
 
         public UserMetadataControl()
         {
-            //Tags
-            AvailableTags = new ObservableCollection<Tag>();
-            SettingsHandler.Settings.Tags.ForEach(tag => AvailableTags.Add(tag));
-            AvailableTags.CollectionChanged += AvailableTags_CollectionChanged;
-
             InitializeComponent();
+
+            RefreshAvailableTags();
+
             DataContext = this;
 
             // Wire up text change events
@@ -72,7 +70,23 @@ namespace OpenFrame.Controls
             CameraTextBox.TextChanged += OnTextChanged;
 
             // Ensure templates are loaded before we try to update them
-            this.Loaded += (s, e) => UpdateUI();
+            this.Loaded += UserMetadataControl_Loaded;
+        }
+
+        private void UserMetadataControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            RefreshAvailableTags();
+            UpdateUI();
+        }
+
+        private void RefreshAvailableTags()
+        {
+            //Tags
+            if (AvailableTags != null)
+                AvailableTags.CollectionChanged -= AvailableTags_CollectionChanged;
+            AvailableTags = new ObservableCollection<Tag>();
+            SettingsHandler.Settings.Tags.ForEach(tag => AvailableTags.Add(tag));
+            AvailableTags.CollectionChanged += AvailableTags_CollectionChanged;
         }
 
         private void AvailableTags_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

@@ -270,6 +270,18 @@
                 </Setter>
             </Style>
 
+
+            <!-- ============================================ -->
+            <!-- LABELS -->
+            <!-- ============================================ -->
+            <Style x:Key="primary-lb" TargetType="Label">
+                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontFamily" Value="{StaticResource FontSans}"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Margin" Value="0,8,0,4"/>
+            </Style>
+
             <!-- ============================================ -->
             <!-- CARD STYLES -->
             <!-- ============================================ -->
