@@ -192,8 +192,8 @@
                                MaxWidth="350">
                                 <TextBlock.Text>
                                     <PriorityBinding>
-                                        <Binding Path="UserMetadata.Title"/>
                                         <Binding Path="ClipTitle"/>
+                                        <Binding Path="UserMetadata.Title"/>
                                     </PriorityBinding>
                                 </TextBlock.Text>
                             </TextBlock>

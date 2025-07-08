@@ -548,8 +548,6 @@ namespace OpenFrame.Controls
                     ClipTitle = "Main Clip",
                     StartTimeMs = startTime,
                     EndTimeMs = endTime,
-                    StartTimeDisplay = TimeSpan.FromMilliseconds(startTime).ToString(@"mm\:ss\.fff"),
-                    EndTimeDisplay = TimeSpan.FromMilliseconds(endTime).ToString(@"mm\:ss\.fff"),
                     ClipColor = System.Windows.Media.Colors.DodgerBlue, // Default color for main clips
                     ClipType = ClipType.MainClip,
                     IsSelected = false,
@@ -789,8 +787,20 @@ namespace OpenFrame.Controls
                 return TimeSpan.FromMilliseconds(EndTimeMs - StartTimeMs).ToString(@"mm\:ss\.fff");
             }
         }
-        public string StartTimeDisplay { get; set; }
-        public string EndTimeDisplay { get; set; }
+        public string StartTimeDisplay
+        {
+            get
+            {
+                return TimeSpan.FromMilliseconds(StartTimeMs).ToString(@"mm\:ss\.fff");
+            }
+        }
+        public string EndTimeDisplay
+        {
+            get
+            {
+                return TimeSpan.FromMilliseconds(EndTimeMs).ToString(@"mm\:ss\.fff");
+            }
+        }
         public System.Windows.Media.Color ClipColor { get; set; }
         public bool IsFirstClipOfFile { get; set; }
 
