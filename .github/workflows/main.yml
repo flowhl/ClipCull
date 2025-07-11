@@ -54,14 +54,14 @@ jobs:
           dotnet-version: "8.0.x"
       
       - name: Restore dependencies
-        run: dotnet restore ClipCull.sln
+        run: dotnet restore ClipCull/ClipCull.sln
       
       - name: Build solution
-        run: dotnet build ClipCull.sln --configuration Release --no-restore
+        run: dotnet build ClipCull/ClipCull.sln --configuration Release --no-restore
         continue-on-error: true
       
       - name: Run tests
-        run: dotnet test ClipCull.sln --configuration Release --no-build --verbosity normal
+        run: dotnet test ClipCull/ClipCull.sln --configuration Release --no-build --verbosity normal
   
   build:
     needs: [check_version, test]
