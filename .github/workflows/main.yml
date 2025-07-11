@@ -21,7 +21,7 @@ jobs:
       - name: Get Version from Project File
         id: get-version
         shell: bash
-        run: echo "version=$(grep -oE '<FileVersion>[^<]+' ClipCull/ClipCull.csproj | sed 's/<FileVersion>//')" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep -oE '<FileVersion>[^<]+' ClipCull/ClipCull/ClipCull.csproj | sed 's/<FileVersion>//')" >> $GITHUB_OUTPUT
 
       - name: Echo Version
         run: echo "The version is ${{ steps.get-version.outputs.version }}"
@@ -78,7 +78,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Publish .NET project
-        run: dotnet publish ClipCull/ClipCull.csproj -c Release --self-contained -r win-x64 -o .\publish
+        run: dotnet publish ClipCull/ClipCull/ClipCull.csproj -c Release --self-contained -r win-x64 -o .\publish
 
       - name: Create Velopack Release
         run: |
