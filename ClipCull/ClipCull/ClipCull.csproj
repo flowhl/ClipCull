@@ -32,5 +32,8 @@
 	<ItemGroup>
 	  <Folder Include="External\" />
 	</ItemGroup>
+	<ItemGroup>
+		<FileVersion>1.0.0</FileVersion>
+	</ItemGroup>
 
 </Project>
