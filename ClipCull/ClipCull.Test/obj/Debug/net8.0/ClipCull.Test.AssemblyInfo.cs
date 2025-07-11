@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClipCull.Test")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9fe4d1baf61ec5d50793efdf7fe4ef837c9cde81")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c262d7429294b5aee244404463a581d9f6dc9ff5")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClipCull.Test")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClipCull.Test")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

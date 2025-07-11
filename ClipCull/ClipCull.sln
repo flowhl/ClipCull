@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipCull", "ClipCull\ClipCu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTOOWA.AvalonDockThemes", "TTOOWA.AvalonDockThemes\TTOOWA.AvalonDockThemes.csproj", "{2B898DF0-7A89-F69E-D6C4-FEB1CD8815C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipCull.Test", "ClipCull.Test\ClipCull.Test.csproj", "{70F06B4E-01FC-4BCF-81CF-797D2C3ACC68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2B898DF0-7A89-F69E-D6C4-FEB1CD8815C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B898DF0-7A89-F69E-D6C4-FEB1CD8815C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B898DF0-7A89-F69E-D6C4-FEB1CD8815C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70F06B4E-01FC-4BCF-81CF-797D2C3ACC68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70F06B4E-01FC-4BCF-81CF-797D2C3ACC68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70F06B4E-01FC-4BCF-81CF-797D2C3ACC68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70F06B4E-01FC-4BCF-81CF-797D2C3ACC68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
