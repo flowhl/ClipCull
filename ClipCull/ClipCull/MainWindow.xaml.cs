@@ -43,7 +43,7 @@ public partial class MainWindow : Window
         {
 #if DEBUG
 #else
-                AppUpdates.AppUpdateManager.CheckForUpdates();
+            ClipCull.Core.Update.AppUpdateManager.CheckForUpdates();
 #endif
         }
         catch (Exception ex)
