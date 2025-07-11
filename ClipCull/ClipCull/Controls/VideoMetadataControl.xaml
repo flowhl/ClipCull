@@ -1,0 +1,343 @@
+﻿<UserControl x:Class="ClipCull.Controls.VideoMetadataControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ClipCull.Controls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:ClipCull.Controls.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="350" d:DesignWidth="400"
+             x:Name="UserControlRoot">
+
+    <UserControl.Resources>
+        <!-- Material Design Icon Styles -->
+        <Style x:Key="BaseIconStyle" TargetType="materialDesign:PackIcon">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+        </Style>
+
+        <Style x:Key="AccentIconStyle" TargetType="materialDesign:PackIcon" BasedOn="{StaticResource BaseIconStyle}">
+            <Setter Property="Foreground" Value="#007ACC"/>
+        </Style>
+
+        <Style x:Key="ErrorIconStyle" TargetType="materialDesign:PackIcon" BasedOn="{StaticResource BaseIconStyle}">
+            <Setter Property="Foreground" Value="#FF6666"/>
+        </Style>
+
+        <Style x:Key="LargeIconStyle" TargetType="materialDesign:PackIcon" BasedOn="{StaticResource BaseIconStyle}">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Foreground" Value="#666666"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Style="{DynamicResource CardPanelStyle}" MinHeight="300">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <materialDesign:PackIcon Grid.Column="0"
+                                        Kind="Information" 
+                                        Style="{StaticResource AccentIconStyle}"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="1"
+                          Text="Video Metadata" 
+                          Style="{DynamicResource h2}"/>
+            </Grid>
+
+            <!-- Content -->
+            <ScrollViewer Grid.Row="1" 
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Disabled">
+
+                <Grid>
+                    <!-- No file state -->
+                    <StackPanel HorizontalAlignment="Center" 
+                               VerticalAlignment="Center">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentVideoMetadata}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <materialDesign:PackIcon Kind="FileVideoOutline" 
+                                                Style="{StaticResource LargeIconStyle}"
+                                                HorizontalAlignment="Center" 
+                                                Margin="0,0,0,10"/>
+                        <TextBlock Text="No video file selected" 
+                                  Style="{DynamicResource h3}"
+                                  HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Error state -->
+                    <StackPanel HorizontalAlignment="Center" 
+                               VerticalAlignment="Center">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentVideoMetadata.HasError}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <materialDesign:PackIcon Kind="AlertCircle" 
+                                                Style="{StaticResource ErrorIconStyle}"
+                                                Width="48" Height="48"
+                                                HorizontalAlignment="Center" 
+                                                Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding CurrentVideoMetadata.ErrorMessage}"
+                                  Style="{DynamicResource h3}"
+                                  HorizontalAlignment="Center" 
+                                  Foreground="{DynamicResource ErrorBrush}"
+                                  TextWrapping="Wrap"
+                                  MaxWidth="300"/>
+                    </StackPanel>
+
+                    <!-- Metadata content -->
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding CurrentVideoMetadata, Converter={x:Static converters:NullToBoolConverter.Instance}}" Value="True"/>
+                                            <Condition Binding="{Binding CurrentVideoMetadata.HasError}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <!-- File Information -->
+                        <StackPanel Margin="0,0,0,20">
+                            <TextBlock Text="File Information" 
+                                      Style="{DynamicResource h3}"
+                                      Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" 
+                                          Text="File Name:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" 
+                                        Text="{Binding CurrentVideoMetadata.FileName, Mode=OneWay}"
+                                        IsReadOnly="True"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="White"
+                                        TextWrapping="Wrap"
+                                        Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" 
+                                          Text="File Size:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.FileSizeFormatted, Mode=OneWay}"
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" 
+                                          Text="Created:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.CreatedDateFormatted, Mode=OneWay}"
+                                   
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" 
+                                          Text="Modified:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.ModifiedDateFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Video Properties -->
+                        <StackPanel Margin="0,0,0,20">
+                            <TextBlock Text="Video Properties" 
+                                          Style="{DynamicResource h3}"
+                                      Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" 
+                                          Text="Duration:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.DurationFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" 
+                                          Text="Resolution:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.Resolution, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" 
+                                          Text="Frame Rate:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.FrameRateFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" 
+                                          Text="Video Codec:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.VideoCodec, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" 
+                                          Text="Video Bitrate:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.VideoBitrateFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" 
+                                          Text="Audio Codec:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.AudioCodec, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" 
+                                          Text="Audio Bitrate:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.AudioBitrateFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Creation/Capture Date (if available) -->
+                        <StackPanel Margin="0,0,0,20">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentVideoMetadata.HasRecordingInfo}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+
+                            <TextBlock Text="Recording Information" 
+                                          Style="{DynamicResource h3}"
+                                      Margin="0,0,0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" 
+                                          Text="Date Recorded:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.DateRecordedFormatted, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" 
+                                          Text="Camera Model:" 
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,10,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" 
+                                          Text="{Binding CurrentVideoMetadata.CameraModel, Mode=OneWay}"
+                                          
+                                          Style="{DynamicResource small}"
+                                          Margin="0,0,0,5"/>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>
