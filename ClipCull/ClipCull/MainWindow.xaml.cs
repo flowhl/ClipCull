@@ -21,6 +21,7 @@ using ClipCull.Extensions;
 using System.Collections.ObjectModel;
 using FFMpegCore.Enums;
 using ClipCull.Models.ClipCull.Models;
+using Velopack;
 
 namespace ClipCull;
 
@@ -36,6 +37,9 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        // Initialize Velopack application
+        VelopackApp.Build().Run();
+
         Logger.Init();
         SettingsHandler.Initialize();
         Directory.CreateDirectory(Globals.ExternalPath);
