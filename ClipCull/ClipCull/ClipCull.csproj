@@ -8,7 +8,12 @@
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
 		<FileVersion>1.0.0</FileVersion>
+		<ApplicationIcon>Images\Logo.ico</ApplicationIcon>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="Images\Logo.ico" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="CliWrap" Version="3.9.0" />
