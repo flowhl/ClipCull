@@ -100,18 +100,9 @@
                         <ControlTemplate.Triggers>
                             <!-- Selection Highlighting -->
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource SecondaryBrush}"/>
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
                             </Trigger>
-
-                            <!-- Mouse Over Effect -->
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="IsSelected" Value="False"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource AccentBrush}"/>
-                            </MultiTrigger>
 
                             <!-- Hide Expander for Files Only -->
                             <DataTrigger Binding="{Binding Tag.IsFile, RelativeSource={RelativeSource Self}}" Value="True">
