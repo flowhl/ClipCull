@@ -285,6 +285,7 @@
             <ScrollViewer Grid.Row="1" 
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Auto"
+                          Name="ScrollViewerMain"
                          Padding="8">
                 <TreeView x:Name="FolderTreeView" 
          Style="{StaticResource FolderTreeViewStyle}"

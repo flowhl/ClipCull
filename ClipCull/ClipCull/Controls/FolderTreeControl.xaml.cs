@@ -122,11 +122,21 @@ namespace ClipCull.Controls
             InitializeComponent();
             DataContext = this;
 
+            this.PreviewMouseWheel += FolderTreeControl_PreviewMouseWheel;
+
             // Load drives on startup if no root path is specified
             if (string.IsNullOrEmpty(RootPath))
             {
                 LoadTreeAsync();
             }
+        }
+
+        private void FolderTreeControl_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (ScrollViewerMain == null) return;
+
+            ScrollViewerMain.ScrollToVerticalOffset(ScrollViewerMain.VerticalOffset - e.Delta);
+            e.Handled = true;
         }
         #endregion
 
