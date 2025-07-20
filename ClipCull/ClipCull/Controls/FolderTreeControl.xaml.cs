@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClipCull.Core;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -333,7 +334,8 @@ namespace ClipCull.Controls
                 Name = file.Name,
                 FullPath = file.FullName,
                 SizeDisplay = GetFileSizeDisplay(file.Length),
-                IsVideoFile = IsVideoFile(file.Extension)
+                IsVideoFile = IsVideoFile(file.Extension),
+                HasSidecar = IsVideoFile(file.Extension) && SidecarService.HasSidecar(file.FullName)
             };
 
             var item = new TreeViewItem
@@ -786,6 +788,7 @@ namespace ClipCull.Controls
         public string SizeDisplay { get; set; }
         public bool IsVideoFile { get; set; }
         public bool IsFile { get; set; } = true;
+        public bool HasSidecar { get; set; }
     }
     #endregion
 

@@ -192,6 +192,12 @@
                                        Width="16" Height="16"
                                        Foreground="{StaticResource ForegroundBrush}"
                                        Margin="0,0,8,0"/>
+                <materialDesign:PackIcon x:Name="SidecarIcon" 
+                                       Kind="LinkAdd"
+                                       Width="16" Height="16"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       Margin="0,0,8,0"
+                                         Visibility="Collapsed"/>
                 <TextBlock Text="{Binding Name}" 
                           VerticalAlignment="Center"
                           Style="{StaticResource body}"/>
@@ -205,6 +211,9 @@
                 <DataTrigger Binding="{Binding IsVideoFile}" Value="True">
                     <Setter TargetName="FileIcon" Property="Kind" Value="Video"/>
                     <Setter TargetName="FileIcon" Property="Foreground" Value="#FF3B82F6"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasSidecar}" Value="True">
+                    <Setter TargetName="SidecarIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>

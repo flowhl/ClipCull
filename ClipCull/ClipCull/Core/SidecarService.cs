@@ -11,6 +11,12 @@ namespace ClipCull.Core
 {
     public static class SidecarService
     {
+        public static bool HasSidecar(string videoFile)
+        {
+            string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
+            return File.Exists(sidecarPath);
+        }
+
         public static SidecarContent GetSidecarContent(string videoFile)
         {
             string sidecarPath = Path.ChangeExtension(videoFile, ".xml");
@@ -77,7 +83,7 @@ namespace ClipCull.Core
             if (ReferenceEquals(a, b)) return true;
             if (a == null || b == null) return false;
 
-            if(a.Tags == null) a.Tags = new ObservableCollection<Tag>();
+            if (a.Tags == null) a.Tags = new ObservableCollection<Tag>();
             if (b.Tags == null) b.Tags = new ObservableCollection<Tag>();
 
             return a.Title == b.Title &&
