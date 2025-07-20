@@ -21,12 +21,17 @@
                                 <TextBlock Style="{StaticResource h3}" >General</TextBlock>
                                 <Separator Margin="0,5,0,10"/>
                                 <!--Autosave sidecar-->
-                                <!--Gyroflow Path-->
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Save changes automatically</TextBlock>
                                     <local:ToggleButtonControl IsToggled="{Binding Path=AutosaveSidecar}" Margin="5" Height="20" x:Name="ToggleAutosaveSidecar"/>
                                 </StackPanel>
-                                
+                                <!--Filter must match all tags-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, clips must have ALL selected tags. If inactive, clips must have ANY of the selected tags." VerticalAlignment="Center" Margin="0,2,0,0">Filter must match all tags</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=FilterMustMatchAllTags}" Margin="5" Height="20" x:Name="ToggleFilterMustMatchAllTags"/>
+                                </StackPanel>
+
+
                             </StackPanel>
                         </Border>
                         <!--Gyroflow-->

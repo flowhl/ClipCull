@@ -56,7 +56,7 @@ public partial class MainWindow : Window
         }
 
         _filterCriteria = new FilterCriteria();
-        _filterCriteria.MatchAllTags = true;
+        _filterCriteria.MatchAllTags = SettingsHandler.Settings.FilterMustMatchAllTags;
 
         //Call before InitializeComponent
         LoadLayoutCommand = LayoutManager.CreateLoadLayoutCommand();

@@ -14,6 +14,7 @@ namespace ClipCull.Models
     using FFMpegCore.Builders.MetaData;
     using global::ClipCull.Controls;
     using ClipCull.Models;
+    using global::ClipCull.Core;
 
     namespace ClipCull.Models
     {
@@ -279,7 +280,7 @@ namespace ClipCull.Models
                 MaxRating = null;
                 PickStatus = null;
                 SelectedTags?.Clear();
-                MatchAllTags = false;
+                MatchAllTags = SettingsHandler.Settings.FilterMustMatchAllTags;
             }
 
             /// <summary>
