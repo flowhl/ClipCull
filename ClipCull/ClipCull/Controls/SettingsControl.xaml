@@ -63,6 +63,9 @@
             <TabItem Header="Tags">
                 <local:TagManagementControl x:Name="TagManagement"  AllowDuplicateNames="False" MaxTagNameLength="20"/>
             </TabItem>
+            <TabItem Header="Hotkeys">
+                <local:HotkeySettingsControl x:Name="HotkeyView" />
+            </TabItem>
         </TabControl>
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Button Name="BtnSave" Content="Save Settings" Width="150" Style="{StaticResource primary}" Click="BtnSave_Click"/>

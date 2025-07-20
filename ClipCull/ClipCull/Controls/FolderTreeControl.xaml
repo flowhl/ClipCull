@@ -291,8 +291,7 @@
          Style="{StaticResource FolderTreeViewStyle}"
          ItemContainerStyle="{StaticResource TreeViewItemStyle}"
          SelectedItemChanged="FolderTreeView_SelectedItemChanged"
-         MouseDoubleClick="FolderTreeView_MouseDoubleClick"
-         KeyDown="FolderTreeView_KeyDown">
+         MouseDoubleClick="FolderTreeView_MouseDoubleClick">
                     <TreeView.Resources>
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                       Color="{StaticResource Secondary}" />

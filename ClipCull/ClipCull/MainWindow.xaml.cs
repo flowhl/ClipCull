@@ -83,8 +83,29 @@ public partial class MainWindow : Window
 
         ClipFilter.FilterChanged += ClipFilter_FilterChanged;
 
+        HotkeyController.OnReload += HotkeyController_OnReload;
+        HotkeyController.OnSave += HotkeyController_OnSave;
+
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
+    }
+
+    private void HotkeyController_OnSave()
+    {
+        if (TabEditing.IsSelected)
+        {
+            SaveSidecarButton_Click(null, null);
+        }
+        else if (TabSettings.IsSelected)
+        {
+            SettingsView.BtnSave_Click(null, null);
+        }
+    }
+
+    private void HotkeyController_OnReload()
+    {
+        if (TabEditing.IsSelected)
+            ReloadSidecarButton_Click(null, null);
     }
 
     private void ClipFilter_FilterChanged(object? sender, EventArgs e)
@@ -120,6 +141,7 @@ public partial class MainWindow : Window
     {
         ClipFilter.FilterCriteria = _filterCriteria;
         LayoutManager.InitializeLayoutManagement(this);
+        InitializeHotkeys();
 
         VideoMetadataViewer.DataContext = VideoPreview;
         UserMetadataViewer.DataContext = VideoPreview;
@@ -320,6 +342,8 @@ public partial class MainWindow : Window
         VideoPreview.timelineControl.OutPoint = sidecarContent.OutPoint;
         VideoPreview.UserMetadata = sidecarContent.UserMetadata;
 
+        VideoPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
+
         UpdateStatus("Sidecar content applied successfully.", false);
     }
 
@@ -430,4 +454,30 @@ public partial class MainWindow : Window
 
         VideoClipBrowser.FolderPath = folder;
     }
+    #region Hotkeys
+    private void InitializeHotkeys()
+    {
+        // Load saved hotkey mappings
+        HotkeyController.LoadMappings();
+
+        // Subscribe to hotkey events
+        //HotkeyController.OnSave += HotkeyController_OnSave;
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        // Don't process hotkeys if we're typing in a textbox
+        if (e.OriginalSource is System.Windows.Controls.TextBox &&
+            !((System.Windows.Controls.TextBox)e.OriginalSource).IsReadOnly)
+        {
+            base.OnPreviewKeyDown(e);
+            return;
+        }
+
+        // Process the hotkey
+        HotkeyController.ProcessKeyDown(e);
+
+        base.OnPreviewKeyDown(e);
+    }
+    #endregion
 }

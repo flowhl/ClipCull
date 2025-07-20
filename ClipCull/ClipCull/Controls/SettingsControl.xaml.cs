@@ -48,7 +48,7 @@ namespace ClipCull.Controls
             TagManagement.Tags = tagCollection;
         }
 
-        private void BtnSave_Click(object sender, RoutedEventArgs e)
+        public void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             var newTags = new List<Tag>();
             TagManagement.Tags.ToList().ForEach(x => newTags.Add(new Models.Tag
@@ -60,6 +60,7 @@ namespace ClipCull.Controls
             SettingsHandler.Settings.Tags = newTags;
 
             SettingsHandler.Save();
+            HotkeyController.SaveMappings();
             Logger.LogSuccess("Settings saved successfully.");
         }
 

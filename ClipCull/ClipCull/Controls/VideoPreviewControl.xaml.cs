@@ -78,6 +78,7 @@ namespace ClipCull.Controls
                     DisposeVLC();
                     InitializeVLC(_rotation);
                     LoadVideo(CurrentVideoPath); // Reload video with new rotation
+                    UserMetadata.Rotation = _rotation;
                 }
             }
         }
@@ -203,7 +204,14 @@ namespace ClipCull.Controls
         private void InitializeTimelineEvents()
         {
             timelineControl.TimelineClicked += TimelineControl_TimelineClicked;
+
+            HotkeyController.OnNext += HotkeyController_OnNext;
+            HotkeyController.OnPrevious += HotkeyController_OnPrevious;
+            HotkeyController.OnNextSmall += HotkeyController_OnNextSmall;
+            HotkeyController.OnPreviousSmall += HotkeyController_OnPreviousSmall;
+            HotkeyController.OnTogglePlay += HotkeyController_OnTogglePlay;
         }
+
         #endregion
 
         #region Public Methods
@@ -424,7 +432,7 @@ namespace ClipCull.Controls
         {
             if (MediaPlayer?.Media != null)
             {
-                throw new Exception("Not implemented yet");
+                Logger.LogWarning("Frame stepping is not implemented in VLC. This button will not work as expected.");
                 //MediaPlayer.PreviousFrame();
             }
         }
@@ -469,6 +477,37 @@ namespace ClipCull.Controls
                 timelineControl.CurrentTime = MediaPlayer.Time;
             }
         }
+
+        private void HotkeyController_OnTogglePlay()
+        {
+            if (!IsVisible) return;
+            PlayPauseButton_Click(null, null);
+        }
+
+        private void HotkeyController_OnPrevious()
+        {
+            if (!IsVisible) return;
+            Skip10BackwardButton_Click(null, null);
+        }
+
+        private void HotkeyController_OnNext()
+        {
+            if (!IsVisible) return;
+            Skip10ForwardButton_Click(null, null);
+        }
+
+        private void HotkeyController_OnPreviousSmall()
+        {
+            if (!IsVisible) return;
+            FrameBackwardButton_Click(null, null);
+        }
+
+        private void HotkeyController_OnNextSmall()
+        {
+            if (!IsVisible) return;
+            FrameForwardButton_Click(null, null);
+        }
+
         #endregion
 
         #region IDisposable

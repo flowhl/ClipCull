@@ -1,4 +1,5 @@
-﻿using ClipCull.Models;
+﻿using ClipCull.Core;
+using ClipCull.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -149,8 +150,12 @@ namespace ClipCull.Controls
             Loaded += TimelineControl_Loaded;
             SizeChanged += TimelineControl_SizeChanged;
 
-            // Add keyboard shortcuts
-            KeyDown += TimelineControl_KeyDown;
+            HotkeyController.OnSetInPoint += HotkeyController_OnSetInPoint;
+            HotkeyController.OnSetOutPoint += HotkeyController_OnSetOutPoint;
+            HotkeyController.OnMarker += HotkeyController_OnMarker;
+            HotkeyController.OnSubclipStart += HotkeyController_OnSubclipStart;
+            HotkeyController.OnSubclipEnd += HotkeyController_OnSubclipEnd;
+
             Focusable = true;
         }
         #endregion
@@ -653,33 +658,6 @@ namespace ClipCull.Controls
             UpdateTimelineDisplay();
         }
 
-        private void TimelineControl_KeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case Key.I:
-                    SetInPoint();
-                    e.Handled = true;
-                    break;
-                case Key.O:
-                    SetOutPoint();
-                    e.Handled = true;
-                    break;
-                case Key.M:
-                    AddMarkerAtCurrentTime();
-                    e.Handled = true;
-                    break;
-                case Key.OemOpenBrackets: // [
-                    StartSubClip();
-                    e.Handled = true;
-                    break;
-                case Key.OemCloseBrackets: // ]
-                    FinishSubClip();
-                    e.Handled = true;
-                    break;
-            }
-        }
-
         private void Markers_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.OldItems != null)
@@ -897,6 +875,38 @@ namespace ClipCull.Controls
                 };
                 timer.Start();
             }
+        }
+        #endregion
+
+        #region Hotkeys
+        private void HotkeyController_OnSubclipEnd()
+        {
+            if (!IsVisible) return;
+            FinishSubClip();
+        }
+
+        private void HotkeyController_OnSubclipStart()
+        {
+            if (!IsVisible) return;
+            StartSubClip();
+        }
+
+        private void HotkeyController_OnMarker()
+        {
+            if (!IsVisible) return;
+            AddMarkerAtCurrentTime();
+        }
+
+        private void HotkeyController_OnSetOutPoint()
+        {
+            if (!IsVisible) return;
+            SetOutPoint();
+        }
+
+        private void HotkeyController_OnSetInPoint()
+        {
+            if (!IsVisible) return;
+            SetInPoint();
         }
         #endregion
         #endregion

@@ -95,6 +95,7 @@ namespace ClipCull.Core
                    a.Camera == b.Camera &&
                    a.Rating == b.Rating &&
                    a.Pick == b.Pick &&
+                   a.Rotation == b.Rotation &&
                    EqualsTags(a.Tags.ToList(), b.Tags.ToList());
         }
 

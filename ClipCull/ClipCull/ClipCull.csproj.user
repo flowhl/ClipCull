@@ -14,6 +14,9 @@
     <Compile Update="Controls\GyroflowRenderQueueControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\HotkeySettingsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\MarkerEditDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -12,7 +12,7 @@
 
     <Grid>
         <TabControl Background="Transparent" BorderThickness="0">
-            <TabItem Header="Editing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+            <TabItem Name="TabEditing" Header="Editing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -199,7 +199,7 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="Clips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+            <TabItem Name="TabClips" Header="Clips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -280,10 +280,10 @@
                     </xcad:DockingManager>
                 </Grid>
             </TabItem>
-            <TabItem Header="Render Queue">
+            <TabItem Name="TabRenderqueue" Header="Render Queue">
                 <uc:GyroflowRenderQueueControl x:Name="GyroflowRenderQueueControl"/>
             </TabItem>
-            <TabItem Header="Settings">
+            <TabItem Name="TabSettings" Header="Settings">
                 <uc:SettingsControl x:Name="SettingsView"/>
             </TabItem>
         </TabControl>

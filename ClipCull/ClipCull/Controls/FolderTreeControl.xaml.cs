@@ -123,6 +123,8 @@ namespace ClipCull.Controls
             DataContext = this;
 
             this.PreviewMouseWheel += FolderTreeControl_PreviewMouseWheel;
+            HotkeyController.OnReload += HotkeyController_OnReload;
+            HotkeyController.OnEnter += HotkeyController_OnEnter;
 
             // Load drives on startup if no root path is specified
             if (string.IsNullOrEmpty(RootPath))
@@ -356,6 +358,31 @@ namespace ClipCull.Controls
             };
 
             return item;
+        }
+
+        private void HotkeyController_OnReload()
+        {
+            if (!IsVisible) return;
+            RefreshTree();
+        }
+
+        private void HotkeyController_OnEnter()
+        {
+            if (!IsVisible) return;
+
+            if (FolderTreeView.SelectedItem is TreeViewItem selectedItem)
+            {
+                string path = GetItemPath(selectedItem);
+
+                if (selectedItem.Tag is DriveItemData || selectedItem.Tag is FolderItemData)
+                {
+                    selectedItem.IsExpanded = !selectedItem.IsExpanded;
+                }
+                else if (selectedItem.Tag is FileItemData)
+                {
+                    FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(path));
+                }
+            }
         }
         #endregion
 
@@ -722,30 +749,6 @@ namespace ClipCull.Controls
                 {
                     FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(path));
                 }
-            }
-        }
-
-        private void FolderTreeView_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F5)
-            {
-                RefreshTree();
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Enter && FolderTreeView.SelectedItem is TreeViewItem selectedItem)
-            {
-                string path = GetItemPath(selectedItem);
-
-                if (selectedItem.Tag is DriveItemData || selectedItem.Tag is FolderItemData)
-                {
-                    selectedItem.IsExpanded = !selectedItem.IsExpanded;
-                }
-                else if (selectedItem.Tag is FileItemData)
-                {
-                    FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(path));
-                }
-
-                e.Handled = true;
             }
         }
 
