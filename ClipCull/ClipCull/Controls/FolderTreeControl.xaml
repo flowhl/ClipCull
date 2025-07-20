@@ -100,7 +100,8 @@
                         <ControlTemplate.Triggers>
                             <!-- Selection Highlighting -->
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                                <!--<Setter TargetName="PART_Header" Property="Background" Value="{StaticResource SecondaryBrush}"/>-->
+                                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
                             </Trigger>
 
@@ -277,10 +278,22 @@
                          HorizontalScrollBarVisibility="Auto"
                          Padding="8">
                 <TreeView x:Name="FolderTreeView" 
-                         Style="{StaticResource FolderTreeViewStyle}"
-                         SelectedItemChanged="FolderTreeView_SelectedItemChanged"
-                         MouseDoubleClick="FolderTreeView_MouseDoubleClick"
-                         KeyDown="FolderTreeView_KeyDown"/>
+         Style="{StaticResource FolderTreeViewStyle}"
+         ItemContainerStyle="{StaticResource TreeViewItemStyle}"
+         SelectedItemChanged="FolderTreeView_SelectedItemChanged"
+         MouseDoubleClick="FolderTreeView_MouseDoubleClick"
+         KeyDown="FolderTreeView_KeyDown">
+                    <TreeView.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                      Color="{StaticResource Secondary}" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                      Color="Black" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                      Color="Transparent" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                      Color="Black" />
+                    </TreeView.Resources>
+                </TreeView>
             </ScrollViewer>
 
             <!-- Status Bar -->

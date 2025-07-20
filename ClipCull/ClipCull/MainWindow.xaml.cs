@@ -213,10 +213,7 @@ public partial class MainWindow : Window
         //Autosave sidecar content if enabled
         if (SettingsHandler.Settings.AutosaveSidecar && VideoPreview != null && VideoPreview.CurrentVideoPath != null)
         {
-            if (VideoPreview != null && VideoPreview.CurrentVideoPath.IsNotNullOrEmpty())
-            {
-                SidecarService.SaveSidecarContent(GetCurrentStateAsSidecar(), VideoPreview?.CurrentVideoPath);
-            }
+            SaveSidecarButton_Click(null, null);
         }
 
         // Check for unsaved changes before opening a new video

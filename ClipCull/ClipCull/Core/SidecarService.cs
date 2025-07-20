@@ -1,6 +1,7 @@
 ﻿using ClipCull.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,7 +42,6 @@ namespace ClipCull.Core
             try
             {
                 Globals.SerializeToFile(sidecar, sidecarPath);
-                Logger.LogSuccess($"Sidecar content saved to {sidecarPath}");
             }
             catch (Exception ex)
             {
@@ -77,6 +77,9 @@ namespace ClipCull.Core
             if (ReferenceEquals(a, b)) return true;
             if (a == null || b == null) return false;
 
+            if(a.Tags == null) a.Tags = new ObservableCollection<Tag>();
+            if (b.Tags == null) b.Tags = new ObservableCollection<Tag>();
+
             return a.Title == b.Title &&
                    a.Description == b.Description &&
                    a.Author == b.Author &&
@@ -86,7 +89,7 @@ namespace ClipCull.Core
                    a.Camera == b.Camera &&
                    a.Rating == b.Rating &&
                    a.Pick == b.Pick &&
-                   EqualsTags(a.Tags?.ToList(), b.Tags?.ToList());
+                   EqualsTags(a.Tags.ToList(), b.Tags.ToList());
         }
 
         private static bool EqualsTags(List<Tag> a, List<Tag> b)
