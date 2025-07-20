@@ -13,6 +13,8 @@ namespace ClipCull.Models
             Tags = new List<Tag>();
         }
 
+        public bool AutosaveSidecar { get; set; }
+
         /// <summary>
         /// Path to the Gyroflow executable.
         /// If null, it will be discovered automatically

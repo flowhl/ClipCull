@@ -65,12 +65,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         InitializeEventHandlers();
 
-        Loaded += MainWindow_Loaded1;
-    }
-
-    private void MainWindow_Loaded1(object sender, RoutedEventArgs e)
-    {
-        ClipFilter.FilterCriteria = _filterCriteria;
+        Loaded += MainWindow_Loaded;
     }
 
     private void InitializeEventHandlers()
@@ -123,10 +118,15 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        ClipFilter.FilterCriteria = _filterCriteria;
         LayoutManager.InitializeLayoutManagement(this);
 
         VideoMetadataViewer.DataContext = VideoPreview;
         UserMetadataViewer.DataContext = VideoPreview;
+
+        //Hide save button if autosave is enabled
+        SaveSidecarButton.Visibility = SettingsHandler.Settings.AutosaveSidecar ? Visibility.Collapsed : Visibility.Visible;
+
         CheckForFfmpeg();
     }
 
@@ -145,6 +145,13 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        // Check for unsaved changes before closing
+        if (!AllowNavigation())
+        {
+            e.Cancel = true; // Cancel the close operation
+            return;
+        }
+
         // Force save the layout before the window actually closes
         if (SaveLayoutCommand?.CanExecute(null) == true)
         {
@@ -203,6 +210,15 @@ public partial class MainWindow : Window
 
     public void LoadVideoFile(string filePath)
     {
+        //Autosave sidecar content if enabled
+        if (SettingsHandler.Settings.AutosaveSidecar && VideoPreview != null && VideoPreview.CurrentVideoPath != null)
+        {
+            if (VideoPreview != null && VideoPreview.CurrentVideoPath.IsNotNullOrEmpty())
+            {
+                SidecarService.SaveSidecarContent(GetCurrentStateAsSidecar(), VideoPreview?.CurrentVideoPath);
+            }
+        }
+
         // Check for unsaved changes before opening a new video
         if (!AllowNavigation())
             return;

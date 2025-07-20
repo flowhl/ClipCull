@@ -20,6 +20,13 @@
                             <StackPanel Orientation="Vertical">
                                 <TextBlock Style="{StaticResource h3}" >General</TextBlock>
                                 <Separator Margin="0,5,0,10"/>
+                                <!--Autosave sidecar-->
+                                <!--Gyroflow Path-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Save changes automatically</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=AutosaveSidecar}" Margin="5" Height="20" x:Name="ToggleAutosaveSidecar"/>
+                                </StackPanel>
+                                
                             </StackPanel>
                         </Border>
                         <!--Gyroflow-->

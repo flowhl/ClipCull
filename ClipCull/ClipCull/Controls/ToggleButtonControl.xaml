@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="ClipCull.Controls.ToggleButtonControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ClipCull.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="32" d:DesignWidth="64">
+
+    <UserControl.Resources>
+        <!-- Toggle Button Style -->
+        <Style x:Key="ToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{StaticResource InputBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <!-- Background Border -->
+                            <Border x:Name="backgroundBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="12"
+                                    Width="48"
+                                    Height="24"/>
+
+                            <!-- Toggle Circle - Off Position -->
+                            <Ellipse x:Name="circleOff"
+                                     Width="18"
+                                     Height="18"
+                                     Fill="White"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center"
+                                     Margin="3,0,0,0"
+                                     Visibility="Visible"/>
+
+                            <!-- Toggle Circle - On Position -->
+                            <Ellipse x:Name="circleOn"
+                                     Width="18"
+                                     Height="18"
+                                     Fill="White"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,3,0"
+                                     Visibility="Collapsed"/>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <!-- Checked State -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="backgroundBorder" Value="#FF22C55E"/>
+                                <Setter Property="BorderBrush" TargetName="backgroundBorder" Value="#FF22C55E"/>
+                                <Setter Property="Visibility" TargetName="circleOff" Value="Collapsed"/>
+                                <Setter Property="Visibility" TargetName="circleOn" Value="Visible"/>
+                            </Trigger>
+
+                            <!-- Hover States -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="backgroundBorder" Value="{StaticResource MutedBrush}"/>
+                            </MultiTrigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="backgroundBorder" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="BorderBrush" TargetName="backgroundBorder" Value="{StaticResource AccentBrush}"/>
+                            </MultiTrigger>
+
+                            <!-- Disabled State -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Viewbox Stretch="Uniform">
+        <ToggleButton x:Name="toggleButton" 
+                      Style="{StaticResource ToggleButtonStyle}"
+                      IsChecked="{Binding IsToggled, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+                      Click="ToggleButton_Click"/>
+    </Viewbox>
+</UserControl>

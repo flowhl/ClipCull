@@ -36,6 +36,7 @@ namespace ClipCull.Models
         private int? _rating;
         private bool? _pick;
         private ObservableCollection<Tag> _tags;
+        private int _rotation = 0;
 
         public string Title
         {
@@ -101,6 +102,22 @@ namespace ClipCull.Models
         {
             get => _tags;
             set { _tags = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Video rotation in degrees. Valid values are 0, 90, 180, and 270 degrees.
+        /// Invalid values will default to 0 degrees.
+        /// </summary>
+        public int Rotation
+        {
+            get => _rotation;
+            set 
+            { 
+                // Validate rotation values - only allow 0, 90, 180, 270 degrees
+                var validRotations = new[] { 0, 90, 180, 270 };
+                _rotation = validRotations.Contains(value) ? value : 0;
+                OnPropertyChanged(); 
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

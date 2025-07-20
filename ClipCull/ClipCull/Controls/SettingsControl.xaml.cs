@@ -33,10 +33,12 @@ namespace ClipCull.Controls
         private void SettingsControl_Loaded(object sender, RoutedEventArgs e)
         {
             SettingsHandler.Load();
-            DataContext = this;
+            DataContext = SettingsHandler.Settings;
             TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
 
+
+            //Tags
             var tagCollection = new ObservableCollection<EditableTag>();
             SettingsHandler.Settings.Tags.ForEach(x => tagCollection.Add(new EditableTag
             {

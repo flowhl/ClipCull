@@ -86,7 +86,7 @@ namespace ClipCull.Core
                    a.Camera == b.Camera &&
                    a.Rating == b.Rating &&
                    a.Pick == b.Pick &&
-                   EqualsTags(a.Tags.ToList(), b.Tags.ToList());
+                   EqualsTags(a.Tags?.ToList(), b.Tags?.ToList());
         }
 
         private static bool EqualsTags(List<Tag> a, List<Tag> b)
