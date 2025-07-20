@@ -393,7 +393,7 @@ public partial class MainWindow : Window
     {
         // When user selects a folder, you could:
         // 1. Update status
-        UpdateStatus($"Selected folder: {e.FolderPath}");
+        UpdateStatus($"Selected folder: {e.SelectedPath}");
 
         // 2. Auto-load first video file in folder (optional)
         // LoadFirstVideoFromFolder(e.FolderPath);
@@ -402,9 +402,9 @@ public partial class MainWindow : Window
     private void FolderTree_FileSelected(object sender, Controls.FileSelectedEventArgs e)
     {
         // When user selects a video file, load it
-        if (IsVideoFile(e.FilePath))
+        if (IsVideoFile(e.SelectedPath))
         {
-            LoadVideoFile(e.FilePath);
+            LoadVideoFile(e.SelectedPath);
         }
     }
 

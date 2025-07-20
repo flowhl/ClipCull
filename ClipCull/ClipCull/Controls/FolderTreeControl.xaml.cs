@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Data;
+using System.Globalization;
+using ClipCull.Core;
+using ClipCull.Models;
 
 namespace ClipCull.Controls
 {
@@ -17,10 +16,12 @@ namespace ClipCull.Controls
     {
         #region Fields
         private string _rootPath;
-        private string _selectedPath;
         private bool _showFiles = false;
         private string _fileFilter = "*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v";
         private bool _isLoading = false;
+        private string _statusText = "Ready";
+        private bool _includeSubfolders = false;
+        private string _currentSelectedPath;
         #endregion
 
         #region Properties
@@ -38,19 +39,6 @@ namespace ClipCull.Controls
             }
         }
 
-        public string SelectedPath
-        {
-            get => _selectedPath;
-            private set
-            {
-                if (_selectedPath != value)
-                {
-                    _selectedPath = value;
-                    OnPropertyChanged(nameof(SelectedPath));
-                }
-            }
-        }
-
         public bool ShowFiles
         {
             get => _showFiles;
@@ -58,18 +46,28 @@ namespace ClipCull.Controls
             {
                 if (_showFiles != value)
                 {
-                    var currentSelectedPath = SelectedPath; // Remember current selection
                     _showFiles = value;
                     OnPropertyChanged(nameof(ShowFiles));
-                    RefreshCurrentFolder();
+                    RefreshTree();
+                }
+            }
+        }
 
-                    // Try to restore selection after refresh
-                    if (!string.IsNullOrEmpty(currentSelectedPath))
+        public bool IncludeSubfolders
+        {
+            get => _includeSubfolders;
+            set
+            {
+                if (_includeSubfolders != value)
+                {
+                    _includeSubfolders = value;
+                    OnPropertyChanged(nameof(IncludeSubfolders));
+                    if (_currentSelectedPath != null)
                     {
+                        // Refresh the current selection if we're showing a folder
                         Task.Run(async () =>
                         {
-                            await Task.Delay(500); // Give time for refresh to complete
-                            await Dispatcher.InvokeAsync(async () => await ExpandToPathAsync(currentSelectedPath));
+                            await Dispatcher.InvokeAsync(async () => await ExpandToPathAsync(_currentSelectedPath));
                         });
                     }
                 }
@@ -101,6 +99,19 @@ namespace ClipCull.Controls
                     _isLoading = value;
                     OnPropertyChanged(nameof(IsLoading));
                     UpdateStatus();
+                }
+            }
+        }
+
+        public string StatusText
+        {
+            get => _statusText;
+            private set
+            {
+                if (_statusText != value)
+                {
+                    _statusText = value;
+                    OnPropertyChanged(nameof(StatusText));
                 }
             }
         }
@@ -147,64 +158,43 @@ namespace ClipCull.Controls
 
         public async Task ExpandToPathAsync(string path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
                 return;
-
-            await Task.Run(() =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    try
-                    {
-                        ExpandToPathRecursive(FolderTreeView.Items, path);
-                    }
-                    catch (Exception ex)
-                    {
-                        UpdateStatus($"Error expanding to path: {ex.Message}");
-                    }
-                });
-            });
-        }
-
-        public void CollapseAll()
-        {
-            CollapseAllRecursive(FolderTreeView.Items);
-        }
-
-        public void ExpandAll()
-        {
-            ExpandAllRecursive(FolderTreeView.Items);
-        }
-
-        public string GetSelectedPath()
-        {
-            return SelectedPath;
-        }
-        #endregion
-
-        #region Private Methods - Tree Loading
-        private async void LoadTreeAsync()
-        {
-            if (IsLoading)
-                return;
-
-            IsLoading = true;
-            FolderTreeView.Items.Clear();
 
             try
             {
-                if (string.IsNullOrEmpty(RootPath))
+                IsLoading = true;
+
+                var pathParts = GetPathParts(path);
+                TreeViewItem currentItem = null;
+
+                foreach (var part in pathParts)
                 {
-                    await LoadAllDrivesAsync();
+                    if (currentItem == null)
+                    {
+                        // Find root item (drive)
+                        currentItem = FindDriveItem(part);
+                    }
+                    else
+                    {
+                        // Find child folder
+                        if (!currentItem.IsExpanded)
+                        {
+                            currentItem.IsExpanded = true;
+                            await LoadFolderContentsAsync(currentItem);
+                        }
+                        currentItem = FindChildItem(currentItem, part);
+                    }
+
+                    if (currentItem == null)
+                        break;
                 }
-                else
+
+                if (currentItem != null)
                 {
-                    await LoadFolderAsync(RootPath);
+                    currentItem.IsSelected = true;
+                    currentItem.BringIntoView();
                 }
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"Error loading tree: {ex.Message}");
             }
             finally
             {
@@ -212,32 +202,90 @@ namespace ClipCull.Controls
             }
         }
 
-        private async Task LoadAllDrivesAsync()
+        public void CollapseAll()
+        {
+            CollapseItems(FolderTreeView.Items);
+        }
+
+        public void ExpandAll()
+        {
+            ExpandItems(FolderTreeView.Items);
+        }
+        #endregion
+
+        #region Private Methods - Tree Loading
+        private async Task LoadTreeAsync()
+        {
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        IsLoading = true;
+                        FolderTreeView.Items.Clear();
+                    });
+
+                    if (!string.IsNullOrEmpty(RootPath))
+                    {
+                        await LoadFolderAsync(RootPath);
+                    }
+                    else
+                    {
+                        await LoadDrivesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        UpdateStatus($"Error loading tree: {ex.Message}");
+                    });
+                }
+                finally
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        IsLoading = false;
+                    });
+                }
+            });
+        }
+
+        private async Task LoadDrivesAsync()
         {
             await Task.Run(() =>
             {
-                var drives = DriveInfo.GetDrives()
-                    .Where(d => d.IsReady || d.DriveType == DriveType.Network)
-                    .ToList();
-
-                Dispatcher.Invoke(() =>
+                try
                 {
-                    foreach (var drive in drives)
-                    {
-                        try
-                        {
-                            var driveItem = CreateDriveTreeItem(drive);
-                            FolderTreeView.Items.Add(driveItem);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Skip inaccessible drives
-                            UpdateStatus($"Skipping drive {drive.Name}: {ex.Message}");
-                        }
-                    }
+                    var drives = DriveInfo.GetDrives().Where(d => d.IsReady);
 
-                    UpdateStatus($"Loaded {drives.Count} drives");
-                });
+                    Dispatcher.Invoke(() =>
+                    {
+                        foreach (var drive in drives)
+                        {
+                            try
+                            {
+                                var driveItem = CreateDriveTreeItem(drive);
+                                FolderTreeView.Items.Add(driveItem);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Skip inaccessible drives
+                                UpdateStatus($"Skipping drive {drive.Name}: {ex.Message}");
+                            }
+                        }
+
+                        UpdateStatus($"Loaded {drives.Count()} drives");
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        UpdateStatus($"Error loading drives: {ex.Message}");
+                    });
+                }
             });
         }
 
@@ -290,11 +338,11 @@ namespace ClipCull.Controls
             var item = new TreeViewItem
             {
                 Header = driveData,
-                HeaderTemplate = (DataTemplate)Resources["DriveItemTemplate"],
-                Tag = driveData
+                Tag = driveData,
+                HeaderTemplate = (DataTemplate)Resources["DriveItemTemplate"]
             };
 
-            // Always add dummy item for drives (they can potentially have subdirectories)
+            // Add dummy child to show expander
             item.Items.Add(new TreeViewItem { Header = "Loading..." });
             item.Expanded += TreeViewItem_Expanded;
 
@@ -305,7 +353,7 @@ namespace ClipCull.Controls
         {
             var folderData = new FolderItemData
             {
-                Directory = directory,
+                DirectoryInfo = directory,
                 Name = directory.Name,
                 FullPath = directory.FullName,
                 IsFile = false
@@ -314,13 +362,16 @@ namespace ClipCull.Controls
             var item = new TreeViewItem
             {
                 Header = folderData,
-                HeaderTemplate = (DataTemplate)Resources["FolderItemTemplate"],
-                Tag = folderData
+                Tag = folderData,
+                HeaderTemplate = (DataTemplate)Resources["FolderItemTemplate"]
             };
 
-            // Always add dummy item for folders (they can potentially have subdirectories)
-            item.Items.Add(new TreeViewItem { Header = "Loading..." });
-            item.Expanded += TreeViewItem_Expanded;
+            // Add dummy child to show expander
+            if (HasSubDirectories(directory))
+            {
+                item.Items.Add(new TreeViewItem { Header = "Loading..." });
+                item.Expanded += TreeViewItem_Expanded;
+            }
 
             return item;
         }
@@ -329,202 +380,30 @@ namespace ClipCull.Controls
         {
             var fileData = new FileItemData
             {
-                File = file,
+                FileInfo = file,
                 Name = file.Name,
                 FullPath = file.FullName,
-                SizeDisplay = GetFileSizeDisplay(file.Length),
-                IsVideoFile = IsVideoFile(file.Extension)
+                Extension = file.Extension.ToLowerInvariant(),
+                IsFile = true,
+                HasSidecar = CheckForSidecar(file.FullName)
             };
 
             var item = new TreeViewItem
             {
                 Header = fileData,
-                HeaderTemplate = (DataTemplate)Resources["FileItemTemplate"],
-                Tag = fileData
+                Tag = fileData,
+                HeaderTemplate = (DataTemplate)Resources["FileItemTemplate"]
             };
 
             return item;
         }
-        #endregion
 
-        #region Private Methods - Lazy Loading
-        private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
-        {
-            var item = sender as TreeViewItem;
-
-            // Debug information
-            Trace.WriteLine($"Expanding item. Items count: {item?.Items.Count ?? 0}");
-
-            if (item?.Items.Count == 1)
-            {
-                var firstItem = item.Items[0];
-                var headerText = firstItem is TreeViewItem tvi ? (tvi.Header?.ToString() ?? "null") : "Not TreeViewItem";
-                Trace.WriteLine($"First item type: {firstItem?.GetType().Name ?? "null"}, Header: {headerText}");
-
-                if (firstItem is TreeViewItem dummyItem &&
-                    dummyItem.Header?.ToString() == "Loading...")
-                {
-                    Trace.WriteLine("Found Loading dummy item, clearing and loading children...");
-                    item.Items.Clear();
-                    LoadChildItems(item);
-                }
-                else
-                {
-                    Trace.WriteLine("No Loading dummy item found");
-                }
-            }
-            else
-            {
-                Trace.WriteLine($"Item has {item?.Items.Count ?? 0} items, not expanding");
-            }
-
-            // Prevent the event from bubbling up to parent items
-            e.Handled = true;
-        }
-
-        private async void LoadChildItems(TreeViewItem parentItem)
+        private bool CheckForSidecar(string filePath)
         {
             try
             {
-                string parentPath = GetItemPath(parentItem);
-                if (string.IsNullOrEmpty(parentPath) || !Directory.Exists(parentPath))
-                {
-                    Trace.WriteLine($"Path not accessible: {parentPath ?? "null"}");
-                    UpdateStatus($"Path not accessible: {parentPath ?? "null"}");
-                    return;
-                }
-
-                var folderName = Path.GetFileName(parentPath) ?? parentPath;
-                Trace.WriteLine($"Loading contents of: {folderName}");
-                UpdateStatus($"Loading contents of: {folderName}");
-
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        // Get directories
-                        var directories = Directory.GetDirectories(parentPath)
-                            .Select(d => new DirectoryInfo(d))
-                            .Where(d => !d.Attributes.HasFlag(FileAttributes.Hidden) &&
-                                       !d.Attributes.HasFlag(FileAttributes.System))
-                            .OrderBy(d => d.Name)
-                            .ToList();
-
-                        // Get files if enabled
-                        var files = ShowFiles ? GetFilteredFiles(parentPath).ToList() : new List<FileInfo>();
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            // Add subdirectories
-                            foreach (var directory in directories)
-                            {
-                                try
-                                {
-                                    var childItem = CreateFolderTreeItem(directory);
-                                    parentItem.Items.Add(childItem);
-                                }
-                                catch (Exception ex)
-                                {
-                                    // Skip inaccessible directories
-                                    Trace.WriteLine($"Skipping directory {directory.Name}: {ex.Message}");
-                                }
-                            }
-
-                            // Add files if enabled
-                            foreach (var file in files)
-                            {
-                                try
-                                {
-                                    var fileItem = CreateFileTreeItem(file);
-                                    parentItem.Items.Add(fileItem);
-                                }
-                                catch (Exception ex)
-                                {
-                                    // Skip inaccessible files
-                                    Trace.WriteLine($"Skipping file {file.Name}: {ex.Message}");
-                                }
-                            }
-
-                            var totalItems = directories.Count + files.Count;
-                            Trace.WriteLine($"Loaded {directories.Count} folders, {files.Count} files");
-                            UpdateStatus($"Loaded {directories.Count} folders, {files.Count} files");
-
-                            // If no items were added, add a "No items" placeholder
-                            if (totalItems == 0)
-                            {
-                                var emptyItem = new TreeViewItem
-                                {
-                                    Header = "(No items)",
-                                    IsEnabled = false
-                                };
-                                parentItem.Items.Add(emptyItem);
-                            }
-                        });
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        var folderName = Path.GetFileName(parentPath) ?? parentPath;
-                        Trace.WriteLine($"Access denied: {folderName}");
-                        Dispatcher.Invoke(() => UpdateStatus($"Access denied: {folderName}"));
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.WriteLine($"Error loading items: {ex.Message}");
-                        Dispatcher.Invoke(() => UpdateStatus($"Error loading items: {ex.Message}"));
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Error in LoadChildItems: {ex.Message}");
-                UpdateStatus($"Error in LoadChildItems: {ex.Message}");
-            }
-        }
-
-        private FileInfo[] GetFilteredFiles(string directoryPath)
-        {
-            try
-            {
-                var directory = new DirectoryInfo(directoryPath);
-                var extensions = FileFilter.Split(';')
-                    .Select(f => f.Trim().Replace("*", ""))
-                    .Where(f => !string.IsNullOrEmpty(f))
-                    .ToArray();
-
-                return directory.GetFiles()
-                    .Where(f => extensions.Any(ext => f.Extension.Equals(ext, StringComparison.OrdinalIgnoreCase)))
-                    .OrderBy(f => f.Name)
-                    .ToArray();
-            }
-            catch
-            {
-                return new FileInfo[0];
-            }
-        }
-        #endregion
-
-        #region Private Methods - Helpers
-        private string GetItemPath(TreeViewItem item)
-        {
-            if (item?.Tag == null)
-                return string.Empty;
-
-            if (item.Tag is DriveItemData driveData)
-                return driveData.Drive.RootDirectory.FullName;
-            else if (item.Tag is FolderItemData folderData)
-                return folderData.FullPath;
-            else if (item.Tag is FileItemData fileData)
-                return fileData.FullPath;
-
-            return string.Empty;
-        }
-
-        private bool HasSubDirectories(DirectoryInfo directory)
-        {
-            try
-            {
-                return directory.GetDirectories()
-                    .Any(d => !d.Attributes.HasFlag(FileAttributes.Hidden));
+                string sidecarPath = Path.ChangeExtension(filePath, ".xml");
+                return File.Exists(sidecarPath);
             }
             catch
             {
@@ -532,104 +411,129 @@ namespace ClipCull.Controls
             }
         }
 
-        private string GetDriveDisplayName(DriveInfo drive)
+        private async Task LoadFolderContentsAsync(TreeViewItem folderItem)
         {
             try
             {
-                var label = !string.IsNullOrEmpty(drive.VolumeLabel) ? drive.VolumeLabel : "Local Disk";
-                return $"{drive.Name.TrimEnd('\\')} ({label})";
-            }
-            catch
-            {
-                return drive.Name;
-            }
-        }
-
-        private string GetDriveSpaceInfo(DriveInfo drive)
-        {
-            try
-            {
-                if (drive.IsReady)
+                // Get the folder path on the UI thread
+                string folderPath = null;
+                await Dispatcher.InvokeAsync(() =>
                 {
-                    var freeSpace = GetFileSizeDisplay(drive.AvailableFreeSpace);
-                    var totalSpace = GetFileSizeDisplay(drive.TotalSize);
-                    return $"{freeSpace} free of {totalSpace}";
-                }
-            }
-            catch
-            {
-                // Ignore errors
-            }
-            return string.Empty;
-        }
+                    var folderData = folderItem.Tag as FolderItemData;
+                    var driveData = folderItem.Tag as DriveItemData;
 
-        private string GetFileSizeDisplay(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            double len = bytes;
-            int order = 0;
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len = len / 1024;
-            }
-            return $"{len:0.##} {sizes[order]}";
-        }
-
-        private bool IsVideoFile(string extension)
-        {
-            var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm", ".m4v" };
-            return videoExtensions.Contains(extension.ToLower());
-        }
-
-        private void ExpandToPathRecursive(ItemCollection items, string targetPath)
-        {
-            foreach (TreeViewItem item in items)
-            {
-                string itemPath = GetItemPath(item);
-                if (!string.IsNullOrEmpty(itemPath) && targetPath.StartsWith(itemPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    item.IsExpanded = true;
-
-                    if (string.Equals(itemPath, targetPath, StringComparison.OrdinalIgnoreCase))
+                    if (folderData != null)
                     {
-                        item.IsSelected = true;
-                        item.BringIntoView();
-                        return;
+                        folderPath = folderData.FullPath;
                     }
-
-                    if (item.Items.Count > 0)
+                    else if (driveData != null)
                     {
-                        ExpandToPathRecursive(item.Items, targetPath);
+                        folderPath = driveData.Drive.RootDirectory.FullName;
                     }
-                }
-            }
-        }
+                });
 
-        private void CollapseAllRecursive(ItemCollection items)
-        {
-            foreach (TreeViewItem item in items)
-            {
-                item.IsExpanded = false;
-                if (item.Items.Count > 0)
-                {
-                    CollapseAllRecursive(item.Items);
-                }
-            }
-        }
+                if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+                    return;
 
-        private void ExpandAllRecursive(ItemCollection items)
-        {
-            foreach (TreeViewItem item in items)
-            {
-                if (item.Tag is DriveItemData || item.Tag is FolderItemData)
+                // Do file system operations on background thread
+                var subDirectories = new List<DirectoryInfo>();
+                var files = new List<FileInfo>();
+
+                await Task.Run(() =>
                 {
-                    item.IsExpanded = true;
-                    if (item.Items.Count > 0)
+                    try
                     {
-                        ExpandAllRecursive(item.Items);
+                        var directoryInfo = new DirectoryInfo(folderPath);
+
+                        subDirectories = directoryInfo.GetDirectories()
+                            .Where(d => (d.Attributes & FileAttributes.Hidden) == 0)
+                            .OrderBy(d => d.Name)
+                            .ToList();
+
+                        if (ShowFiles)
+                        {
+                            var extensions = _fileFilter.Split(';')
+                                .Select(f => f.Replace("*", "").ToLowerInvariant())
+                                .ToHashSet();
+
+                            files = directoryInfo.GetFiles()
+                                .Where(f => (f.Attributes & FileAttributes.Hidden) == 0)
+                                .Where(f => extensions.Contains(f.Extension.ToLowerInvariant()))
+                                .OrderBy(f => f.Name)
+                                .ToList();
+                        }
                     }
-                }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Will be handled in the UI thread update
+                    }
+                    catch (Exception)
+                    {
+                        // Will be handled in the UI thread update
+                    }
+                });
+
+                // Update UI on the UI thread
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        // Remove dummy item
+                        folderItem.Items.Clear();
+
+                        // Add subdirectories
+                        foreach (var subDir in subDirectories)
+                        {
+                            try
+                            {
+                                var subItem = CreateFolderTreeItem(subDir);
+                                folderItem.Items.Add(subItem);
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                                // Skip inaccessible directories
+                            }
+                        }
+
+                        // Add files if ShowFiles is enabled
+                        foreach (var file in files)
+                        {
+                            try
+                            {
+                                var fileItem = CreateFileTreeItem(file);
+                                folderItem.Items.Add(fileItem);
+                            }
+                            catch (Exception)
+                            {
+                                // Skip problematic files
+                            }
+                        }
+
+                        // If no items were added and there was an error, show error message
+                        if (folderItem.Items.Count == 0 && (subDirectories.Count == 0 && files.Count == 0))
+                        {
+                            var errorItem = new TreeViewItem { Header = "Access denied or empty folder" };
+                            folderItem.Items.Add(errorItem);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Remove dummy item and show error
+                        folderItem.Items.Clear();
+                        var errorItem = new TreeViewItem { Header = $"Error: {ex.Message}" };
+                        folderItem.Items.Add(errorItem);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    // Remove dummy item and show error
+                    folderItem.Items.Clear();
+                    var errorItem = new TreeViewItem { Header = $"Error: {ex.Message}" };
+                    folderItem.Items.Add(errorItem);
+                });
             }
         }
 
@@ -637,79 +541,176 @@ namespace ClipCull.Controls
         {
             foreach (TreeViewItem item in items)
             {
-                if (item.IsExpanded && (item.Tag is DriveItemData || item.Tag is FolderItemData))
+                if (item.IsExpanded)
                 {
-                    // Clear and reload this expanded folder
-                    item.Items.Clear();
-                    item.Items.Add(new TreeViewItem { Header = "Loading..." });
-                    LoadChildItems(item);
-                }
-                else if (item.Items.Count > 0)
-                {
+                    Task.Run(async () => await LoadFolderContentsAsync(item));
                     RefreshExpandedFolders(item.Items);
                 }
+            }
+        }
+        #endregion
+
+        #region Private Methods - Utilities
+        private string GetDriveDisplayName(DriveInfo drive)
+        {
+            string label = string.IsNullOrEmpty(drive.VolumeLabel) ? "Local Disk" : drive.VolumeLabel;
+            return $"{label} ({drive.Name.TrimEnd('\\')})";
+        }
+
+        private string GetDriveSpaceInfo(DriveInfo drive)
+        {
+            try
+            {
+                double freeGB = drive.AvailableFreeSpace / (1024.0 * 1024.0 * 1024.0);
+                double totalGB = drive.TotalSize / (1024.0 * 1024.0 * 1024.0);
+                return $"{freeGB:F1} GB free of {totalGB:F1} GB";
+            }
+            catch
+            {
+                return "Size unknown";
+            }
+        }
+
+        private bool HasSubDirectories(DirectoryInfo directory)
+        {
+            try
+            {
+                return directory.GetDirectories()
+                    .Any(d => (d.Attributes & FileAttributes.Hidden) == 0);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private List<string> GetPathParts(string path)
+        {
+            var parts = new List<string>();
+            var directoryInfo = new DirectoryInfo(path);
+
+            while (directoryInfo != null)
+            {
+                if (directoryInfo.Parent == null)
+                {
+                    // This is the root (drive)
+                    parts.Insert(0, directoryInfo.FullName);
+                }
+                else
+                {
+                    parts.Insert(0, directoryInfo.Name);
+                }
+                directoryInfo = directoryInfo.Parent;
+            }
+
+            return parts;
+        }
+
+        private TreeViewItem FindDriveItem(string drivePath)
+        {
+            foreach (TreeViewItem item in FolderTreeView.Items)
+            {
+                var driveData = item.Tag as DriveItemData;
+                if (driveData?.Drive.RootDirectory.FullName.Equals(drivePath, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        private TreeViewItem FindChildItem(TreeViewItem parent, string name)
+        {
+            foreach (TreeViewItem item in parent.Items)
+            {
+                var folderData = item.Tag as FolderItemData;
+                if (folderData?.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        private void CollapseItems(ItemCollection items)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                item.IsExpanded = false;
+                CollapseItems(item.Items);
+            }
+        }
+
+        private void ExpandItems(ItemCollection items)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                item.IsExpanded = true;
+                ExpandItems(item.Items);
             }
         }
 
         private void UpdateStatus(string message = null)
         {
-            if (IsLoading)
+            if (message != null)
             {
-                StatusText.Text = "Loading...";
-            }
-            else if (!string.IsNullOrEmpty(message))
-            {
-                StatusText.Text = message;
+                StatusText = message;
             }
             else
             {
-                StatusText.Text = "Ready";
+                StatusText = IsLoading ? "Loading..." : "Ready";
             }
         }
 
-        private void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
 
         #region Event Handlers
+        private async void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
+        {
+            var item = sender as TreeViewItem;
+            if (item?.Items.Count == 1 && item.Items[0] is TreeViewItem firstChild && firstChild.Header.ToString() == "Loading...")
+            {
+                await LoadFolderContentsAsync(item);
+            }
+        }
+
         private void FolderTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue is TreeViewItem selectedItem)
+            var selectedItem = e.NewValue as TreeViewItem;
+            if (selectedItem?.Tag is FolderItemData folderData)
             {
-                string path = GetItemPath(selectedItem);
-                SelectedPath = path;
-
-                if (selectedItem.Tag is DriveItemData || selectedItem.Tag is FolderItemData)
-                {
-                    FolderSelected?.Invoke(this, new FolderSelectedEventArgs(path));
-                    PathChanged?.Invoke(this, new PathChangedEventArgs(path, true));
-                }
-                else if (selectedItem.Tag is FileItemData)
-                {
-                    FileSelected?.Invoke(this, new FileSelectedEventArgs(path));
-                    PathChanged?.Invoke(this, new PathChangedEventArgs(path, false));
-                }
-
-                UpdateStatus($"Selected: {Path.GetFileName(path) ?? path}");
+                _currentSelectedPath = folderData.FullPath;
+                FolderSelected?.Invoke(this, new FolderSelectedEventArgs(folderData.FullPath));
+                PathChanged?.Invoke(this, new PathChangedEventArgs(folderData.FullPath));
+            }
+            else if (selectedItem?.Tag is DriveItemData driveData)
+            {
+                _currentSelectedPath = driveData.Drive.RootDirectory.FullName;
+                FolderSelected?.Invoke(this, new FolderSelectedEventArgs(driveData.Drive.RootDirectory.FullName));
+                PathChanged?.Invoke(this, new PathChangedEventArgs(driveData.Drive.RootDirectory.FullName));
+            }
+            else if (selectedItem?.Tag is FileItemData fileData)
+            {
+                _currentSelectedPath = Path.GetDirectoryName(fileData.FullPath);
+                FileSelected?.Invoke(this, new FileSelectedEventArgs(fileData.FullPath));
+                PathChanged?.Invoke(this, new PathChangedEventArgs(fileData.FullPath));
             }
         }
 
         private void FolderTreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (FolderTreeView.SelectedItem is TreeViewItem selectedItem)
+            var selectedItem = FolderTreeView.SelectedItem as TreeViewItem;
+            if (selectedItem?.Tag is FolderItemData folderData)
             {
-                string path = GetItemPath(selectedItem);
-
-                if (selectedItem.Tag is DriveItemData || selectedItem.Tag is FolderItemData)
-                {
-                    FolderDoubleClick?.Invoke(this, new FolderDoubleClickEventArgs(path));
-                }
-                else if (selectedItem.Tag is FileItemData)
-                {
-                    FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(path));
-                }
+                FolderDoubleClick?.Invoke(this, new FolderDoubleClickEventArgs(folderData.FullPath));
+            }
+            else if (selectedItem?.Tag is FileItemData fileData)
+            {
+                FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(fileData.FullPath));
             }
         }
 
@@ -720,19 +721,17 @@ namespace ClipCull.Controls
                 RefreshTree();
                 e.Handled = true;
             }
-            else if (e.Key == Key.Enter && FolderTreeView.SelectedItem is TreeViewItem selectedItem)
+            else if (e.Key == Key.Enter)
             {
-                string path = GetItemPath(selectedItem);
-
-                if (selectedItem.Tag is DriveItemData || selectedItem.Tag is FolderItemData)
+                var selectedItem = FolderTreeView.SelectedItem as TreeViewItem;
+                if (selectedItem?.Tag is FolderItemData folderData)
                 {
-                    selectedItem.IsExpanded = !selectedItem.IsExpanded;
+                    FolderDoubleClick?.Invoke(this, new FolderDoubleClickEventArgs(folderData.FullPath));
                 }
-                else if (selectedItem.Tag is FileItemData)
+                else if (selectedItem?.Tag is FileItemData fileData)
                 {
-                    FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(path));
+                    FileDoubleClick?.Invoke(this, new FileDoubleClickEventArgs(fileData.FullPath));
                 }
-
                 e.Handled = true;
             }
         }
@@ -751,11 +750,6 @@ namespace ClipCull.Controls
         {
             CollapseAll();
         }
-
-        private void ShowFilesCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            // ShowFiles property is already bound, this will trigger RefreshTree through the property setter
-        }
         #endregion
     }
 
@@ -766,79 +760,73 @@ namespace ClipCull.Controls
         public string DisplayName { get; set; }
         public string SpaceInfo { get; set; }
         public string DriveType { get; set; }
-        public bool IsFile { get; set; } = false;
+        public bool IsFile { get; set; }
     }
 
     public class FolderItemData
     {
-        public DirectoryInfo Directory { get; set; }
+        public DirectoryInfo DirectoryInfo { get; set; }
         public string Name { get; set; }
         public string FullPath { get; set; }
-        public bool IsExpanded { get; set; }
-        public bool IsFile { get; set; } = false;
+        public bool IsFile { get; set; }
     }
 
     public class FileItemData
     {
-        public FileInfo File { get; set; }
+        public FileInfo FileInfo { get; set; }
         public string Name { get; set; }
         public string FullPath { get; set; }
-        public string SizeDisplay { get; set; }
-        public bool IsVideoFile { get; set; }
-        public bool IsFile { get; set; } = true;
+        public string Extension { get; set; }
+        public bool IsFile { get; set; }
+        public bool HasSidecar { get; set; }
     }
     #endregion
 
-    #region Event Args Classes
+    #region Event Args
     public class FolderSelectedEventArgs : EventArgs
     {
-        public string FolderPath { get; }
-
-        public FolderSelectedEventArgs(string folderPath)
-        {
-            FolderPath = folderPath;
-        }
+        public string SelectedPath { get; }
+        public FolderSelectedEventArgs(string selectedPath) => SelectedPath = selectedPath;
     }
 
     public class FileSelectedEventArgs : EventArgs
     {
-        public string FilePath { get; }
-
-        public FileSelectedEventArgs(string filePath)
-        {
-            FilePath = filePath;
-        }
+        public string SelectedPath { get; }
+        public FileSelectedEventArgs(string selectedPath) => SelectedPath = selectedPath;
     }
 
     public class PathChangedEventArgs : EventArgs
     {
         public string Path { get; }
-        public bool IsFolder { get; }
-
-        public PathChangedEventArgs(string path, bool isFolder)
-        {
-            Path = path;
-            IsFolder = isFolder;
-        }
+        public PathChangedEventArgs(string path) => Path = path;
     }
 
     public class FolderDoubleClickEventArgs : EventArgs
     {
         public string FolderPath { get; }
-
-        public FolderDoubleClickEventArgs(string folderPath)
-        {
-            FolderPath = folderPath;
-        }
+        public FolderDoubleClickEventArgs(string folderPath) => FolderPath = folderPath;
     }
 
     public class FileDoubleClickEventArgs : EventArgs
     {
         public string FilePath { get; }
+        public FileDoubleClickEventArgs(string filePath) => FilePath = filePath;
+    }
+    #endregion
 
-        public FileDoubleClickEventArgs(string filePath)
+    #region Converters
+    public class NotNullToBoolConverter : IValueConverter
+    {
+        public static readonly NotNullToBoolConverter Instance = new NotNullToBoolConverter();
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            FilePath = filePath;
+            return value != null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
     #endregion

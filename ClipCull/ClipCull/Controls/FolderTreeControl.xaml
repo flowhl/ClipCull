@@ -9,16 +9,44 @@
              d:DesignHeight="400" d:DesignWidth="300">
 
     <UserControl.Resources>
+        <!-- Expand/Collapse Toggle Button Style -->
+        <Style x:Key="ExpandCollapseToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent" Width="16" Height="16">
+                            <materialDesign:PackIcon x:Name="ExpandIcon" 
+                                                   Kind="ChevronRight" 
+                                                   Width="12" Height="12"
+                                                   Foreground="{DynamicResource ForegroundBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ExpandIcon" Property="Kind" Value="ChevronDown"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ExpandIcon" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- TreeView Item Container Style -->
         <Style x:Key="TreeViewItemStyle" TargetType="TreeViewItem">
             <Setter Property="IsExpanded" Value="False"/>
             <Setter Property="IsSelected" Value="False"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="4"/>
             <Setter Property="Margin" Value="0,1"/>
-            <Setter Property="FontFamily" Value="{StaticResource FontSans}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -41,49 +69,19 @@
 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="20"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Expander Button -->
+                                    <!-- Expander -->
                                     <ToggleButton x:Name="Expander"
                                                  Grid.Column="0"
+                                                 Style="{StaticResource ExpandCollapseToggleStyle}"
                                                  IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                                                 ClickMode="Press"
-                                                 Width="16" Height="16"
-                                                 Margin="0,0,4,0"
-                                                 Background="Transparent"
-                                                 BorderThickness="0">
-                                        <ToggleButton.Style>
-                                            <Style TargetType="ToggleButton">
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ToggleButton">
-                                                            <Grid Background="Transparent">
-                                                                <materialDesign:PackIcon x:Name="ExpandIcon"
-                                                                                       Kind="ChevronRight"
-                                                                                       Width="12" Height="12"
-                                                                                       Foreground="{StaticResource MutedForegroundBrush}"
-                                                                                       HorizontalAlignment="Center"
-                                                                                       VerticalAlignment="Center"/>
-                                                            </Grid>
-                                                            <ControlTemplate.Triggers>
-                                                                <Trigger Property="IsChecked" Value="True">
-                                                                    <Setter TargetName="ExpandIcon" Property="Kind" Value="ChevronDown"/>
-                                                                </Trigger>
-                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                    <Setter TargetName="ExpandIcon" Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ToggleButton.Style>
-                                    </ToggleButton>
+                                                 Margin="0,0,4,0"/>
 
-                                    <!-- Content Presenter -->
-                                    <ContentPresenter x:Name="PART_HeaderContent"
+                                    <!-- Content -->
+                                    <ContentPresenter x:Name="PART_ContentHost"
                                                      Grid.Column="1"
                                                      ContentSource="Header"
                                                      HorizontalAlignment="Left"
@@ -91,27 +89,17 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Children Container -->
+                            <!-- Children -->
                             <ItemsPresenter x:Name="ItemsHost"
                                            Grid.Row="1"
-                                           Margin="16,0,0,0"/>
+                                           Margin="20,0,0,0"/>
                         </Grid>
 
                         <ControlTemplate.Triggers>
-                            <!-- Selection Highlighting -->
+                            <!-- Selected State -->
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
+                                <Setter TargetName="PART_Header" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
-
-                            <!-- Mouse Over Effect -->
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="IsSelected" Value="False"/>
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="PART_Header" Property="Background" Value="{StaticResource AccentBrush}"/>
-                            </MultiTrigger>
 
                             <!-- Hide Expander for Files Only -->
                             <DataTrigger Binding="{Binding Tag.IsFile, RelativeSource={RelativeSource Self}}" Value="True">
@@ -136,7 +124,7 @@
         <!-- TreeView Style -->
         <Style x:Key="FolderTreeViewStyle" TargetType="TreeView">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
@@ -149,16 +137,16 @@
                 <materialDesign:PackIcon x:Name="DriveIcon" 
                                        Kind="Harddisk" 
                                        Width="16" Height="16"
-                                       Foreground="{StaticResource ForegroundBrush}"
+                                       Foreground="{DynamicResource ForegroundBrush}"
                                        Margin="0,0,8,0"/>
                 <TextBlock Text="{Binding DisplayName}" 
                           VerticalAlignment="Center"
-                          Style="{StaticResource body}"/>
+                          Foreground="{DynamicResource ForegroundBrush}"/>
                 <TextBlock Text="{Binding SpaceInfo}" 
                           VerticalAlignment="Center" 
                           Margin="8,0,0,0"
-                          Style="{StaticResource small}"
-                          Foreground="{StaticResource MutedForegroundBrush}"/>
+                          FontSize="12"
+                          Foreground="{DynamicResource MutedForegroundBrush}"/>
             </StackPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding DriveType}" Value="Network">
@@ -179,11 +167,11 @@
                 <materialDesign:PackIcon x:Name="FolderIcon" 
                                        Kind="Folder" 
                                        Width="16" Height="16"
-                                       Foreground="{StaticResource ForegroundBrush}"
+                                       Foreground="{DynamicResource ForegroundBrush}"
                                        Margin="0,0,8,0"/>
                 <TextBlock Text="{Binding Name}" 
                           VerticalAlignment="Center"
-                          Style="{StaticResource body}"/>
+                          Foreground="{DynamicResource ForegroundBrush}"/>
             </StackPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsExpanded}" Value="True">
@@ -192,180 +180,163 @@
             </DataTemplate.Triggers>
         </DataTemplate>
 
-        <!-- File Item Template -->
+        <!-- File Item Template with Sidecar Icon -->
         <DataTemplate x:Key="FileItemTemplate">
             <StackPanel Orientation="Horizontal">
                 <materialDesign:PackIcon x:Name="FileIcon" 
-                                       Kind="File" 
+                                       Kind="FileVideoOutline" 
                                        Width="16" Height="16"
-                                       Foreground="{StaticResource ForegroundBrush}"
+                                       Foreground="{DynamicResource ForegroundBrush}"
                                        Margin="0,0,8,0"/>
+
+                <!-- Sidecar Icon -->
+                <materialDesign:PackIcon x:Name="SidecarIcon" 
+                                       Kind="FileDocumentOutline" 
+                                       Width="12" Height="12"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       Margin="0,0,4,0"
+                                       ToolTip="Has sidecar file"
+                                       Visibility="Collapsed"/>
+
                 <TextBlock Text="{Binding Name}" 
                           VerticalAlignment="Center"
-                          Style="{StaticResource body}"/>
-                <TextBlock Text="{Binding SizeDisplay}" 
-                          VerticalAlignment="Center" 
-                          Margin="8,0,0,0"
-                          Style="{StaticResource small}"
-                          Foreground="{StaticResource MutedForegroundBrush}"/>
+                          Foreground="{DynamicResource ForegroundBrush}"/>
             </StackPanel>
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding IsVideoFile}" Value="True">
-                    <Setter TargetName="FileIcon" Property="Kind" Value="Video"/>
-                    <Setter TargetName="FileIcon" Property="Foreground" Value="#FF3B82F6"/>
+                <!-- Show different icons based on file type -->
+                <DataTrigger Binding="{Binding Extension}" Value=".jpg">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="Image"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Extension}" Value=".jpeg">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="Image"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Extension}" Value=".png">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="Image"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Extension}" Value=".mp4">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="FileVideoOutline"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Extension}" Value=".mov">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="FileVideoOutline"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Extension}" Value=".avi">
+                    <Setter TargetName="FileIcon" Property="Kind" Value="FileVideoOutline"/>
+                </DataTrigger>
+
+                <!-- Show sidecar icon if file has sidecar -->
+                <DataTrigger Binding="{Binding HasSidecar}" Value="True">
+                    <Setter TargetName="SidecarIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
-
     </UserControl.Resources>
 
-    <Border Style="{StaticResource card}" Padding="0">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Border Grid.Row="0" 
-                    Background="{StaticResource SecondaryBrush}"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="0,0,0,1"
-                    Padding="16,12"
-                    CornerRadius="8,8,0,0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0"
-                              Text="Folder Navigation" 
-                              Style="{StaticResource h4}"/>
+                <TextBlock Grid.Column="0"
+                          Text="Folder Tree" 
+                          FontSize="16"
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"/>
 
-                    <Button Grid.Column="1"
-                           x:Name="RefreshButton"
-                           Click="RefreshButton_Click"
-                           Style="{StaticResource icon-sm}"
-                           ToolTip="Refresh Tree"
-                           Margin="0,0,4,0">
-                        <materialDesign:PackIcon Kind="Refresh" 
-                                               Width="14" Height="14"
-                                               Foreground="{StaticResource ForegroundBrush}"/>
-                    </Button>
+                <Button Grid.Column="1"
+                       x:Name="RefreshButton"
+                       Click="RefreshButton_Click"
+                       Width="28" Height="28"
+                       Padding="6"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       ToolTip="Refresh Tree"
+                       Margin="0,0,4,0">
+                    <materialDesign:PackIcon Kind="Refresh" 
+                                           Width="14" Height="14"
+                                           Foreground="{DynamicResource ForegroundBrush}"/>
+                </Button>
 
-                    <Button Grid.Column="2"
-                           x:Name="ExpandAllButton"
-                           Click="ExpandAllButton_Click"
-                           Style="{StaticResource icon-sm}"
-                           ToolTip="Expand All"
-                           Margin="0,0,4,0">
-                        <materialDesign:PackIcon Kind="ArrowExpandVertical" 
-                                               Width="14" Height="14"
-                                               Foreground="{StaticResource ForegroundBrush}"/>
-                    </Button>
+                <Button Grid.Column="2"
+                       x:Name="ExpandAllButton"
+                       Click="ExpandAllButton_Click"
+                       Width="28" Height="28"
+                       Padding="6"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       ToolTip="Expand All"
+                       Margin="0,0,4,0">
+                    <materialDesign:PackIcon Kind="ArrowExpandVertical" 
+                                           Width="14" Height="14"
+                                           Foreground="{DynamicResource ForegroundBrush}"/>
+                </Button>
 
-                    <Button Grid.Column="3"
-                           x:Name="CollapseAllButton"
-                           Click="CollapseAllButton_Click"
-                           Style="{StaticResource icon-sm}"
-                           ToolTip="Collapse All">
-                        <materialDesign:PackIcon Kind="ArrowCollapseVertical" 
-                                               Width="14" Height="14"
-                                               Foreground="{StaticResource ForegroundBrush}"/>
-                    </Button>
-                </Grid>
-            </Border>
+                <Button Grid.Column="3"
+                       x:Name="CollapseAllButton"
+                       Click="CollapseAllButton_Click"
+                       Width="28" Height="28"
+                       Padding="6"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       ToolTip="Collapse All">
+                    <materialDesign:PackIcon Kind="ArrowCollapseVertical" 
+                                           Width="14" Height="14"
+                                           Foreground="{DynamicResource ForegroundBrush}"/>
+                </Button>
+            </Grid>
+        </Border>
 
-            <!-- Tree View -->
-            <ScrollViewer Grid.Row="1" 
-                         VerticalScrollBarVisibility="Auto"
-                         HorizontalScrollBarVisibility="Auto"
-                         Padding="8">
-                <TreeView x:Name="FolderTreeView" 
-                         Style="{StaticResource FolderTreeViewStyle}"
-                         SelectedItemChanged="FolderTreeView_SelectedItemChanged"
-                         MouseDoubleClick="FolderTreeView_MouseDoubleClick"
-                         KeyDown="FolderTreeView_KeyDown"/>
-            </ScrollViewer>
+        <!-- Tree View - Fixed scrolling by removing ScrollViewer wrapper -->
+        <TreeView x:Name="FolderTreeView" 
+                 Grid.Row="1"
+                 Style="{StaticResource FolderTreeViewStyle}"
+                 SelectedItemChanged="FolderTreeView_SelectedItemChanged"
+                 MouseDoubleClick="FolderTreeView_MouseDoubleClick"
+                 KeyDown="FolderTreeView_KeyDown"
+                 Margin="8"/>
 
-            <!-- Status Bar -->
-            <Border Grid.Row="2" 
-                    Background="{StaticResource MutedBrush}"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="0,1,0,0"
-                    Padding="16,8"
-                    CornerRadius="0,0,8,8">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+        <!-- Status Bar -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource MutedBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock x:Name="StatusText" 
-                              Grid.Column="0"
-                              Text="Ready" 
-                              Style="{StaticResource small}"
-                              Foreground="{StaticResource MutedForegroundBrush}"/>
+                <TextBlock x:Name="StatusTextBlock"
+                          Grid.Column="0"
+                          Text="{Binding StatusText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          FontSize="12"
+                          Foreground="{DynamicResource MutedForegroundBrush}"
+                          VerticalAlignment="Center"/>
 
-                    <StackPanel Grid.Column="1" 
-                               Orientation="Horizontal">
-
-                        <!-- Custom Checkbox Style -->
-                        <CheckBox x:Name="ShowFilesCheckBox"
-                                 Content="Show Files"
-                                 IsChecked="{Binding ShowFiles, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}"
-                                 Checked="ShowFilesCheckBox_Changed"
-                                 Unchecked="ShowFilesCheckBox_Changed"
-                                 Foreground="{StaticResource ForegroundBrush}"
-                                 Margin="0,0,12,0">
-                            <CheckBox.Style>
-                                <Style TargetType="CheckBox">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="CheckBox">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Border x:Name="CheckBorder"
-                                                           Width="16" Height="16"
-                                                           Background="{StaticResource InputBrush}"
-                                                           BorderBrush="{StaticResource BorderBrush}"
-                                                           BorderThickness="1"
-                                                           CornerRadius="3"
-                                                           Margin="0,0,6,0">
-                                                        <materialDesign:PackIcon x:Name="CheckIcon"
-                                                                               Kind="Check"
-                                                                               Width="12" Height="12"
-                                                                               Foreground="{StaticResource ForegroundBrush}"
-                                                                               Visibility="Collapsed"/>
-                                                    </Border>
-                                                    <ContentPresenter VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter TargetName="CheckIcon" Property="Visibility" Value="Visible"/>
-                                                        <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                                        <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </CheckBox.Style>
-                        </CheckBox>
-
-                        <TextBlock Text="{Binding FileFilter, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}" 
-                                  Style="{StaticResource small}"
-                                  Foreground="{StaticResource MutedForegroundBrush}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Grid>
-    </Border>
+                <ProgressBar x:Name="LoadingProgressBar"
+                            Grid.Column="1"
+                            Width="80"
+                            Height="4"
+                            IsIndeterminate="True"
+                            Visibility="{Binding IsLoading, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Margin="8,0,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
