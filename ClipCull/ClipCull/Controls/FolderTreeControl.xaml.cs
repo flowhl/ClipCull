@@ -148,6 +148,40 @@ namespace ClipCull.Controls
             RootPath = rootPath;
         }
 
+        public async void JumpToFolder(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            try
+            {
+                // Normalize the path
+                path = Path.GetFullPath(path);
+
+                // If no root path is set (showing drives), we need to find the correct drive first
+                if (string.IsNullOrEmpty(RootPath))
+                {
+                    await JumpToFolderFromDrives(path);
+                }
+                else
+                {
+                    // If we have a root path, check if the target path is within it
+                    if (path.StartsWith(RootPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await ExpandToPathAsync(path);
+                    }
+                    else
+                    {
+                        UpdateStatus($"Path {path} is not within root path {RootPath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error jumping to folder: {ex.Message}");
+            }
+        }
+
         public void RefreshTree()
         {
             LoadTreeAsync();
@@ -771,6 +805,237 @@ namespace ClipCull.Controls
         {
             // ShowFiles property is already bound, this will trigger RefreshTree through the property setter
         }
+
+
+        #region jump to folder
+
+        private async Task JumpToFolderFromDrives(string targetPath)
+        {
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    // Get the drive letter from the target path
+                    string driveLetter = Path.GetPathRoot(targetPath);
+                    if (string.IsNullOrEmpty(driveLetter))
+                    {
+                        Dispatcher.Invoke(() => UpdateStatus("Invalid path format"));
+                        return;
+                    }
+
+                    await Dispatcher.InvokeAsync(async () =>
+                    {
+                        // Find the drive item in the tree
+                        TreeViewItem driveItem = null;
+                        foreach (TreeViewItem item in FolderTreeView.Items)
+                        {
+                            if (item.Tag is DriveItemData driveData)
+                            {
+                                if (driveData.Drive.RootDirectory.FullName.Equals(driveLetter, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    driveItem = item;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (driveItem == null)
+                        {
+                            UpdateStatus($"Drive {driveLetter} not found in tree");
+                            return;
+                        }
+
+                        // Expand the drive if not already expanded
+                        if (!driveItem.IsExpanded)
+                        {
+                            driveItem.IsExpanded = true;
+                            // Wait for the drive to load its contents
+                            await WaitForItemToLoad(driveItem);
+                        }
+
+                        // Now navigate through the folder structure
+                        await NavigateToPathRecursive(driveItem, targetPath, driveLetter);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() => UpdateStatus($"Error in JumpToFolderFromDrives: {ex.Message}"));
+                }
+            });
+        }
+
+        private async Task NavigateToPathRecursive(TreeViewItem currentItem, string targetPath, string currentPath)
+        {
+            try
+            {
+                // Remove trailing backslashes for comparison
+                currentPath = currentPath.TrimEnd('\\');
+                targetPath = targetPath.TrimEnd('\\');
+
+                // If we've reached the target, select it
+                if (string.Equals(currentPath, targetPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Clear any existing selection first
+                    ClearTreeViewSelection(FolderTreeView.Items);
+
+                    // Select and focus the target item
+                    currentItem.IsSelected = true;
+                    currentItem.Focus();
+                    currentItem.BringIntoView();
+
+                    // Update the SelectedPath property
+                    SelectedPath = targetPath;
+
+                    // Scroll to make sure the item is visible
+                    ScrollIntoView(currentItem);
+
+                    UpdateStatus($"Navigated to: {targetPath}");
+                    return;
+                }
+
+                // If target path doesn't start with current path, we're on wrong branch
+                if (!targetPath.StartsWith(currentPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                // Get the next folder name in the path
+                string remainingPath = targetPath.Substring(currentPath.Length).TrimStart('\\');
+                string nextFolderName = remainingPath.Split('\\')[0];
+
+                if (string.IsNullOrEmpty(nextFolderName))
+                {
+                    return;
+                }
+
+                // Expand current item if not already expanded
+                if (!currentItem.IsExpanded)
+                {
+                    currentItem.IsExpanded = true;
+                    await WaitForItemToLoad(currentItem);
+                }
+
+                // Find the next folder in the children
+                foreach (TreeViewItem childItem in currentItem.Items)
+                {
+                    if (childItem.Tag is FolderItemData folderData)
+                    {
+                        if (string.Equals(folderData.Name, nextFolderName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            string nextPath = Path.Combine(currentPath, nextFolderName);
+                            await NavigateToPathRecursive(childItem, targetPath, nextPath);
+                            return;
+                        }
+                    }
+                    else if (childItem.Tag is FileItemData fileData)
+                    {
+                        // Check if we're looking for a file
+                        if (string.Equals(fileData.Name, nextFolderName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Clear any existing selection first
+                            ClearTreeViewSelection(FolderTreeView.Items);
+
+                            // Select and focus the target file
+                            childItem.IsSelected = true;
+                            childItem.Focus();
+                            childItem.BringIntoView();
+
+                            // Update the SelectedPath property
+                            SelectedPath = targetPath;
+
+                            // Scroll to make sure the item is visible
+                            ScrollIntoView(childItem);
+
+                            UpdateStatus($"Navigated to file: {targetPath}");
+                            return;
+                        }
+                    }
+                }
+
+                // If we get here, the folder/file wasn't found
+                UpdateStatus($"Path not found: {Path.Combine(currentPath, nextFolderName)}");
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error navigating to path: {ex.Message}");
+            }
+        }
+
+        private async Task WaitForItemToLoad(TreeViewItem item)
+        {
+            // Wait for the lazy loading to complete
+            int maxWaitTime = 5000; // 5 seconds max wait
+            int waitTime = 0;
+            int checkInterval = 100; // Check every 100ms
+
+            while (waitTime < maxWaitTime)
+            {
+                // Check if the item has been loaded (no longer has just a "Loading..." dummy item)
+                if (item.Items.Count == 0 ||
+                    (item.Items.Count == 1 &&
+                     item.Items[0] is TreeViewItem dummyItem &&
+                     dummyItem.Header?.ToString() == "Loading..."))
+                {
+                    await Task.Delay(checkInterval);
+                    waitTime += checkInterval;
+                }
+                else
+                {
+                    // Item has been loaded
+                    break;
+                }
+            }
+
+            if (waitTime >= maxWaitTime)
+            {
+                UpdateStatus("Timeout waiting for folder to load");
+            }
+        }
+
+        private void ClearTreeViewSelection(ItemCollection items)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                item.IsSelected = false;
+                if (item.Items.Count > 0)
+                {
+                    ClearTreeViewSelection(item.Items);
+                }
+            }
+        }
+
+        private void ScrollIntoView(TreeViewItem item)
+        {
+            try
+            {
+                // Use the TreeView's built-in method to scroll the item into view
+                item.BringIntoView();
+                item.IsExpanded = true;
+
+                // Also manually scroll the ScrollViewer if available
+                if (ScrollViewerMain != null)
+                {
+                    // Get the item's position relative to the TreeView
+                    var transform = item.TransformToAncestor(FolderTreeView);
+                    var position = transform.Transform(new Point(0, 0));
+
+                    // Calculate the center position
+                    var targetOffset = position.Y - (ScrollViewerMain.ViewportHeight / 2);
+
+                    // Ensure we don't scroll past the bounds
+                    targetOffset = Math.Max(0, Math.Min(targetOffset, ScrollViewerMain.ScrollableHeight));
+
+                    // Animate the scroll
+                    ScrollViewerMain.ScrollToVerticalOffset(targetOffset);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If scrolling fails, just log it but don't crash
+                UpdateStatus($"Warning: Could not scroll to item: {ex.Message}");
+            }
+        }
+        #endregion
         #endregion
     }
 

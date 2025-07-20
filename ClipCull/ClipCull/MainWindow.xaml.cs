@@ -139,6 +139,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        if (SettingsHandler.Settings.LastFolderPath.IsNotNullOrEmpty())
+        {
+            FolderTree.JumpToFolder(SettingsHandler.Settings.LastFolderPath);
+        }
+
         ClipFilter.FilterCriteria = _filterCriteria;
         LayoutManager.InitializeLayoutManagement(this);
         InitializeHotkeys();
@@ -213,7 +218,7 @@ public partial class MainWindow : Window
                 "MP4 Files|*.mp4|" +
                 "MOV Files|*.mov|" +
                 "All Files|*.*";
-        string selectedFile = DialogHelper.ChooseFile(title, filter);
+        string selectedFile = DialogHelper.ChooseFile(title, filter, initialFolder: SettingsHandler.Settings.LastFolderPath);
 
         if (selectedFile.IsNullOrEmpty())
             return;
@@ -250,6 +255,9 @@ public partial class MainWindow : Window
             ApplySidecarContent(SidecarService.GetSidecarContent(filePath));
 
             VideoPreview.LoadVideo(filePath);
+
+            SettingsHandler.Settings.LastFolderPath = Path.GetDirectoryName(filePath);
+            SettingsHandler.Save();
         }
         catch (Exception ex)
         {
