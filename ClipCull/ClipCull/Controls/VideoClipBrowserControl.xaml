@@ -488,6 +488,17 @@
                         VerticalAlignment="Top"
                         Margin="8,0,0,0">
 
+                        <!--Edit Subclip-->
+                        <Button x:Name="EditSubclipButton"
+                        Style="{StaticResource icon-sm}"
+                        ToolTip="Edit Subclip"
+                        Click="EditSubclipButton_Click"
+                        Tag="{Binding}"
+                        Margin="0,0,4,0">
+                            <materialDesign:PackIcon Kind="Edit" Foreground="{StaticResource PrimaryBrush}" Height="16"/>
+                        </Button>
+
+
                         <!-- Show in Explorer Button -->
                         <Button x:Name="ShowInExplorerButton"
                         Style="{StaticResource icon-sm}"
@@ -495,7 +506,7 @@
                         Click="ShowInExplorerButton_Click"
                         Tag="{Binding}"
                         Margin="0,0,4,0">
-                            <TextBlock Text="📁" FontSize="12"/>
+                            <materialDesign:PackIcon Kind="Folder" Foreground="{StaticResource PrimaryBrush}" Height="16"/>
                         </Button>
 
                         <!-- Open with Default Program Button -->
@@ -504,8 +515,9 @@
                         ToolTip="Open with default program"
                         Click="OpenWithDefaultButton_Click"
                         Tag="{Binding}">
-                            <TextBlock Text="▶" FontSize="12"/>
+                            <materialDesign:PackIcon Kind="Play" Foreground="{StaticResource PrimaryBrush}" Height="16"/>
                         </Button>
+
                     </StackPanel>
                 </Grid>
             </Border>

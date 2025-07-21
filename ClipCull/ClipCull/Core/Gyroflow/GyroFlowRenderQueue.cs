@@ -64,7 +64,7 @@ namespace ClipCull.Core.Gyroflow
 
             await Task.Run(async Task () =>
             {
-                var itemsToDequeue = new List<SubclipInfo>(Subclips);
+                var itemsToDequeue = new List<SubclipInfo>();
                 foreach (var item in Subclips)
                 {
                     try
@@ -80,6 +80,8 @@ namespace ClipCull.Core.Gyroflow
                     }
                     catch (Exception ex)
                     {
+                        item.Rendering = false;
+                        item.Rendered = false;
                         Logger.LogError($"Failed to render subclip: {item.VideoFile} from {item.StartTime} to {item.EndTime}. Error: {ex.Message}", "GyroFlow Render Queue");
                     }
                 }

@@ -141,8 +141,7 @@
                                               ContentId="filebrowser"
                                               CanClose="False"
                                               CanHide="True">
-                                        <Border Style="{StaticResource card}" Margin="4">
-                                            <uc:FolderTreeControl ShowFiles="True" x:Name="FolderTree"/>
+                                        <Border Style="{StaticResource card}" Margin="4" Name="bFolderTree">
                                         </Border>
                                     </xcad:LayoutAnchorable>
 
@@ -256,7 +255,7 @@
 
                                 <xcad:LayoutPanel Orientation="Horizontal">
                                 <!-- Left side - Test with simple TextBlock -->
-                                <xcad:LayoutDocumentPane DockWidth="1*">
+                                <xcad:LayoutDocumentPane DockHeight="*" DockWidth="1*">
                                     <xcad:LayoutDocument Title="Clips" 
                     ContentId="clips"
                     CanClose="False"

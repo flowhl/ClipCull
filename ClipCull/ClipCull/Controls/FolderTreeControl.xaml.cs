@@ -1,4 +1,5 @@
 ﻿using ClipCull.Core;
+using ClipCull.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -117,21 +118,22 @@ namespace ClipCull.Controls
         #endregion
 
         #region Constructor
-        public FolderTreeControl()
+        public FolderTreeControl(string rootPath = null)
         {
             InitializeComponent();
+
+            if (rootPath.IsNotNullOrEmpty())
+                RootPath = rootPath;
+
             DataContext = this;
 
             this.PreviewMouseWheel += FolderTreeControl_PreviewMouseWheel;
             HotkeyController.OnReload += HotkeyController_OnReload;
             HotkeyController.OnEnter += HotkeyController_OnEnter;
 
-            // Load drives on startup if no root path is specified
-            if (string.IsNullOrEmpty(RootPath))
-            {
-                LoadTreeAsync();
-            }
+            LoadTreeAsync();
         }
+        #endregion
 
         private void FolderTreeControl_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -140,7 +142,6 @@ namespace ClipCull.Controls
             ScrollViewerMain.ScrollToVerticalOffset(ScrollViewerMain.VerticalOffset - e.Delta);
             e.Handled = true;
         }
-        #endregion
 
         #region Public Methods
         public void LoadFolder(string rootPath)
@@ -296,10 +297,10 @@ namespace ClipCull.Controls
                 {
                     if (Directory.Exists(folderPath))
                     {
-                        var rootItem = CreateFolderTreeItem(new DirectoryInfo(folderPath));
-
                         Dispatcher.Invoke(() =>
                         {
+                            var rootItem = CreateFolderTreeItem(new DirectoryInfo(folderPath));
+
                             FolderTreeView.Items.Add(rootItem);
                             rootItem.IsExpanded = true;
                             UpdateStatus($"Loaded folder: {folderPath}");
@@ -374,6 +375,7 @@ namespace ClipCull.Controls
 
         private TreeViewItem CreateFileTreeItem(FileInfo file)
         {
+            var sidecarContent = SidecarService.GetSidecarContent(file.FullName);
             var fileData = new FileItemData
             {
                 File = file,
@@ -381,7 +383,9 @@ namespace ClipCull.Controls
                 FullPath = file.FullName,
                 SizeDisplay = GetFileSizeDisplay(file.Length),
                 IsVideoFile = IsVideoFile(file.Extension),
-                HasSidecar = IsVideoFile(file.Extension) && SidecarService.HasSidecar(file.FullName)
+                HasSidecar = IsVideoFile(file.Extension) && SidecarService.HasSidecar(file.FullName),
+                IsPicked = sidecarContent?.UserMetadata?.Pick == true,
+                IsReject = sidecarContent?.UserMetadata?.Pick == false,
             };
 
             var item = new TreeViewItem
@@ -801,6 +805,16 @@ namespace ClipCull.Controls
             CollapseAll();
         }
 
+
+        private void SelectFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = DialogHelper.ChooseFolder("Select Folder", RootPath);
+            if (folder.IsNotNullOrEmpty())
+            {
+                LoadFolder(folder);
+            }
+        }
+
         private void ShowFilesCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             // ShowFiles property is already bound, this will trigger RefreshTree through the property setter
@@ -1036,7 +1050,9 @@ namespace ClipCull.Controls
             }
         }
         #endregion
+
         #endregion
+
     }
 
     #region Data Classes
@@ -1067,6 +1083,8 @@ namespace ClipCull.Controls
         public bool IsVideoFile { get; set; }
         public bool IsFile { get; set; } = true;
         public bool HasSidecar { get; set; }
+        public bool IsPicked{ get; set; }
+        public bool IsReject { get; set; }
     }
     #endregion
 

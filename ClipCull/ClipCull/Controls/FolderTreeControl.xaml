@@ -198,6 +198,12 @@
                                        Foreground="{StaticResource ForegroundBrush}"
                                        Margin="0,0,8,0"
                                          Visibility="Collapsed"/>
+                <materialDesign:PackIcon x:Name="PickRejectIcon" 
+                                       Kind="None"
+                                       Width="16" Height="16"
+                                       Foreground="{StaticResource ForegroundBrush}"
+                                       Margin="0,0,8,0"
+                                       Visibility="Collapsed"/>
                 <TextBlock Text="{Binding Name}" 
                           VerticalAlignment="Center"
                           Style="{StaticResource body}"/>
@@ -214,6 +220,16 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding HasSidecar}" Value="True">
                     <Setter TargetName="SidecarIcon" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsPicked}" Value="True">
+                    <Setter TargetName="PickRejectIcon" Property="Kind" Value="Flag"/>
+                    <Setter TargetName="PickRejectIcon" Property="Foreground" Value="#FF22C55E"/>
+                    <Setter TargetName="PickRejectIcon" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsReject}" Value="True">
+                    <Setter TargetName="PickRejectIcon" Property="Kind" Value="Cancel"/>
+                    <Setter TargetName="PickRejectIcon" Property="Foreground" Value="#FFEF4444"/>
+                    <Setter TargetName="PickRejectIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
@@ -238,6 +254,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
@@ -278,6 +295,15 @@
                                                Width="14" Height="14"
                                                Foreground="{StaticResource ForegroundBrush}"/>
                     </Button>
+                    <Button Grid.Column="4"
+                           x:Name="SelectFolderButton"
+                           Click="SelectFolderButton_Click"
+                           Style="{StaticResource icon-sm}"
+                           ToolTip="Select Folder">
+                        <materialDesign:PackIcon Kind="Folder" 
+                                               Width="14" Height="14"
+                                               Foreground="{StaticResource ForegroundBrush}"/>
+                    </Button>
                 </Grid>
             </Border>
 
@@ -298,7 +324,7 @@
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
                       Color="Black" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
-                      Color="Transparent" />
+                      Color="{StaticResource Secondary}" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                       Color="Black" />
                     </TreeView.Resources>

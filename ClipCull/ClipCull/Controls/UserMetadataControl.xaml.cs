@@ -71,8 +71,19 @@ namespace ClipCull.Controls
 
             // Ensure templates are loaded before we try to update them
             this.Loaded += UserMetadataControl_Loaded;
-        }
 
+            //Subscribe Hotkeys
+            HotkeyController.OnPick += HotkeyController_OnPick;
+            HotkeyController.OnReject += HotkeyController_OnReject;
+            HotkeyController.OnRemovePickReject += HotkeyController_OnRemovePickReject;
+            HotkeyController.OnNumber1 += HotkeyController_OnNumber1;
+            HotkeyController.OnNumber2 += HotkeyController_OnNumber2;
+            HotkeyController.OnNumber3 += HotkeyController_OnNumber3;
+            HotkeyController.OnNumber4 += HotkeyController_OnNumber4;
+            HotkeyController.OnNumber5 += HotkeyController_OnNumber5;
+            HotkeyController.OnNumber0 += HotkeyController_OnNumber0;
+        }
+        
         private void UserMetadataControl_Loaded(object sender, RoutedEventArgs e)
         {
             RefreshAvailableTags();
@@ -284,6 +295,83 @@ namespace ClipCull.Controls
                 UpdatePickStatus(_userMetadata.Pick);
             }
         }
+
+        #region Hotkeys
+        private void HotkeyController_OnRemovePickReject()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Pick = null;
+                UpdatePickStatus(_userMetadata.Pick);
+            }
+        }
+
+        private void HotkeyController_OnReject()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Pick = false;
+                UpdatePickStatus(_userMetadata.Pick);
+            }
+        }
+
+        private void HotkeyController_OnPick()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Pick = true;
+                UpdatePickStatus(_userMetadata.Pick);
+            }
+        }
+        private void HotkeyController_OnNumber0()
+        {
+            if (_userMetadata != null && IsVisible)  
+            {
+                _userMetadata.Rating = null;
+                UpdateRatingStars(null);
+            }
+        }
+        private void HotkeyController_OnNumber1()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Rating = 1;
+                UpdateRatingStars(1);
+            }
+        }
+        private void HotkeyController_OnNumber2()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Rating = 2;
+                UpdateRatingStars(2);
+            }
+        }
+        private void HotkeyController_OnNumber3()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Rating = 3;
+                UpdateRatingStars(3);
+            }
+        }
+        private void HotkeyController_OnNumber4()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Rating = 4;
+                UpdateRatingStars(4);
+            }
+        }
+        private void HotkeyController_OnNumber5()
+        {
+            if (_userMetadata != null && IsVisible)
+            {
+                _userMetadata.Rating = 5;
+                UpdateRatingStars(5);
+            }
+        }
+        #endregion
 
         #endregion
 

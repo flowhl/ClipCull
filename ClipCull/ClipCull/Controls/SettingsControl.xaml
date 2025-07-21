@@ -30,7 +30,11 @@
                                     <TextBlock Style="{StaticResource h4}" ToolTip="If active, clips must have ALL selected tags. If inactive, clips must have ANY of the selected tags." VerticalAlignment="Center" Margin="0,2,0,0">Filter must match all tags</TextBlock>
                                     <local:ToggleButtonControl IsToggled="{Binding Path=FilterMustMatchAllTags}" Margin="5" Height="20" x:Name="ToggleFilterMustMatchAllTags"/>
                                 </StackPanel>
-
+                                <!--LoadFileBrowserOnLastFolder-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the filebrowser starts in the last selected folder. If inactive, filebrowser starts on drive mode." VerticalAlignment="Center" Margin="0,2,0,0">Filebrowser start on last folder</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=LoadFileBrowserOnLastFolder}" Margin="5" Height="20" x:Name="ToggleLoadFileBrowserOnLastFolder"/>
+                                </StackPanel>
 
                             </StackPanel>
                         </Border>

@@ -155,6 +155,9 @@ namespace ClipCull.Core.Gyroflow
             // Build Gyroflow CLI arguments
             var args = BuildGyroflowArgs(subclip, outputFile, overwrite, parallelRenders);
 
+            //Sanitize args
+            args = args.Replace("\\", "/");
+
             // Run Gyroflow CLI
             await RunGyroflowCli(args);
             return outputFile;
@@ -185,7 +188,8 @@ namespace ClipCull.Core.Gyroflow
 
             // Build output parameters object manually with single quotes and double braces
             var paramParts = new List<string>();
-            paramParts.Add($"'output_path': '{outputFile}'");
+            paramParts.Add($"'output_folder': '{Path.GetDirectoryName(outputFile)}'");
+            paramParts.Add($"'output_filename': '{Path.GetFileName(outputFile)}'");
             paramParts.Add("'use_gpu': true");
             paramParts.Add("'audio': true");
 
@@ -200,7 +204,7 @@ namespace ClipCull.Core.Gyroflow
             }
 
             // Format JSON with single quotes and double braces like their documentation
-            string jsonParams = "{{ " + string.Join(", ", paramParts) + " }}";
+            string jsonParams = "\"{ " + string.Join(", ", paramParts) + " }\"";
             args.Add("--out-params");
             args.Add($"{jsonParams}");
 
@@ -260,7 +264,7 @@ namespace ClipCull.Core.Gyroflow
 
             await process.WaitForExitAsync();
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 || stdErrBuffer.ToString().Trim().Length > 0)
             {
                 string error = stdErrBuffer.ToString().Trim();
                 string msg = $"Gyroflow CLI failed with exit code {process.ExitCode}; Error: {error}";

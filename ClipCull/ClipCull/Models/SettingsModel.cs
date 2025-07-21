@@ -15,6 +15,7 @@ namespace ClipCull.Models
 
         public bool AutosaveSidecar { get; set; }
         public string LastFolderPath { get; set; }
+        public bool LoadFileBrowserOnLastFolder { get; set; }
 
         //Filtering
         public bool FilterMustMatchAllTags { get; set; }

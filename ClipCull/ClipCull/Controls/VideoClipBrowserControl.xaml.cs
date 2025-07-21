@@ -478,6 +478,7 @@ namespace ClipCull.Controls
                                         StartTimeMs = subClip.StartTime,
                                         EndTimeMs = subClip.EndTime,
                                         ClipColor = subClip.Color,
+                                        ClipType = ClipType.SubClip,
                                     };
 
                                     clipInfo.UserMetadata = GetClipUserMetadata(clipInfo);
@@ -540,18 +541,35 @@ namespace ClipCull.Controls
                 var endTime = Math.Max(sidecarContent.InPoint.Timestamp, sidecarContent.OutPoint.Timestamp);
                 var duration = endTime - startTime;
 
+                string titleIn = sidecarContent.InPoint.Title;
+                string titleOut = sidecarContent.OutPoint.Title;
+                string title = "Main Clip";
+                if (titleIn.IsNotNullOrEmpty() && titleOut.IsNotNullOrEmpty())
+                {
+                    title = $"{titleIn} - {titleOut}";
+                }
+                else if (titleIn.IsNotNullOrEmpty())
+                {
+                    title = titleIn;
+                }
+                else if (titleOut.IsNotNullOrEmpty())
+                {
+                    title = titleOut;
+                }
+
                 var mainClipInfo = new VideoClipInfo
                 {
                     VideoFilePath = videoFile,
                     VideoFileName = Path.GetFileName(videoFile),
                     SubClip = null, // Main clips don't have a SubClip object
-                    ClipTitle = "Main Clip",
+                    ClipTitle = title,
                     StartTimeMs = startTime,
                     EndTimeMs = endTime,
                     ClipColor = System.Windows.Media.Colors.DodgerBlue, // Default color for main clips
                     ClipType = ClipType.MainClip,
                     IsSelected = false,
-                    IsLoadingThumbnail = true
+                    IsLoadingThumbnail = true,
+                    UserMetadata = sidecarContent.UserMetadata
                 };
 
                 // Subscribe to selection changes
@@ -594,6 +612,150 @@ namespace ClipCull.Controls
                 }
             });
         }
+
+        #region Edit clips
+        private void EditClip(VideoClipInfo info)
+        {
+            //Subclip
+            if (info.IsSubClip)
+            {
+                EditSubclip(info.SubClip);
+            }
+            //Mainclip
+            else if (info.IsMainClip)
+            {
+                EditMainClip(info);
+            }
+        }
+
+        private void EditSubclip(SubClip subclip)
+        {
+            if (subclip == null)
+            {
+                Logger.LogWarning("Cannot edit null subclip.");
+                return;
+            }
+
+            try
+            {
+                // Create and show the SubClip edit dialog
+                var dialog = new SubClipEditDialog(subclip, 0)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    if (dialog.DeleteRequested)
+                    {
+                        // Handle deletion
+                        RemoveSubclipFromSidecar(subclip);
+                    }
+                    else
+                    {
+                        // SubClip object was modified in the dialog, now save to sidecar
+                        SaveSubclipChangesToSidecar(subclip);
+                    }
+
+                    // Refresh the clips display to show the changes
+                    _ = RefreshClipsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error editing subclip '{subclip.Title}': {ex.Message}", ex);
+                StatusText = $"Error editing subclip: {ex.Message}";
+            }
+        }
+
+        private void EditMainClip(VideoClipInfo info)
+        {
+            if (info == null || !info.IsMainClip)
+            {
+                Logger.LogWarning("Cannot edit null or non-main clip.");
+                return;
+            }
+
+            try
+            {
+                // Get the current sidecar content to access the InPoint and OutPoint
+                var sidecarContent = SidecarService.GetSidecarContent(info.VideoFilePath);
+
+                if (sidecarContent?.InPoint == null || sidecarContent?.OutPoint == null)
+                {
+                    Logger.LogError("Main clip does not have valid InPoint/OutPoint data.");
+                    StatusText = "Error: Main clip missing timing data.";
+                    return;
+                }
+
+                // For main clips, we need to edit both InPoint and OutPoint
+                // You might want to create a combined dialog, or edit them separately
+                // For now, I'll show how to edit the InPoint, then OutPoint
+
+                // Edit InPoint first
+                var inPointDialog = new ClipPointEditDialog(sidecarContent.InPoint, 0)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                bool inPointChanged = false;
+                if (inPointDialog.ShowDialog() == true)
+                {
+                    if (inPointDialog.DeleteRequested)
+                    {
+                        // Handle InPoint deletion
+                        sidecarContent.InPoint = null;
+                        inPointChanged = true;
+                    }
+                    else
+                    {
+                        inPointChanged = true;
+                    }
+                }
+
+                // Edit OutPoint if InPoint wasn't deleted
+                bool outPointChanged = false;
+                if (sidecarContent.InPoint != null)
+                {
+                    var outPointDialog = new ClipPointEditDialog(sidecarContent.OutPoint, 0)
+                    {
+                        Owner = Window.GetWindow(this)
+                    };
+
+                    if (outPointDialog.ShowDialog() == true)
+                    {
+                        if (outPointDialog.DeleteRequested)
+                        {
+                            // Handle OutPoint deletion
+                            sidecarContent.OutPoint = null;
+                            outPointChanged = true;
+                        }
+                        else
+                        {
+                            outPointChanged = true;
+                        }
+                    }
+                }
+
+                // Save changes if any were made
+                if (inPointChanged || outPointChanged)
+                {
+                    SidecarService.SaveSidecarContent(sidecarContent, info.VideoFilePath);
+
+                    // Refresh the clips display to show the changes
+                    _ = RefreshClipsAsync();
+
+                    StatusText = "Main clip updated successfully.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error editing main clip for '{info.VideoFileName}': {ex.Message}", ex);
+                StatusText = $"Error editing main clip: {ex.Message}";
+            }
+        }
+
+        #endregion
 
         private void ShowFileInExplorer(string filePath)
         {
@@ -717,6 +879,16 @@ namespace ClipCull.Controls
             }
         }
 
+        private void EditSubclipButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if this is a button click from within a list item
+            if (sender is System.Windows.Controls.Button button && button.Tag is VideoClipInfo clipInfo)
+            {
+                // Individual clip action
+                EditClip(clipInfo);
+            }
+        }
+
         private void AddToRenderQueueButton_Click(object sender, RoutedEventArgs e)
         {
             AddSelectedClipsToRenderQueue();
@@ -728,6 +900,98 @@ namespace ClipCull.Controls
             {
                 OnPropertyChanged(nameof(SelectedClipCount));
                 ClipCheckboxSelectionChanged?.Invoke(this, new ClipCheckboxSelectionChangedEventArgs(SelectedClips.ToList()));
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods for Sidecar Operations
+
+        /// <summary>
+        /// Remove a subclip from the sidecar file
+        /// </summary>
+        private void RemoveSubclipFromSidecar(SubClip subclip)
+        {
+            try
+            {
+                // Find the video file that contains this subclip
+                var videoFile = _allVideoClips.FirstOrDefault(c => c.SubClip == subclip)?.VideoFilePath;
+
+                if (string.IsNullOrEmpty(videoFile))
+                {
+                    Logger.LogError("Could not find video file for subclip.");
+                    return;
+                }
+
+                // Get current sidecar content
+                var sidecarContent = SidecarService.GetSidecarContent(videoFile);
+
+                if (sidecarContent?.SubClips != null)
+                {
+                    // Remove the subclip from the list
+                    var subclipToRemove = sidecarContent.SubClips.FirstOrDefault(sc => sc.Id == subclip.Id);
+                    if (subclipToRemove != null)
+                    {
+                        sidecarContent.SubClips.Remove(subclipToRemove);
+
+                        // Save the updated sidecar content
+                        SidecarService.SaveSidecarContent(sidecarContent, videoFile);
+
+                        StatusText = $"Subclip '{subclip.Title}' deleted successfully.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error removing subclip from sidecar: {ex.Message}", ex);
+                StatusText = $"Error deleting subclip: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Save subclip changes to the sidecar file
+        /// </summary>
+        private void SaveSubclipChangesToSidecar(SubClip subclip)
+        {
+            try
+            {
+                // Find the video file that contains this subclip
+                var videoFile = _allVideoClips.FirstOrDefault(c => c.SubClip == subclip)?.VideoFilePath;
+
+                if (string.IsNullOrEmpty(videoFile))
+                {
+                    Logger.LogError("Could not find video file for subclip.");
+                    return;
+                }
+
+                // Get current sidecar content
+                var sidecarContent = SidecarService.GetSidecarContent(videoFile);
+
+                if (sidecarContent?.SubClips != null)
+                {
+                    // Find and update the subclip in the sidecar
+                    var existingSubclip = sidecarContent.SubClips.FirstOrDefault(sc => sc.Id == subclip.Id);
+                    if (existingSubclip != null)
+                    {
+                        existingSubclip.Title = subclip.Title;
+                        existingSubclip.StartTime = subclip.StartTime;
+                        existingSubclip.EndTime = subclip.EndTime;
+                        existingSubclip.Color = subclip.Color;
+
+                        SidecarService.SaveSidecarContent(sidecarContent, videoFile);
+
+                        StatusText = $"Subclip '{subclip.Title}' updated successfully.";
+                    }
+                    else
+                    {
+                        Logger.LogError("Could not find subclip in sidecar content.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error saving subclip changes: {ex.Message}", ex);
+                StatusText = $"Error saving subclip changes: {ex.Message}";
             }
         }
 

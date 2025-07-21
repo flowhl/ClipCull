@@ -29,6 +29,21 @@ namespace ClipCull.Core
         public static event Action OnMarker;
         public static event Action OnSubclipStart;
         public static event Action OnSubclipEnd;
+        public static event Action OnPick;
+        public static event Action OnReject;
+        public static event Action OnRemovePickReject;
+
+        public static event Action OnNumber1;
+        public static event Action OnNumber2;
+        public static event Action OnNumber3;
+        public static event Action OnNumber4;
+        public static event Action OnNumber5;
+        public static event Action OnNumber6;
+        public static event Action OnNumber7;
+        public static event Action OnNumber8;
+        public static event Action OnNumber9;
+        public static event Action OnNumber0;
+
 
         static HotkeyController()
         {
@@ -49,6 +64,20 @@ namespace ClipCull.Core
             RegisterAction("SubclipEnd", () => OnSubclipEnd?.Invoke());
             RegisterAction("NextSmall", () => OnNextSmall?.Invoke());
             RegisterAction("PreviousSmall", () => OnPreviousSmall?.Invoke());
+            RegisterAction("Pick", () => OnPick?.Invoke());
+            RegisterAction("Reject", () => OnReject?.Invoke());
+            RegisterAction("RemovePickReject", () => OnRemovePickReject?.Invoke());
+
+            RegisterAction("Number1", () => OnNumber1?.Invoke());
+            RegisterAction("Number2", () => OnNumber2?.Invoke());
+            RegisterAction("Number3", () => OnNumber3?.Invoke());
+            RegisterAction("Number4", () => OnNumber4?.Invoke());
+            RegisterAction("Number5", () => OnNumber5?.Invoke());
+            RegisterAction("Number6", () => OnNumber6?.Invoke());
+            RegisterAction("Number7", () => OnNumber7?.Invoke());
+            RegisterAction("Number8", () => OnNumber8?.Invoke());
+            RegisterAction("Number9", () => OnNumber9?.Invoke());
+            RegisterAction("Number0", () => OnNumber0?.Invoke());
 
             // Load default mappings
             LoadDefaultMappings();
@@ -86,6 +115,19 @@ namespace ClipCull.Core
             defaultMappings["M"] = "Marker";
             defaultMappings["Q"] = "SubclipStart";
             defaultMappings["E"] = "SubclipEnd";
+            defaultMappings["P"] = "Pick";
+            defaultMappings["X"] = "Reject";
+            defaultMappings["U"] = "RemovePickReject";
+            defaultMappings["1"] = "Number1";
+            defaultMappings["2"] = "Number2";
+            defaultMappings["3"] = "Number3";
+            defaultMappings["4"] = "Number4";
+            defaultMappings["5"] = "Number5";
+            defaultMappings["6"] = "Number6";
+            defaultMappings["7"] = "Number7";
+            defaultMappings["8"] = "Number8";
+            defaultMappings["9"] = "Number9";
+            defaultMappings["0"] = "Number0";
 
             return defaultMappings;
         }

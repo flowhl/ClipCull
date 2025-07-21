@@ -78,7 +78,9 @@ namespace ClipCull.Controls
                     DisposeVLC();
                     InitializeVLC(_rotation);
                     LoadVideo(CurrentVideoPath); // Reload video with new rotation
-                    UserMetadata.Rotation = _rotation;
+
+                    if (UserMetadata != null)
+                        UserMetadata.Rotation = _rotation;
                 }
             }
         }

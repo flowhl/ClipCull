@@ -33,6 +33,9 @@ public partial class MainWindow : Window
     public ICommand LoadLayoutCommand { get; private set; }
     public ICommand SaveLayoutCommand { get; private set; }
 
+    public FolderTreeControl FolderTree { get; private set; }
+    public System.Timers.Timer AutoSaveTimer { get; private set; }
+
     private FilterCriteria _filterCriteria;
 
     public MainWindow()
@@ -63,6 +66,9 @@ public partial class MainWindow : Window
         SaveLayoutCommand = LayoutManager.CreateSaveLayoutCommand();
 
         InitializeComponent();
+
+        CreateFolderTreeControl();
+
         InitializeEventHandlers();
 
         Loaded += MainWindow_Loaded;
@@ -88,6 +94,49 @@ public partial class MainWindow : Window
 
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        FolderTree.JumpToFolder(SettingsHandler.Settings.LastFolderPath);
+
+        ClipFilter.FilterCriteria = _filterCriteria;
+        LayoutManager.InitializeLayoutManagement(this);
+        InitializeHotkeys();
+
+        VideoMetadataViewer.DataContext = VideoPreview;
+        UserMetadataViewer.DataContext = VideoPreview;
+
+        //Hide save button if autosave is enabled
+        SaveSidecarButton.Visibility = SettingsHandler.Settings.AutosaveSidecar ? Visibility.Collapsed : Visibility.Visible;
+
+        CheckForFfmpeg();
+
+        AutoSaveTimer = new System.Timers.Timer(20 * 1000);
+        AutoSaveTimer.Elapsed += (s, e) =>
+        {
+            if (SettingsHandler.Settings.AutosaveSidecar && VideoPreview != null && VideoPreview.CurrentVideoPath != null)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    SidecarService.SaveSidecarContent(GetCurrentStateAsSidecar(), VideoPreview?.CurrentVideoPath);
+                });
+            }
+        };
+        AutoSaveTimer.Start();
+    }
+
+
+    private void CreateFolderTreeControl()
+    {
+        string rootPath = SettingsHandler.Settings.LoadFileBrowserOnLastFolder
+            ? SettingsHandler.Settings.LastFolderPath
+            : null;
+        FolderTree = new FolderTreeControl(rootPath)
+        {
+            ShowFiles = true
+        };
+        bFolderTree.Child = FolderTree;
     }
 
     private void HotkeyController_OnSave()
@@ -116,6 +165,7 @@ public partial class MainWindow : Window
     private void ClipPreview_VideoLoaded(object? sender, VideoLoadedEventArgs e)
     {
         var selectedClip = VideoClipBrowser.SelectedClip;
+
         var seekTo = TimeSpan.FromMilliseconds(selectedClip.StartTimeMs);
         clipPreview.SeekTo(seekTo);
         clipPreview.timelineControl.SubClips.Clear();
@@ -134,28 +184,11 @@ public partial class MainWindow : Window
 
     private void VideoClipBrowser_ClipSelectionChanged(object? sender, ClipSelectionChangedEventArgs e)
     {
+        var sidecarContent = SidecarService.GetSidecarContent(e.SelectedFile);
+        clipPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
         clipPreview.LoadVideo(e.SelectedFile);
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (SettingsHandler.Settings.LastFolderPath.IsNotNullOrEmpty())
-        {
-            FolderTree.JumpToFolder(SettingsHandler.Settings.LastFolderPath);
-        }
-
-        ClipFilter.FilterCriteria = _filterCriteria;
-        LayoutManager.InitializeLayoutManagement(this);
-        InitializeHotkeys();
-
-        VideoMetadataViewer.DataContext = VideoPreview;
-        UserMetadataViewer.DataContext = VideoPreview;
-
-        //Hide save button if autosave is enabled
-        SaveSidecarButton.Visibility = SettingsHandler.Settings.AutosaveSidecar ? Visibility.Collapsed : Visibility.Visible;
-
-        CheckForFfmpeg();
-    }
 
     private async Task CheckForFfmpeg()
     {
