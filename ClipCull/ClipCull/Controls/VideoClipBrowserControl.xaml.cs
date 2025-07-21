@@ -813,12 +813,38 @@ namespace ClipCull.Controls
                 TimeSpan startTime = TimeSpan.FromMilliseconds(clip.StartTimeMs);
                 TimeSpan endTime = TimeSpan.FromMilliseconds(clip.EndTimeMs);
 
+                //gyroflow rotates differently, 90° = 270, 180° = 180, 270° = 90, 0° = 0
+                int translatedRotation = 0;
+                if(SettingsHandler.Settings.GyroflowRenderWithRotation)
+                {
+                    switch (clip.UserMetadata.Rotation)
+                    {
+                        case 90:
+                            translatedRotation = 270;
+                            break;
+                        case 180:
+                            translatedRotation = 180;
+                            break;
+                        case 270:
+                            translatedRotation = 90;
+                            break;
+                        default:
+                            translatedRotation = 0;
+                            break;
+                    }
+                }
+
+                // output path with clean windows file
+                string fileOutputName = $"{clip.ClipTitle}_{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}_stabilized.mp4";
+                fileOutputName = fileOutputName.ToValidWindowsFileName();
+
                 var subclipInfo = new SubclipInfo()
                 {
                     VideoFile = clip.VideoFilePath,
                     StartTime = TimeSpan.FromMilliseconds(clip.StartTimeMs),
                     EndTime = TimeSpan.FromMilliseconds(clip.EndTimeMs),
-                    OutputName = $"{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}_stabilized.mp4"
+                    OutputName = fileOutputName,
+                    Rotation = translatedRotation,
                 };
                 try
                 {

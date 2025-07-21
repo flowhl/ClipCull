@@ -58,7 +58,21 @@
                                     <Button Name="BtnPickGyroflowSettings" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowSettings_Click"/>
                                     <Button Name="BtnResetGyroflowSettings" Content="Reset" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnResetGyroflowSettings_Click"/>
                                 </StackPanel>
-
+                                <!--Render with Rotation-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rendered video will be rotated according to the settings in the preview." VerticalAlignment="Center" Margin="0,2,0,0">Rotate videos when rendering</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowRenderWithRotation}" Margin="5" Height="20" x:Name="ToggleGyroflowRenderWithRotation"/>
+                                </StackPanel>
+                                <!--Disable Audio-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio track will be removed from the rendered video." VerticalAlignment="Center" Margin="0,2,0,0">Disable audio in rendered videos</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowDisableAudio}" Margin="5" Height="20" x:Name="ToggleGyroflowDisableAudio"/>
+                                </StackPanel>
+                                <!--Use other audio codec-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio codec will be set to PCM (s16le) instead of the AAC codec." VerticalAlignment="Center" Margin="0,2,0,0">Use alternative audio codec in rendered videos</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowUseOtherAudioCodec}" Margin="5" Height="20" x:Name="ToggleGyroflowUseOtherAudioCodec"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

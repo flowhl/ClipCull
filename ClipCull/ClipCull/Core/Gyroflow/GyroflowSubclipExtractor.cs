@@ -92,6 +92,8 @@ namespace ClipCull.Core.Gyroflow
                 }
             }
 
+            public int Rotation { get; set; }
+
             public event PropertyChangedEventHandler PropertyChanged;
             protected virtual void OnPropertyChanged(string propertyName)
             {
@@ -159,7 +161,7 @@ namespace ClipCull.Core.Gyroflow
             args = args.Replace("\\", "/");
 
             // Run Gyroflow CLI
-            await RunGyroflowCli(args);
+            await RunGyroflowCli(args, outputFile);
             return outputFile;
         }
 
@@ -186,12 +188,18 @@ namespace ClipCull.Core.Gyroflow
                 args.Add("-f");
             }
 
+            string useAudio = SettingsHandler.Settings.GyroflowDisableAudio ? "false" : "true";
             // Build output parameters object manually with single quotes and double braces
             var paramParts = new List<string>();
             paramParts.Add($"'output_folder': '{Path.GetDirectoryName(outputFile)}'");
             paramParts.Add($"'output_filename': '{Path.GetFileName(outputFile)}'");
             paramParts.Add("'use_gpu': true");
-            paramParts.Add("'audio': true");
+            paramParts.Add($"'audio': {useAudio}");
+            if (!SettingsHandler.Settings.GyroflowDisableAudio && SettingsHandler.Settings.GyroflowUseOtherAudioCodec)
+            {
+                //specify PCM (s16le) codec
+                paramParts.Add("'audio_codec': 'PCM (s16le)'");
+            }
 
             // Add trim settings if we have time ranges
             if (subclip.StartTime != TimeSpan.Zero || subclip.EndTime != TimeSpan.Zero)
@@ -208,6 +216,37 @@ namespace ClipCull.Core.Gyroflow
             args.Add("--out-params");
             args.Add($"{jsonParams}");
 
+            //--preset "{'video_info': {'rotation': 90}}"
+
+            if (subclip.Rotation != 0)
+            {
+                var metaData = VideoMetadataReader.ReadMetadata(subclip.VideoFile);
+                var height = metaData?.Height;
+                var width = metaData?.Width;
+
+                // Build the preset JSON with single backslash escaping
+                string presetJson = "{'video_info': {'rotation': " + subclip.Rotation + "}";
+
+                // If height and width are available, add output dimensions
+                if (height.HasValue && width.HasValue)
+                {
+                    int realHeight = height.Value;
+                    int realWidth = width.Value;
+                    if (subclip.Rotation == 90 || subclip.Rotation == 270)
+                    {
+                        int temp = realHeight;
+                        realHeight = realWidth;
+                        realWidth = temp;
+                    }
+                    presetJson += ", 'output': {'output_width': " + realWidth + ", 'output_height': " + realHeight + "}";
+                }
+
+                presetJson += "}";
+
+                // Add the complete preset argument
+                args.Add($"--preset \"{presetJson}\"");
+            }
+
             //Suffix
             string outputFileName = Path.GetFileName(outputFile);
             string inputFileName = Path.GetFileName(subclip.VideoFile);
@@ -218,7 +257,7 @@ namespace ClipCull.Core.Gyroflow
             return string.Join(" ", args);
         }
 
-        private async Task RunGyroflowCli(string arguments)
+        private async Task RunGyroflowCli(string arguments, string outputFile)
         {
             Trace.WriteLine($"Running: {_gyroflowExePath} {arguments}");
 
@@ -268,6 +307,16 @@ namespace ClipCull.Core.Gyroflow
             {
                 string error = stdErrBuffer.ToString().Trim();
                 string msg = $"Gyroflow CLI failed with exit code {process.ExitCode}; Error: {error}";
+                if (error.Contains("Number of bands", StringComparison.OrdinalIgnoreCase) && error.Contains("exceeds limit", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.LogWarning("The issue seems to be related to audio encoding, try switching to a different codec in the settings or disable audio.");
+                    return;
+                }
+                if (File.Exists(outputFile))
+                {
+                    Logger.LogDebug("File created anyways, not throwing an exception");
+                    return;
+                }
                 throw new Exception(msg);
             }
         }

@@ -27,6 +27,9 @@ namespace ClipCull.Models
         /// </summary>
         public string GyroflowPath { get; set; }
         public string GyroflowSettingsPath { get; set; }
+        public bool GyroflowRenderWithRotation { get; set; } = true;
+        public bool GyroflowDisableAudio { get; set; }
+        public bool GyroflowUseOtherAudioCodec { get; set; }
 
         public List<Tag> Tags { get; set; }
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();
