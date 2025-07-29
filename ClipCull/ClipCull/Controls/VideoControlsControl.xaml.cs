@@ -20,7 +20,16 @@ namespace ClipCull.Controls
     /// </summary>
     public partial class VideoControlsControl : UserControl
     {
-        public VideoPreviewControl VideoPreview { get; set; }
+        private VideoPreviewControl _videoPreview;
+        public VideoPreviewControl VideoPreview
+        {
+            get => _videoPreview;
+            set
+            {
+                _videoPreview = value;
+                this.DataContext = value;
+            }
+        }
         public VideoControlsControl()
         {
             InitializeComponent();

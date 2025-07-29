@@ -128,20 +128,24 @@
                                 <xcad:LayoutPanel Orientation="Vertical">
 
                                     <!-- Video Display Panel -->
-                                    <xcad:LayoutDocumentPane DockHeight="3*" DockMinHeight="200">
-                                        <xcad:LayoutDocument
-                ContentId="videoPreview"
-                CanClose="False" x:Name="dVideoPreview">
-                                        </xcad:LayoutDocument>
-                                    </xcad:LayoutDocumentPane>
+                                    <xcad:LayoutAnchorablePane DockHeight="3*" DockMinHeight="200">
+                                        <xcad:LayoutAnchorable Title="Video Preview"
+                                                               ContentId="videoPreview"
+                                                               CanClose="False" 
+                                                               CanHide="True"
+                                                               x:Name="dVideoPreview">
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
 
-                                    <!-- Timeline and Controls Panel -->
-                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
-                                        <xcad:LayoutDocument 
-                ContentId="timelineControls"
-                CanClose="False" x:Name="dVideoControls">
-                                        </xcad:LayoutDocument>
-                                    </xcad:LayoutDocumentPane>
+                                    <!-- Timeline and Controls Panel-->
+                                    <xcad:LayoutAnchorablePane DockHeight="1*" DockMinHeight="330">
+                                        <xcad:LayoutAnchorable Title="Timeline Controls"
+                                                               ContentId="timelineControls"
+                                                               CanClose="False" 
+                                                               CanHide="True"
+                                                               x:Name="dVideoControls">
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
 
                                 </xcad:LayoutPanel>
 
@@ -254,42 +258,51 @@
                         </xcad:DockingManager.Theme>
                         <xcad:LayoutRoot>
                             <xcad:LayoutPanel Orientation="Horizontal">
-                                <!-- Left side - Clips Browser (spans full height) -->
-                                <xcad:LayoutDocumentPane DockWidth="2*" DockMinWidth="300">
-                                    <xcad:LayoutDocument Title="Clips"
-                                                         ContentId="videoClipBrowser"
-                                                         CanClose="False"
-                                                         IsSelected="True">
+                                <!-- Left side - Clips Browser (now anchorable) -->
+                                <xcad:LayoutAnchorablePane DockWidth="2*" DockMinWidth="300">
+                                    <xcad:LayoutAnchorable Title="Clips"
+                                                           ContentId="videoClipBrowser"
+                                                           CanClose="False"
+                                                           CanHide="True"
+                                                           IsSelected="True">
                                         <uc:VideoClipBrowserControl x:Name="VideoClipBrowser"/>
-                                    </xcad:LayoutDocument>
-                                </xcad:LayoutDocumentPane>
+                                    </xcad:LayoutAnchorable>
+                                </xcad:LayoutAnchorablePane>
 
                                 <!-- Right side - Stacked panels -->
                                 <xcad:LayoutPanel Orientation="Vertical" DockWidth="3*">
-                                    <!-- Top: Clips Filter -->
-                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
-                                        <xcad:LayoutDocument ContentId="clipsFilter"
-                                                             CanClose="False"
-                                                             IsSelected="True">
+                                    <!-- Top: Clips Filter (now anchorable) -->
+                                    <xcad:LayoutAnchorablePane DockHeight="1*" DockMinHeight="150">
+                                        <xcad:LayoutAnchorable Title="Clips Filter"
+                                                               ContentId="clipsFilter"
+                                                               CanClose="False"
+                                                               CanHide="True"
+                                                               IsSelected="True">
                                             <uc:ClipFilterControl x:Name="ClipFilter"/>
-                                        </xcad:LayoutDocument>
-                                    </xcad:LayoutDocumentPane>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
 
-                                    <!-- Middle: Video Preview -->
-                                    <xcad:LayoutDocumentPane DockHeight="3*" DockMinHeight="200">
-                                        <xcad:LayoutDocument ContentId="videoPreview"
-                                                             CanClose="False" x:Name="dClipVideoPreview">
+                                    <!-- Middle: Video Preview (now anchorable) -->
+                                    <xcad:LayoutAnchorablePane DockHeight="3*" DockMinHeight="200">
+                                        <xcad:LayoutAnchorable Title="Preview"
+                                                               ContentId="clipVideoPreview"
+                                                               CanClose="False" 
+                                                               CanHide="True"
+                                                               x:Name="dClipVideoPreview">
                                             <!-- Content will be added from code-behind -->
-                                        </xcad:LayoutDocument>
-                                    </xcad:LayoutDocumentPane>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
 
-                                    <!-- Bottom: Video Controls -->
-                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
-                                        <xcad:LayoutDocument ContentId="timelineControls"
-                                                             CanClose="False" x:Name="dClipVideoControls">
+                                    <!-- Bottom: Video Controls (now anchorable) -->
+                                    <xcad:LayoutAnchorablePane DockHeight="1*" DockMinHeight="150">
+                                        <xcad:LayoutAnchorable Title="Controls"
+                                                               ContentId="clipTimelineControls"
+                                                               CanClose="False" 
+                                                               CanHide="True"
+                                                               x:Name="dClipVideoControls">
                                             <!-- Content will be added from code-behind -->
-                                        </xcad:LayoutDocument>
-                                    </xcad:LayoutDocumentPane>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
                                 </xcad:LayoutPanel>
                             </xcad:LayoutPanel>
                         </xcad:LayoutRoot>
