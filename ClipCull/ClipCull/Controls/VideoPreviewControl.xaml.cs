@@ -34,6 +34,9 @@ namespace ClipCull.Controls
         #endregion
 
         #region Properties
+
+        public VideoControlsControl VideoControls { get; set; }
+
         public MediaPlayer MediaPlayer
         {
             get => _mediaPlayer;
@@ -95,8 +98,8 @@ namespace ClipCull.Controls
             set
             {
                 _readonly = value;
-                if (timelineControl != null)
-                    timelineControl.Readonly = value;
+                if (VideoControls.timelineControl != null)
+                    VideoControls.timelineControl.Readonly = value;
                 OnPropertyChanged(nameof(Readonly));
             }
         }
@@ -122,6 +125,16 @@ namespace ClipCull.Controls
         #endregion
 
         #region Constructor
+        public VideoPreviewControl(VideoControlsControl videoControls)
+        {
+            VideoControls = videoControls;
+            InitializeComponent();
+            NoVideoOverlay.Visibility = Visibility.Visible;
+            Panel.SetZIndex(NoVideoOverlay, 1000);
+            DataContext = this;
+            InitializeVLC(Rotation);
+            Loaded += VideoPreviewControl_Loaded;
+        }
         public VideoPreviewControl()
         {
             InitializeComponent();
@@ -129,6 +142,11 @@ namespace ClipCull.Controls
             Panel.SetZIndex(NoVideoOverlay, 1000);
             DataContext = this;
             InitializeVLC(Rotation);
+            Loaded += VideoPreviewControl_Loaded;
+        }
+
+        private void VideoPreviewControl_Loaded(object sender, RoutedEventArgs e)
+        {
             InitializeTimer();
             InitializeTimelineEvents();
         }
@@ -205,7 +223,7 @@ namespace ClipCull.Controls
 
         private void InitializeTimelineEvents()
         {
-            timelineControl.TimelineClicked += TimelineControl_TimelineClicked;
+            VideoControls.timelineControl.TimelineClicked += TimelineControl_TimelineClicked;
 
             HotkeyController.OnNext += HotkeyController_OnNext;
             HotkeyController.OnPrevious += HotkeyController_OnPrevious;
@@ -323,25 +341,25 @@ namespace ClipCull.Controls
         {
             _positionTimer.Stop();
             MediaPlayer?.Stop();
-            timelineControl.CurrentTime = 0;
+            VideoControls.timelineControl.CurrentTime = 0;
         }
 
         private void UpdateMediaInfo()
         {
             if (_media?.Duration > 0)
             {
-                timelineControl.Duration = _media.Duration;
+                VideoControls.timelineControl.Duration = _media.Duration;
             }
         }
 
         private void EnableControls(bool enabled)
         {
-            PlayPauseButton.IsEnabled = enabled;
-            StopButton.IsEnabled = enabled;
-            FrameBackwardButton.IsEnabled = enabled;
-            FrameForwardButton.IsEnabled = enabled;
-            Skip10BackwardButton.IsEnabled = enabled;
-            Skip10ForwardButton.IsEnabled = enabled;
+            VideoControls.PlayPauseButton.IsEnabled = enabled;
+            VideoControls.StopButton.IsEnabled = enabled;
+            VideoControls.FrameBackwardButton.IsEnabled = enabled;
+            VideoControls.FrameForwardButton.IsEnabled = enabled;
+            VideoControls.Skip10BackwardButton.IsEnabled = enabled;
+            VideoControls.Skip10ForwardButton.IsEnabled = enabled;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -355,7 +373,7 @@ namespace ClipCull.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.Kind = PackIconKind.Pause;
+                VideoControls.PlayPauseIcon.Kind = PackIconKind.Pause;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(true));
             });
         }
@@ -364,7 +382,7 @@ namespace ClipCull.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.Kind = PackIconKind.Play;
+                VideoControls.PlayPauseIcon.Kind = PackIconKind.Play;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
@@ -373,8 +391,8 @@ namespace ClipCull.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.Kind = PackIconKind.Play;
-                timelineControl.CurrentTime = 0;
+                VideoControls.PlayPauseIcon.Kind = PackIconKind.Play;
+                VideoControls.timelineControl.CurrentTime = 0;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
@@ -383,7 +401,7 @@ namespace ClipCull.Controls
         {
             Dispatcher.Invoke(() =>
             {
-                PlayPauseIcon.Kind = PackIconKind.Play;
+                VideoControls.PlayPauseIcon.Kind = PackIconKind.Play;
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
@@ -398,7 +416,7 @@ namespace ClipCull.Controls
         #endregion
 
         #region Event Handlers - UI Controls
-        private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
+        public void PlayPauseButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media == null) return;
 
@@ -412,7 +430,7 @@ namespace ClipCull.Controls
             }
         }
 
-        private void StopButton_Click(object sender, RoutedEventArgs e)
+        public void StopButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media != null)
             {
@@ -421,16 +439,16 @@ namespace ClipCull.Controls
             }
         }
 
-        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        public void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (MediaPlayer != null)
             {
                 MediaPlayer.Volume = (int)e.NewValue;
-                VolumeLabel.Text = $"{(int)e.NewValue}%";
+                VideoControls.VolumeLabel.Text = $"{(int)e.NewValue}%";
             }
         }
 
-        private void FrameBackwardButton_Click(object sender, RoutedEventArgs e)
+        public void FrameBackwardButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media != null)
             {
@@ -439,7 +457,7 @@ namespace ClipCull.Controls
             }
         }
 
-        private void FrameForwardButton_Click(object sender, RoutedEventArgs e)
+        public void FrameForwardButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media != null)
             {
@@ -447,7 +465,7 @@ namespace ClipCull.Controls
             }
         }
 
-        private void Skip10BackwardButton_Click(object sender, RoutedEventArgs e)
+        public void Skip10BackwardButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
@@ -457,7 +475,7 @@ namespace ClipCull.Controls
             }
         }
 
-        private void Skip10ForwardButton_Click(object sender, RoutedEventArgs e)
+        public void Skip10ForwardButton_Click(object sender, RoutedEventArgs e)
         {
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
@@ -467,44 +485,44 @@ namespace ClipCull.Controls
             }
         }
 
-        private void TimelineControl_TimelineClicked(object sender, TimelineClickedEventArgs e)
+        public void TimelineControl_TimelineClicked(object sender, TimelineClickedEventArgs e)
         {
             SeekToTime(e.Time);
         }
 
-        private void PositionTimer_Tick(object sender, EventArgs e)
+        public void PositionTimer_Tick(object sender, EventArgs e)
         {
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
-                timelineControl.CurrentTime = MediaPlayer.Time;
+                VideoControls.timelineControl.CurrentTime = MediaPlayer.Time;
             }
         }
 
-        private void HotkeyController_OnTogglePlay()
+        public void HotkeyController_OnTogglePlay()
         {
             if (!IsVisible) return;
             PlayPauseButton_Click(null, null);
         }
 
-        private void HotkeyController_OnPrevious()
+        public void HotkeyController_OnPrevious()
         {
             if (!IsVisible) return;
             Skip10BackwardButton_Click(null, null);
         }
 
-        private void HotkeyController_OnNext()
+        public void HotkeyController_OnNext()
         {
             if (!IsVisible) return;
             Skip10ForwardButton_Click(null, null);
         }
 
-        private void HotkeyController_OnPreviousSmall()
+        public void HotkeyController_OnPreviousSmall()
         {
             if (!IsVisible) return;
             FrameBackwardButton_Click(null, null);
         }
 
-        private void HotkeyController_OnNextSmall()
+        public void HotkeyController_OnNextSmall()
         {
             if (!IsVisible) return;
             FrameForwardButton_Click(null, null);

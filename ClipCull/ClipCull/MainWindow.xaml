@@ -125,15 +125,25 @@
                             <xcad:LayoutPanel Orientation="Horizontal">
 
                                 <!-- Main Video Panel -->
-                                <xcad:LayoutDocumentPane DockWidth="2*">
-                                    <xcad:LayoutDocument Title="Video Preview" 
-                                            ContentId="videoPreview"
-                                            CanClose="False">
-                                        <Border Style="{StaticResource card}" Margin="4">
-                                            <uc:VideoPreviewControl x:Name="VideoPreview"/>
-                                        </Border>
-                                    </xcad:LayoutDocument>
-                                </xcad:LayoutDocumentPane>
+                                <xcad:LayoutPanel Orientation="Vertical">
+
+                                    <!-- Video Display Panel -->
+                                    <xcad:LayoutDocumentPane DockHeight="3*" DockMinHeight="200">
+                                        <xcad:LayoutDocument
+                ContentId="videoPreview"
+                CanClose="False" x:Name="dVideoPreview">
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+
+                                    <!-- Timeline and Controls Panel -->
+                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
+                                        <xcad:LayoutDocument 
+                ContentId="timelineControls"
+                CanClose="False" x:Name="dVideoControls">
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+
+                                </xcad:LayoutPanel>
 
                                 <!-- Side Panel -->
                                 <xcad:LayoutAnchorablePane DockWidth="300" DockMinWidth="250">
@@ -243,36 +253,43 @@
                             <avalondocktheme:FlatDarkTheme/>
                         </xcad:DockingManager.Theme>
                         <xcad:LayoutRoot>
-                            <xcad:LayoutPanel Orientation="Vertical">
-                                <LayoutDocumentPane DockHeight="Auto" DockMinHeight="10">
-                                    <xcad:LayoutDocument Title="ClipsFilter"
-                                                         ContentId="clipsFilter"
+                            <xcad:LayoutPanel Orientation="Horizontal">
+                                <!-- Left side - Clips Browser (spans full height) -->
+                                <xcad:LayoutDocumentPane DockWidth="2*" DockMinWidth="300">
+                                    <xcad:LayoutDocument Title="Clips"
+                                                         ContentId="videoClipBrowser"
                                                          CanClose="False"
-                                                            IsSelected="True">
-                                        <uc:ClipFilterControl x:Name="ClipFilter"/>
-                                    </xcad:LayoutDocument>
-                                </LayoutDocumentPane>
-
-                                <xcad:LayoutPanel Orientation="Horizontal">
-                                <!-- Left side - Test with simple TextBlock -->
-                                <xcad:LayoutDocumentPane DockHeight="*" DockWidth="1*">
-                                    <xcad:LayoutDocument Title="Clips" 
-                    ContentId="clips"
-                    CanClose="False"
-                    IsSelected="True">
+                                                         IsSelected="True">
                                         <uc:VideoClipBrowserControl x:Name="VideoClipBrowser"/>
                                     </xcad:LayoutDocument>
                                 </xcad:LayoutDocumentPane>
 
-                                <!-- Right side - Test with simple TextBlock -->
-                                <xcad:LayoutDocumentPane DockWidth="1.5*">
-                                    <xcad:LayoutDocument Title="Preview" 
-                    ContentId="preview"
-                    CanClose="False"
-                    IsSelected="True">
-                                        <uc:VideoPreviewControl x:Name="clipPreview" Readonly="True"/>
-                                    </xcad:LayoutDocument>
-                                </xcad:LayoutDocumentPane>
+                                <!-- Right side - Stacked panels -->
+                                <xcad:LayoutPanel Orientation="Vertical" DockWidth="3*">
+                                    <!-- Top: Clips Filter -->
+                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
+                                        <xcad:LayoutDocument ContentId="clipsFilter"
+                                                             CanClose="False"
+                                                             IsSelected="True">
+                                            <uc:ClipFilterControl x:Name="ClipFilter"/>
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+
+                                    <!-- Middle: Video Preview -->
+                                    <xcad:LayoutDocumentPane DockHeight="3*" DockMinHeight="200">
+                                        <xcad:LayoutDocument ContentId="videoPreview"
+                                                             CanClose="False" x:Name="dClipVideoPreview">
+                                            <!-- Content will be added from code-behind -->
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+
+                                    <!-- Bottom: Video Controls -->
+                                    <xcad:LayoutDocumentPane DockHeight="1*" DockMinHeight="150">
+                                        <xcad:LayoutDocument ContentId="timelineControls"
+                                                             CanClose="False" x:Name="dClipVideoControls">
+                                            <!-- Content will be added from code-behind -->
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
                                 </xcad:LayoutPanel>
                             </xcad:LayoutPanel>
                         </xcad:LayoutRoot>

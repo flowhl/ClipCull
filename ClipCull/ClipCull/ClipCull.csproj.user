@@ -44,11 +44,19 @@
     <Compile Update="Controls\VideoClipBrowserControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\VideoControlsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\VideoMetadataControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Controls\VideoPreviewControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\VideoControlsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

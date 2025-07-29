@@ -37,6 +37,10 @@ public partial class MainWindow : Window
     public System.Timers.Timer AutoSaveTimer { get; private set; }
 
     private FilterCriteria _filterCriteria;
+    public VideoControlsControl VideoControls { get; set; }
+    public VideoPreviewControl VideoPreview { get; set; }
+    public VideoControlsControl ClipVideoControls { get; set; }
+    public VideoPreviewControl ClipPreview { get; set; }
 
     public MainWindow()
     {
@@ -67,6 +71,21 @@ public partial class MainWindow : Window
 
         InitializeComponent();
 
+        //Initialize Video Controls and Preview
+        VideoControls = new VideoControlsControl();
+        VideoPreview = new VideoPreviewControl(VideoControls);
+        VideoControls.VideoPreview = VideoPreview;
+        dVideoPreview.Content = VideoPreview;
+        dVideoControls.Content = VideoControls;
+
+        //Initialize Clip Video Controls and Preview
+        ClipVideoControls = new VideoControlsControl();
+        ClipPreview = new VideoPreviewControl(ClipVideoControls);
+        ClipVideoControls.VideoPreview = ClipPreview;
+        dClipVideoControls.Content = ClipVideoControls;
+        dClipVideoPreview.Content = ClipPreview;
+
+
         CreateFolderTreeControl();
 
         InitializeEventHandlers();
@@ -85,7 +104,7 @@ public partial class MainWindow : Window
         FolderTree.FileSelected += FolderTree_FileSelected;
 
         VideoClipBrowser.ClipSelectionChanged += VideoClipBrowser_ClipSelectionChanged;
-        clipPreview.VideoLoaded += ClipPreview_VideoLoaded;
+        ClipPreview.VideoLoaded += ClipPreview_VideoLoaded;
 
         ClipFilter.FilterChanged += ClipFilter_FilterChanged;
 
@@ -167,26 +186,26 @@ public partial class MainWindow : Window
         var selectedClip = VideoClipBrowser.SelectedClip;
 
         var seekTo = TimeSpan.FromMilliseconds(selectedClip.StartTimeMs);
-        clipPreview.SeekTo(seekTo);
-        clipPreview.timelineControl.SubClips.Clear();
-        clipPreview.timelineControl.InPoint = null;
-        clipPreview.timelineControl.OutPoint = null;
+        ClipPreview.SeekTo(seekTo);
+        ClipPreview.VideoControls.timelineControl.SubClips.Clear();
+        ClipPreview.VideoControls.timelineControl.InPoint = null;
+        ClipPreview.VideoControls.timelineControl.OutPoint = null;
         if (selectedClip.SubClip != null)
         {
-            clipPreview.timelineControl.SubClips.Add(selectedClip.SubClip);
+            ClipPreview.VideoControls.timelineControl.SubClips.Add(selectedClip.SubClip);
         }
         else
         {
-            clipPreview.timelineControl.InPoint = new ClipPoint(selectedClip.StartTimeMs, ClipPointType.InPoint);
-            clipPreview.timelineControl.OutPoint = new ClipPoint(selectedClip.EndTimeMs, ClipPointType.OutPoint);
+            ClipPreview.VideoControls.timelineControl.InPoint = new ClipPoint(selectedClip.StartTimeMs, ClipPointType.InPoint);
+            ClipPreview.VideoControls.timelineControl.OutPoint = new ClipPoint(selectedClip.EndTimeMs, ClipPointType.OutPoint);
         }
     }
 
     private void VideoClipBrowser_ClipSelectionChanged(object? sender, ClipSelectionChangedEventArgs e)
     {
         var sidecarContent = SidecarService.GetSidecarContent(e.SelectedFile);
-        clipPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
-        clipPreview.LoadVideo(e.SelectedFile);
+        ClipPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
+        ClipPreview.LoadVideo(e.SelectedFile);
     }
 
 
@@ -327,15 +346,15 @@ public partial class MainWindow : Window
             return null;
 
         var sidecarContent = new SidecarContent();
-        if (VideoPreview == null || VideoPreview.timelineControl == null)
+        if (VideoPreview == null || VideoPreview.VideoControls.timelineControl == null)
         {
             UpdateStatus("Video preview or timeline control is not initialized.", true);
             return null;
         }
-        sidecarContent.SubClips = VideoPreview.timelineControl.SubClips.ToList();
-        sidecarContent.Markers = VideoPreview.timelineControl.Markers.ToList();
-        sidecarContent.InPoint = VideoPreview.timelineControl.InPoint;
-        sidecarContent.OutPoint = VideoPreview.timelineControl.OutPoint;
+        sidecarContent.SubClips = VideoPreview.VideoControls.timelineControl.SubClips.ToList();
+        sidecarContent.Markers = VideoPreview.VideoControls.timelineControl.Markers.ToList();
+        sidecarContent.InPoint = VideoPreview.VideoControls.timelineControl.InPoint;
+        sidecarContent.OutPoint = VideoPreview.VideoControls.timelineControl.OutPoint;
         sidecarContent.UserMetadata = VideoPreview.UserMetadata;
 
         return sidecarContent;
@@ -349,8 +368,8 @@ public partial class MainWindow : Window
             return;
         }
         // Clear existing markers and subclips
-        VideoPreview.timelineControl.ClearMarkers();
-        VideoPreview.timelineControl.ClearSubClips();
+        VideoPreview.VideoControls.timelineControl.ClearMarkers();
+        VideoPreview.VideoControls.timelineControl.ClearSubClips();
         // Apply markers
         if (sidecarContent.Markers == null || sidecarContent.Markers.Count == 0)
         {
@@ -361,7 +380,7 @@ public partial class MainWindow : Window
             UpdateStatus($"Applying {sidecarContent.Markers.Count} markers from sidecar content.", false);
             foreach (var marker in sidecarContent.Markers)
             {
-                VideoPreview.timelineControl.Markers.Add(marker);
+                VideoPreview.VideoControls.timelineControl.Markers.Add(marker);
             }
         }
 
@@ -375,12 +394,12 @@ public partial class MainWindow : Window
             UpdateStatus($"Applying {sidecarContent.SubClips.Count} subclips from sidecar content.", false);
             foreach (var subClip in sidecarContent.SubClips)
             {
-                VideoPreview.timelineControl.SubClips.Add(subClip);
+                VideoPreview.VideoControls.timelineControl.SubClips.Add(subClip);
             }
         }
 
-        VideoPreview.timelineControl.InPoint = sidecarContent.InPoint;
-        VideoPreview.timelineControl.OutPoint = sidecarContent.OutPoint;
+        VideoPreview.VideoControls.timelineControl.InPoint = sidecarContent.InPoint;
+        VideoPreview.VideoControls.timelineControl.OutPoint = sidecarContent.OutPoint;
         VideoPreview.UserMetadata = sidecarContent.UserMetadata;
 
         VideoPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
