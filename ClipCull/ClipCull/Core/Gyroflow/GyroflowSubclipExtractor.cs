@@ -310,9 +310,8 @@ namespace ClipCull.Core.Gyroflow
                 if (error.Contains("Number of bands", StringComparison.OrdinalIgnoreCase) && error.Contains("exceeds limit", StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.LogWarning("The issue seems to be related to audio encoding, try switching to a different codec in the settings or disable audio.");
-                    return;
                 }
-                if (File.Exists(outputFile))
+                if(File.Exists(outputFile))
                 {
                     Logger.LogDebug("File created anyways, not throwing an exception");
                     return;
