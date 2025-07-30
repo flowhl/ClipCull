@@ -492,10 +492,14 @@ namespace ClipCull.Controls
 
         public void PositionTimer_Tick(object sender, EventArgs e)
         {
-            if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
+            try
             {
-                VideoControls.timelineControl.CurrentTime = MediaPlayer.Time;
+                if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
+                {
+                    VideoControls.timelineControl.CurrentTime = MediaPlayer.Time;
+                }
             }
+            catch { }
         }
 
         public void HotkeyController_OnTogglePlay()

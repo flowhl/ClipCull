@@ -143,7 +143,7 @@ namespace ClipCull.Controls
                 CameraTextBox.Text = _userMetadata.Camera ?? string.Empty;
 
                 //Tags
-                TagControl.CurrentTags = _userMetadata.Tags;
+                TagControl.CurrentTags = _userMetadata.Tags ?? new ObservableCollection<Tag>();
                 TagControl.AvailableTags = AvailableTags;
                 TagControl.AllowModifyAvailableTags = true;
                 TagControl.IsReadOnly = false;

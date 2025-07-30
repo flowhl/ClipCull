@@ -201,16 +201,6 @@ namespace ClipCull.Core.Gyroflow
                 paramParts.Add("'audio_codec': 'PCM (s16le)'");
             }
 
-            // Add trim settings if we have time ranges
-            if (subclip.StartTime != TimeSpan.Zero || subclip.EndTime != TimeSpan.Zero)
-            {
-                paramParts.Add($"'trim_start': {subclip.StartTime.TotalSeconds}");
-                if (subclip.EndTime != TimeSpan.Zero)
-                {
-                    paramParts.Add($"'trim_end': {subclip.EndTime.TotalSeconds}");
-                }
-            }
-
             // Format JSON with single quotes and double braces like their documentation
             string jsonParams = "\"{ " + string.Join(", ", paramParts) + " }\"";
             args.Add("--out-params");
@@ -218,34 +208,44 @@ namespace ClipCull.Core.Gyroflow
 
             //--preset "{'video_info': {'rotation': 90}}"
 
-            if (subclip.Rotation != 0)
+            string trimInfo = null;
+            if (subclip.StartTime != TimeSpan.Zero || subclip.EndTime != TimeSpan.Zero)
             {
-                var metaData = VideoMetadataReader.ReadMetadata(subclip.VideoFile);
-                var height = metaData?.Height;
-                var width = metaData?.Width;
 
-                // Build the preset JSON with single backslash escaping
-                string presetJson = "{'video_info': {'rotation': " + subclip.Rotation + "}";
+                double startTimeMs = subclip.StartTime.TotalMilliseconds;
+                double endTimeMs = subclip.EndTime.TotalMilliseconds;
 
-                // If height and width are available, add output dimensions
-                if (height.HasValue && width.HasValue)
-                {
-                    int realHeight = height.Value;
-                    int realWidth = width.Value;
-                    if (subclip.Rotation == 90 || subclip.Rotation == 270)
-                    {
-                        int temp = realHeight;
-                        realHeight = realWidth;
-                        realWidth = temp;
-                    }
-                    presetJson += ", 'output': {'output_width': " + realWidth + ", 'output_height': " + realHeight + "}";
-                }
-
-                presetJson += "}";
-
-                // Add the complete preset argument
-                args.Add($"--preset \"{presetJson}\"");
+                trimInfo = "'trim_ranges_ms': [[" + startTimeMs + ", " + endTimeMs + "]],";
             }
+
+            var metaData = VideoMetadataReader.ReadMetadata(subclip.VideoFile);
+            var height = metaData?.Height;
+            var width = metaData?.Width;
+
+            string rotationInfo = " 'video_info': {'rotation': " + subclip.Rotation + "}";
+
+            // Build the preset JSON with single backslash escaping
+            string presetJson = "{'version': 2, " + trimInfo + rotationInfo;
+
+            // If height and width are available, add output dimensions
+            if (height.HasValue && width.HasValue)
+            {
+                int realHeight = height.Value;
+                int realWidth = width.Value;
+                if (subclip.Rotation == 90 || subclip.Rotation == 270)
+                {
+                    int temp = realHeight;
+                    realHeight = realWidth;
+                    realWidth = temp;
+                }
+                presetJson += ", 'output': {'output_width': " + realWidth + ", 'output_height': " + realHeight + "}";
+            }
+
+            presetJson += "}";
+
+            // Add the complete preset argument
+            args.Add($"--preset \"{presetJson}\"");
+
 
             //Suffix
             string outputFileName = Path.GetFileName(outputFile);
@@ -311,7 +311,7 @@ namespace ClipCull.Core.Gyroflow
                 {
                     Logger.LogWarning("The issue seems to be related to audio encoding, try switching to a different codec in the settings or disable audio.");
                 }
-                if(File.Exists(outputFile))
+                if (File.Exists(outputFile))
                 {
                     Logger.LogDebug("File created anyways, not throwing an exception");
                     return;

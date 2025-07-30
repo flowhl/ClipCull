@@ -364,6 +364,7 @@ namespace ClipCull.Controls
         {
             if (IsReadOnly || tag == null) return;
 
+
             if (!CurrentTags.Any(t => t.Name.Equals(tag.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 CurrentTags.Add(tag);
