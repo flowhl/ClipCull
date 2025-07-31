@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace ClipCull.Core.Gyroflow
 {
@@ -83,6 +84,17 @@ namespace ClipCull.Core.Gyroflow
                 }
             }
 
+            private string _status;
+            public string Status
+            {
+                get => _status;
+                set
+                {
+                    _status = value;
+                    OnPropertyChanged(nameof(Status));
+                }
+            }
+
             public string DurationString
             {
                 get
@@ -114,7 +126,7 @@ namespace ClipCull.Core.Gyroflow
             Directory.CreateDirectory(_outputDirectory);
         }
 
-        public async Task<List<string>> ExtractSubclips(List<SubclipInfo> subclips, bool overwrite = false, int parallelRenders = 1)
+        public async Task<List<string>> ExtractSubclips(List<SubclipInfo> subclips, Action<string> progressCallback, bool overwrite = false, int parallelRenders = 1)
         {
             if (string.IsNullOrEmpty(_gyroflowExePath) || !File.Exists(_gyroflowExePath))
             {
@@ -127,7 +139,7 @@ namespace ClipCull.Core.Gyroflow
             {
                 try
                 {
-                    string outputFile = await ExtractSubclip(subclip, overwrite, parallelRenders);
+                    string outputFile = await ExtractSubclip(subclip, overwrite, parallelRenders, progressCallback);
                     outputFiles.Add(outputFile);
                 }
                 catch (Exception ex)
@@ -138,7 +150,7 @@ namespace ClipCull.Core.Gyroflow
             return outputFiles;
         }
 
-        public async Task<string> ExtractSubclip(SubclipInfo subclip, bool overwrite, int parallelRenders)
+        public async Task<string> ExtractSubclip(SubclipInfo subclip, bool overwrite, int parallelRenders, Action<string> progressCallback)
         {
             if (string.IsNullOrEmpty(_gyroflowExePath) || !File.Exists(_gyroflowExePath))
             {
@@ -161,7 +173,7 @@ namespace ClipCull.Core.Gyroflow
             args = args.Replace("\\", "/");
 
             // Run Gyroflow CLI
-            await RunGyroflowCli(args, outputFile);
+            await RunGyroflowCli(args, outputFile, progressCallback);
             return outputFile;
         }
 
@@ -257,13 +269,11 @@ namespace ClipCull.Core.Gyroflow
             return string.Join(" ", args);
         }
 
-        private async Task RunGyroflowCli(string arguments, string outputFile)
+        private async Task RunGyroflowCli(string arguments, string outputFile, Action<string> progressCallback)
         {
             Trace.WriteLine($"Running: {_gyroflowExePath} {arguments}");
-
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
-
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = _gyroflowExePath,
@@ -277,6 +287,15 @@ namespace ClipCull.Core.Gyroflow
 
             using var process = new Process { StartInfo = processStartInfo };
 
+            // Handle error data (keep this as events work fine for stderr)
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                {
+                    stdErrBuffer.AppendLine(e.Data);
+                    Trace.WriteLine($"Error: {e.Data}");
+                }
+            };
             // Handle output data
             process.OutputDataReceived += (sender, e) =>
             {
@@ -287,21 +306,35 @@ namespace ClipCull.Core.Gyroflow
                 }
             };
 
-            // Handle error data
-            process.ErrorDataReceived += (sender, e) =>
-            {
-                if (e.Data != null)
-                {
-                    stdErrBuffer.AppendLine(e.Data);
-                    Trace.WriteLine($"Error: {e.Data}");
-                }
-            };
-
             process.Start();
-            process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            //process.BeginOutputReadLine();
+
+            //Track progress bar
+            var buffer = new char[1024];
+            using var reader = process.StandardOutput;
+
+            var progressTrackingTask = Task.Run(async () =>
+            {
+                while (!process.HasExited)
+                {
+                    var charsRead = await reader.ReadAsync(buffer, 0, buffer.Length);
+                    if (charsRead > 0)
+                    {
+                        var output = new string(buffer, 0, charsRead);
+
+                        string progressInfo = ParseProgress(output);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            progressCallback(progressInfo);
+                        });
+                    }
+                    await Task.Delay(100);
+                }
+            });
 
             await process.WaitForExitAsync();
+            await progressTrackingTask;
 
             if (process.ExitCode != 0 || stdErrBuffer.ToString().Trim().Length > 0)
             {
@@ -318,6 +351,38 @@ namespace ClipCull.Core.Gyroflow
                 }
                 throw new Exception(msg);
             }
+        }
+
+        private string ParseProgress(string output)
+        {
+            if (string.IsNullOrEmpty(output))
+                return null;
+
+            // Split by lines and carriage returns to handle progress bar updates
+            var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                // Look for lines that contain progress indicators
+                if (line.Contains("Elapsed:") && line.Contains("/") && line.Contains("ETA"))
+                {
+                    // Use regex to extract the three parts we want
+                    var match = Regex.Match(line,
+                        @"Elapsed:\s*(\d{2}:\d{2}:\d{2}).*?(\d+/\d+)\s+ETA\s*([0-9.]+s)",
+                        RegexOptions.IgnoreCase);
+
+                    if (match.Success)
+                    {
+                        var elapsed = match.Groups[1].Value;
+                        var progress = match.Groups[2].Value;
+                        var eta = match.Groups[3].Value;
+
+                        return $"Elapsed: {elapsed} {progress} ETA {eta}";
+                    }
+                }
+            }
+
+            return null;
         }
 
         private string GetGyroflowInstallationPath()

@@ -71,7 +71,12 @@ namespace ClipCull.Core.Gyroflow
                     {
                         item.Rendered = false;
                         item.Rendering = true;
-                        string output = await _renderer.ExtractSubclip(item, overwrite, 1);
+                        string output = await _renderer.ExtractSubclip(item, overwrite, 1,
+                            progressCallback: (x =>
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                { item.Status = x; });
+                            }));
                         item.Rendering = false;
                         item.Rendered = true;
                         // Remove completed item from queue (on UI thread)
@@ -82,6 +87,7 @@ namespace ClipCull.Core.Gyroflow
                     {
                         item.Rendering = false;
                         item.Rendered = false;
+                        item.Status = null;
                         Logger.LogError($"Failed to render subclip: {item.VideoFile} from {item.StartTime} to {item.EndTime}. Error: {ex.Message}", "GyroFlow Render Queue");
                     }
                 }

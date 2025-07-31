@@ -116,6 +116,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -167,6 +168,11 @@
                                            Visibility="{Binding Rendered, Converter={StaticResource BoolToVisibilityConverter}}"
                                            Foreground="Green"
                                            Text="Rendered"/>
+                                
+                                <!--Status-->
+                                <TextBlock Grid.Row="5" Grid.Column="0"
+                                           Style="{StaticResource InfoTextStyle}"
+                                           Text="{Binding Status, Mode=OneWay}"/>
                             </Grid>
                         </Border>
                     </DataTemplate>
