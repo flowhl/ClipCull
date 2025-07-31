@@ -282,7 +282,10 @@ namespace ClipCull.Core.Gyroflow
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Hidden,
+
+                // Force non-TTY behavior
+                Environment = { ["TERM"] = "dumb" }
             };
 
             using var process = new Process { StartInfo = processStartInfo };
@@ -308,33 +311,33 @@ namespace ClipCull.Core.Gyroflow
 
             process.Start();
             process.BeginErrorReadLine();
-            //process.BeginOutputReadLine();
+            process.BeginOutputReadLine();
 
             //Track progress bar
-            var buffer = new char[1024];
-            using var reader = process.StandardOutput;
+            //var buffer = new char[1024];
+            //using var reader = process.StandardOutput;
 
-            var progressTrackingTask = Task.Run(async () =>
-            {
-                while (!process.HasExited)
-                {
-                    var charsRead = await reader.ReadAsync(buffer, 0, buffer.Length);
-                    if (charsRead > 0)
-                    {
-                        var output = new string(buffer, 0, charsRead);
+            //var progressTrackingTask = Task.Run(async () =>
+            //{
+            //    while (!process.HasExited)
+            //    {
+            //        var charsRead = await reader.ReadAsync(buffer, 0, buffer.Length);
+            //        if (charsRead > 0)
+            //        {
+            //            var output = new string(buffer, 0, charsRead);
 
-                        string progressInfo = ParseProgress(output);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            progressCallback(progressInfo);
-                        });
-                    }
-                    await Task.Delay(100);
-                }
-            });
+            //            string progressInfo = ParseProgress(output);
+            //            Application.Current.Dispatcher.Invoke(() =>
+            //            {
+            //                progressCallback(progressInfo);
+            //            });
+            //        }
+            //        await Task.Delay(100);
+            //    }
+            //});
 
             await process.WaitForExitAsync();
-            await progressTrackingTask;
+            //await progressTrackingTask;
 
             if (process.ExitCode != 0 || stdErrBuffer.ToString().Trim().Length > 0)
             {
