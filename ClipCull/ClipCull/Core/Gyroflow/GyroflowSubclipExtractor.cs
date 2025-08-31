@@ -258,6 +258,8 @@ namespace ClipCull.Core.Gyroflow
             // Add the complete preset argument
             args.Add($"--preset \"{presetJson}\"");
 
+            //Print progress to stdout for parsing
+            args.Add($"--stdout-progress");
 
             //Suffix
             string outputFileName = Path.GetFileName(outputFile);
@@ -304,6 +306,7 @@ namespace ClipCull.Core.Gyroflow
             {
                 if (e.Data != null)
                 {
+                    progressCallback(e.Data);
                     stdOutBuffer.AppendLine(e.Data);
                     Trace.WriteLine($"Output: {e.Data}");
                 }

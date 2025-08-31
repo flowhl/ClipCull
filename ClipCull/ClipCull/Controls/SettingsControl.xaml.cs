@@ -77,6 +77,7 @@ namespace ClipCull.Controls
         {
             //Auto discover Gyroflow executable path
             SettingsHandler.Settings.GyroflowPath = null;
+            TxCurrentGyroflowPath.Text = null;
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
             Logger.LogInfo("Gyroflow path will be discovered automatically when needed.");
         }
@@ -95,6 +96,16 @@ namespace ClipCull.Controls
             SettingsHandler.Settings.GyroflowSettingsPath = null;
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
             Logger.LogInfo("Gyroflow settings path reset to default.");
+        }
+
+        private void BtnResetLayout_Click(object sender, RoutedEventArgs e)
+        {
+            var msg = MessageBox.Show("Are you sure you want to reset the layout? This will close the application. This will reset the positions and sizes of all windows to their default values.", "Reset Layout", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (msg == MessageBoxResult.Yes)
+            {
+                LayoutManager.DeleteLayoutFile();
+                Logger.LogSuccess("Layout reset to default. Please restart the application to apply changes.");
+            }
         }
     }
 }

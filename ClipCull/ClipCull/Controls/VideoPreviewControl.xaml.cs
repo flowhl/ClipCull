@@ -287,6 +287,8 @@ namespace ClipCull.Controls
                         MediaPlayer.Volume = prevVolume; // Restore volume
 
                         VideoLoaded?.Invoke(this, new VideoLoadedEventArgs(filePath, _media.Duration));
+                        if (_positionTimer == null)
+                            InitializeTimer();
                         _positionTimer.Start();
                     });
                 });
@@ -339,7 +341,7 @@ namespace ClipCull.Controls
         #region Private Methods
         private void StopVideo()
         {
-            _positionTimer.Stop();
+            _positionTimer?.Stop();
             MediaPlayer?.Stop();
             VideoControls.timelineControl.CurrentTime = 0;
         }

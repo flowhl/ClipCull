@@ -281,6 +281,16 @@ namespace ClipCull.Core
             var settings = LoadSettings();
             return settings.DockLayouts?.Keys.ToList() ?? new List<string>();
         }
+
+        public static void DeleteLayoutFile()
+        {
+            if (File.Exists(SettingsPath))
+            {
+                File.Delete(SettingsPath);
+                MessageBox.Show("Layout file deleted. The application will close.", "Layout Deleted", MessageBoxButton.OK, MessageBoxImage.Information);
+                Application.Current.Shutdown();
+            }
+        }
     }
 
     /// <summary>

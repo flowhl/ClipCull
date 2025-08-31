@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ClipCull.Core.Gyroflow
 {
@@ -14,7 +15,23 @@ namespace ClipCull.Core.Gyroflow
     {
         public static string GetGyroflowInstallationPath()
         {
-            string dir = GetGyroflowInstallationDir();
+            string dir = null;
+            try
+            {
+                dir = GetGyroflowInstallationDir();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show($"The programm does not have permission to access the Gyroflow installation directory. Please run ClipCull as administator to fix the issue or move the gyroflow installation to another folder. {ex.Message}", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.LogError($"Access to Gyroflow installation directory denied: {ex.Message}", "Gyroflow installation error");
+            }
+
+            if (dir == null)
+            {
+                Trace.WriteLine("GyroflowHelper: Gyroflow installation directory is null, returning null.");
+                return null;
+            }
+
             Trace.WriteLine($"GyroflowHelper: Gyroflow installation directory: {dir}");
             if (!Directory.Exists(dir))
             {
@@ -47,83 +64,157 @@ namespace ClipCull.Core.Gyroflow
         /// <returns></returns>
         public static string GetGyroflowInstallationDir()
         {
-            string userProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            if (!Directory.Exists(userProgramFiles))
+            // First try to find via PowerShell (bypasses WindowsApps permissions)
+            string gyroflowDir = FindGyroflowViaAppxPackage();
+            if (gyroflowDir != null)
             {
-                Trace.WriteLine("GyroflowHelper: Program Files directory does not exist, trying Program Files (x86).");
-                userProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                Trace.WriteLine($"GyroflowHelper: Found Gyroflow via AppxPackage at {gyroflowDir}.");
+                return gyroflowDir;
             }
-            if (!Directory.Exists(userProgramFiles))
-            {
-                Trace.WriteLine("GyroflowHelper: Program Files (x86) directory does not exist.");
-                return null;
-            }
-            string windowsApps = Path.Combine(userProgramFiles, "WindowsApps");
-            if (!Directory.Exists(windowsApps))
-            {
-                Trace.WriteLine("GyroflowHelper: WindowsApps directory does not exist.");
-                return null;
-            }
-            var directories = Directory.GetDirectories(windowsApps, "*Gyroflow*", SearchOption.TopDirectoryOnly);
-            if (directories.Length == 0)
-            {
-                Trace.WriteLine("GyroflowHelper: No Gyroflow installation found in WindowsApps.");
-                return null;
-            }
-            if (directories.Length > 1)
-            {
-                Trace.WriteLine("GyroflowHelper: Multiple Gyroflow installations found, using the first one.");
-                var versions = directories
-                    .Where(d => d.IsNotNullOrEmpty())
-                    .Select(d => new DirectoryInfo(d))
-                    .OrderByDescending(d => d.Name)
-                    .Select(d => d.FullName);
 
-                foreach (var version in versions)
-                {
-                    string[] gyroflowPaths = {
-                        Path.Combine(version, "gyroflow.exe"),
-                        Path.Combine(version, "Gyroflow.exe"),
-                        Path.Combine(version, "GyroFlow.exe")
-                    };
-                    if (gyroflowPaths.Any(File.Exists))
-                    {
-                        Trace.WriteLine($"GyroflowHelper: Found Gyroflow executable at {version}.");
-                        return version;
-                    }
-                }
-            }
-            var firstDirectory = directories.FirstOrDefault();
-            if (firstDirectory != null)
-            {
-                Trace.WriteLine($"GyroflowHelper: Using Gyroflow installation at {firstDirectory}.");
-                return firstDirectory;
-            }
-            Trace.WriteLine("GyroflowHelper: No valid Gyroflow installation found.");
-
+            // Try environment variable
             string gyroflowPath = Environment.GetEnvironmentVariable("GYROFLOW_PATH");
-            if (gyroflowPath.IsNotNullOrEmpty())
+            if (!string.IsNullOrEmpty(gyroflowPath) && Directory.Exists(gyroflowPath))
             {
                 Trace.WriteLine($"GyroflowHelper: Using Gyroflow installation from environment variable GYROFLOW_PATH: {gyroflowPath}.");
                 return gyroflowPath;
             }
-            //try "where gyroflow" in cli using cliwrap
-            var stdOutBuffer = new StringBuilder();
-            CliWrap.Cli.Wrap("where")
-                .WithArguments("gyroflow")
-                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-                .ExecuteAsync()
-                .GetAwaiter()
-                .GetResult();
-            if (stdOutBuffer.Length > 0)
+
+            // Try "where gyroflow" in CLI
+            gyroflowDir = FindGyroflowViaWhereCommand();
+            if (gyroflowDir != null)
             {
-                string path = stdOutBuffer.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                if (File.Exists(path))
+                Trace.WriteLine($"GyroflowHelper: Found Gyroflow via CLI at {gyroflowDir}.");
+                return gyroflowDir;
+            }
+
+            // Try PowerShell directory search as last resort
+            gyroflowDir = FindGyroflowViaPowerShellSearch();
+            if (gyroflowDir != null)
+            {
+                Trace.WriteLine($"GyroflowHelper: Found Gyroflow via PowerShell search at {gyroflowDir}.");
+                return gyroflowDir;
+            }
+
+            Trace.WriteLine("GyroflowHelper: No valid Gyroflow installation found.");
+            return null;
+        }
+
+        private static string FindGyroflowViaAppxPackage()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
                 {
-                    Trace.WriteLine($"GyroflowHelper: Using Gyroflow installation from CLI: {path}.");
-                    return Path.GetDirectoryName(path);
+                    FileName = "powershell.exe",
+                    Arguments = "-Command \"Get-AppxPackage | Where-Object {$_.Name -like '*Gyroflow*'} | Select-Object -First 1 -ExpandProperty InstallLocation\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    string output = process.StandardOutput.ReadToEnd().Trim();
+                    process.WaitForExit();
+
+                    if (!string.IsNullOrEmpty(output) && Directory.Exists(output))
+                    {
+                        // Verify the executable exists
+                        string[] possibleExes = {
+                    Path.Combine(output, "gyroflow.exe"),
+                    Path.Combine(output, "Gyroflow.exe"),
+                    Path.Combine(output, "GyroFlow.exe")
+                };
+
+                        if (possibleExes.Any(File.Exists))
+                        {
+                            return output;
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"GyroflowHelper: Error finding Gyroflow via AppxPackage: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private static string FindGyroflowViaWhereCommand()
+        {
+            try
+            {
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
+
+                var result = CliWrap.Cli.Wrap("where")
+                    .WithArguments("gyroflow")
+                    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+                    .ExecuteAsync()
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (result.ExitCode == 0 && stdOutBuffer.Length > 0)
+                {
+                    string path = stdOutBuffer.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+                        return Path.GetDirectoryName(path);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"GyroflowHelper: Error finding Gyroflow via WHERE command: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private static string FindGyroflowViaPowerShellSearch()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-Command \"Get-ChildItem 'C:\\Program Files\\WindowsApps' -Directory -ErrorAction SilentlyContinue | Where-Object {$_.Name -like '*Gyroflow*'} | Select-Object -First 1 -ExpandProperty FullName\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    string output = process.StandardOutput.ReadToEnd().Trim();
+                    process.WaitForExit();
+
+                    if (!string.IsNullOrEmpty(output) && Directory.Exists(output))
+                    {
+                        // Verify the executable exists
+                        string[] possibleExes = {
+                    Path.Combine(output, "gyroflow.exe"),
+                    Path.Combine(output, "Gyroflow.exe"),
+                    Path.Combine(output, "GyroFlow.exe")
+                };
+
+                        if (possibleExes.Any(File.Exists))
+                        {
+                            return output;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"GyroflowHelper: Error finding Gyroflow via PowerShell search: {ex.Message}");
+            }
+
             return null;
         }
     }

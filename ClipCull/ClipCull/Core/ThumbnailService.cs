@@ -12,11 +12,26 @@ namespace ClipCull.Core
     {
         public static string GetThumbnail(string videoFilePath)
         {
-            string thumbnailPath = System.IO.Path.ChangeExtension(videoFilePath, ".png");
             if (string.IsNullOrEmpty(videoFilePath) || !System.IO.File.Exists(videoFilePath))
             {
                 throw new ArgumentException("Invalid video file path provided.");
             }
+
+            //add .thumbnail folder to the path
+            string thumbnailDir = Path.GetDirectoryName(videoFilePath);
+            thumbnailDir = Path.Combine(thumbnailDir, ".thumbnails");
+
+            //create the folder as hidden
+            if (!Directory.Exists(thumbnailDir))
+            {
+                Directory.CreateDirectory(thumbnailDir);
+                DirectoryInfo di = new DirectoryInfo(thumbnailDir);
+                di.Attributes |= FileAttributes.Hidden;
+            }
+
+            string fileName = Path.GetFileNameWithoutExtension(videoFilePath);
+            string thumbnailPath = Path.Combine(thumbnailDir, fileName + ".png");
+
             // Use FFmpeg to generate a thumbnail from the video
             if (File.Exists(thumbnailPath))
             {
