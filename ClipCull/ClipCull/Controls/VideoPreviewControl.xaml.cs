@@ -304,10 +304,17 @@ namespace ClipCull.Controls
 
         public void Play()
         {
-            if (MediaPlayer?.Media != null)
+            if (MediaPlayer == null || MediaPlayer.Media == null)
             {
-                MediaPlayer.Play();
+                return;
             }
+
+            if (MediaPlayer.State == VLCState.Ended)
+            {
+                LoadVideo(CurrentVideoPath);
+            }
+
+            MediaPlayer.Play();
         }
 
         public void Pause()
@@ -407,6 +414,11 @@ namespace ClipCull.Controls
             Dispatcher.Invoke(() =>
             {
                 VideoControls.PlayPauseIcon.Kind = PackIconKind.Play;
+
+                //Reset playhead position
+                VideoControls.timelineControl.CurrentTime = 0;
+                MediaPlayer.Position = 0;
+
                 PlaybackStateChanged?.Invoke(this, new PlaybackStateChangedEventArgs(false));
             });
         }
