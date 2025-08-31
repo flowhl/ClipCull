@@ -638,24 +638,16 @@ namespace ClipCull.Controls
 
             try
             {
-                // Create and show the SubClip edit dialog
-                var dialog = new SubClipEditDialog(subclip, 0)
+                // Create and show the SubClip edit dialog, deletion disabled
+                var dialog = new SubClipEditDialog(subclip, 0, allowDelete: false)
                 {
                     Owner = Window.GetWindow(this)
                 };
 
                 if (dialog.ShowDialog() == true)
                 {
-                    if (dialog.DeleteRequested)
-                    {
-                        // Handle deletion
-                        RemoveSubclipFromSidecar(subclip);
-                    }
-                    else
-                    {
-                        // SubClip object was modified in the dialog, now save to sidecar
-                        SaveSubclipChangesToSidecar(subclip);
-                    }
+                    // SubClip object was modified in the dialog, now save to sidecar
+                    SaveSubclipChangesToSidecar(subclip);
 
                     // Refresh the clips display to show the changes
                     _ = RefreshClipsAsync();
@@ -815,7 +807,7 @@ namespace ClipCull.Controls
 
                 //gyroflow rotates differently, 90° = 270, 180° = 180, 270° = 90, 0° = 0
                 int translatedRotation = 0;
-                if(SettingsHandler.Settings.GyroflowRenderWithRotation)
+                if (SettingsHandler.Settings.GyroflowRenderWithRotation)
                 {
                     switch (clip.UserMetadata.Rotation)
                     {

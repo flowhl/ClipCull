@@ -23,11 +23,15 @@ namespace ClipCull.Controls
     {
         public SubClip SubClip { get; private set; }
         public bool DeleteRequested { get; private set; }
+        public bool AllowDelete { get; private set; }
 
-        public SubClipEditDialog(SubClip subClip, long currentVideoTime = 0)
+        public SubClipEditDialog(SubClip subClip, long currentVideoTime = 0, bool allowDelete = false)
         {
             InitializeComponent();
             SubClip = subClip;
+            AllowDelete = allowDelete;
+
+            DeleteButton.Visibility = AllowDelete ? Visibility.Visible : Visibility.Collapsed;
 
             // Initialize UI with subclip data
             TitleTextBox.Text = subClip.Title;
@@ -62,6 +66,9 @@ namespace ClipCull.Controls
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!AllowDelete)
+                return;
+
             var result = MessageBox.Show(
                 $"Are you sure you want to delete the subclip '{SubClip.Title}'?",
                 "Delete SubClip",

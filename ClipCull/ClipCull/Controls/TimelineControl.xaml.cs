@@ -305,14 +305,14 @@ namespace ClipCull.Controls
         {
             if (Readonly)
                 return;
-            var dialog = new SubClipEditDialog(subClip, CurrentTime)
+            var dialog = new SubClipEditDialog(subClip, CurrentTime, allowDelete: true)
             {
                 Owner = Window.GetWindow(this)
             };
 
             if (dialog.ShowDialog() == true)
             {
-                if (dialog.DeleteRequested)
+                if (dialog.DeleteRequested && dialog.AllowDelete)
                 {
                     RemoveSubClip(subClip);
                 }
