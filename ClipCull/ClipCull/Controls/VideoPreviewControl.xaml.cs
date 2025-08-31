@@ -78,9 +78,12 @@ namespace ClipCull.Controls
                 {
                     _rotation = value;
                     OnPropertyChanged(nameof(Rotation));
+
+                    var playheadPosition = MediaPlayer?.Position ?? 0;
+
                     DisposeVLC();
                     InitializeVLC(_rotation);
-                    LoadVideo(CurrentVideoPath); // Reload video with new rotation
+                    LoadVideo(CurrentVideoPath, playheadPosition); // Reload video with new rotation
 
                     if (UserMetadata != null)
                         UserMetadata.Rotation = _rotation;
@@ -235,7 +238,7 @@ namespace ClipCull.Controls
         #endregion
 
         #region Public Methods
-        public void LoadVideo(string filePath)
+        public void LoadVideo(string filePath, float playheadPositionMs = 0)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
@@ -283,7 +286,7 @@ namespace ClipCull.Controls
                         MediaPlayer.Play();
                         Task.Delay(100).Wait();
                         MediaPlayer.Pause();
-                        MediaPlayer.Position = 0;
+                        MediaPlayer.Position = playheadPositionMs;
                         MediaPlayer.Volume = prevVolume; // Restore volume
 
                         VideoLoaded?.Invoke(this, new VideoLoadedEventArgs(filePath, _media.Duration));
