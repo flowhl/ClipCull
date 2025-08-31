@@ -472,7 +472,7 @@ namespace ClipCull.Controls
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
                 var currentTime = MediaPlayer.Time;
-                var newTime = Math.Max(0, currentTime - 10000); // 10 seconds = 10000ms
+                var newTime = Math.Max(0, currentTime - (1000 * SettingsHandler.Settings.SkipSeconds));
                 MediaPlayer.Time = newTime;
             }
         }
@@ -482,7 +482,7 @@ namespace ClipCull.Controls
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
                 var currentTime = MediaPlayer.Time;
-                var newTime = Math.Min(MediaPlayer.Length, currentTime + 10000); // 10 seconds = 10000ms
+                var newTime = Math.Min(MediaPlayer.Length, currentTime + (1000 * SettingsHandler.Settings.SkipSeconds));
                 MediaPlayer.Time = newTime;
             }
         }

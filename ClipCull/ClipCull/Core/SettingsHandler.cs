@@ -34,10 +34,16 @@ namespace ClipCull.Core
             {
                 Settings.Tags = new List<Tag>();
             }
+
+            // Ensure SkipSeconds is not 0
+            Settings.SkipSeconds = Settings.SkipSeconds <= 0 ? 5 : Settings.SkipSeconds;
         }
 
         public static void Save()
         {
+            // Ensure SkipSeconds is not 0
+            Settings.SkipSeconds = Settings.SkipSeconds <= 0 ? 5 : Settings.SkipSeconds;
+
             Globals.SerializeToFile<SettingsModel>(Settings, SettingsFile);
         }
         private static void Create()

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,7 +37,6 @@ namespace ClipCull.Controls
             DataContext = SettingsHandler.Settings;
             TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
-
 
             //Tags
             var tagCollection = new ObservableCollection<EditableTag>();
@@ -77,7 +77,7 @@ namespace ClipCull.Controls
         {
             //Auto discover Gyroflow executable path
             SettingsHandler.Settings.GyroflowPath = null;
-            TxCurrentGyroflowPath.Text = null;
+            TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
             Logger.LogInfo("Gyroflow path will be discovered automatically when needed.");
         }
@@ -106,6 +106,12 @@ namespace ClipCull.Controls
                 LayoutManager.DeleteLayoutFile();
                 Logger.LogSuccess("Layout reset to default. Please restart the application to apply changes.");
             }
+        }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace ClipCull.Models
         //Filtering
         public bool FilterMustMatchAllTags { get; set; }
 
+        public int SkipSeconds { get; set; }
 
         /// <summary>
         /// Path to the Gyroflow executable.

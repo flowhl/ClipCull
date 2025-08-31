@@ -41,6 +41,11 @@
                                     <Button Name="BtnResetLayout" Content="Reset" Margin="5,0,0,0" Style="{StaticResource primary-sm}" Click="BtnResetLayout_Click"/>
                                 </StackPanel>
 
+                                <!--Skip seconds-->
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Skip duration (seconds)</TextBlock>
+                                    <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSkipSeconds" Text="{Binding Path=SkipSeconds}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
+                                </StackPanel>
 
                             </StackPanel>
                         </Border>
