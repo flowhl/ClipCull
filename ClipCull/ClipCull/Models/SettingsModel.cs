@@ -21,6 +21,7 @@ namespace ClipCull.Models
         public bool FilterMustMatchAllTags { get; set; }
 
         public int SkipSeconds { get; set; }
+        public int VolumeInPercent { get; set; } = 20;
 
         /// <summary>
         /// Path to the Gyroflow executable.

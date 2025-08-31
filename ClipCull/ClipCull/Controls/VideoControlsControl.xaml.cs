@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClipCull.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,12 @@ namespace ClipCull.Controls
         public VideoControlsControl()
         {
             InitializeComponent();
+            Loaded += VideoControlsControl_Loaded;
+        }
+
+        private void VideoControlsControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            VolumeSlider.Value = SettingsHandler.Settings?.VolumeInPercent ?? 20;
         }
 
         private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
@@ -47,6 +54,8 @@ namespace ClipCull.Controls
 
         private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            SettingsHandler.Settings.VolumeInPercent = (int)e.NewValue;
+            SettingsHandler.Save();
             VideoPreview?.VolumeSlider_ValueChanged(sender, e);
         }
 

@@ -124,7 +124,7 @@
                             <Slider x:Name="VolumeSlider" 
                        Minimum="0" 
                        Maximum="200" 
-                       Value="100"
+                       Value="0"
                        Width="80"
                        VerticalAlignment="Center"
                        ValueChanged="VolumeSlider_ValueChanged"/>
