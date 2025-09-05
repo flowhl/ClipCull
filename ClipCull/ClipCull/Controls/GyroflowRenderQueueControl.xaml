@@ -103,6 +103,7 @@
         <ScrollViewer Grid.Row="2" 
                       VerticalScrollBarVisibility="Auto" 
                       HorizontalScrollBarVisibility="Disabled"
+                      Name="SvQueueItems"
                       Padding="16">
             <ItemsControl x:Name="QueueItemsControl" 
                          ItemsSource="{x:Static gyroflow:GyroFlowRenderQueue.Subclips}">

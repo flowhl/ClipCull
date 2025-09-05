@@ -829,6 +829,7 @@ namespace ClipCull.Controls
                 // output path with clean windows file
                 string fileOutputName = $"{clip.ClipTitle}_{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}_stabilized.mp4";
                 fileOutputName = fileOutputName.ToValidWindowsFileName();
+                fileOutputName = fileOutputName.ToUrlSafeFilename(); // Further clean to be URL safe as gyroflow does not like url encoded chars
 
                 var subclipInfo = new SubclipInfo()
                 {

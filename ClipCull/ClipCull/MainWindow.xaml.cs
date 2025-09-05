@@ -185,6 +185,9 @@ public partial class MainWindow : Window
     {
         var selectedClip = VideoClipBrowser.SelectedClip;
 
+        if (selectedClip == null)
+            return;
+
         var seekTo = TimeSpan.FromMilliseconds(selectedClip.StartTimeMs);
         ClipPreview.SeekTo(seekTo);
         ClipPreview.VideoControls.timelineControl.SubClips.Clear();

@@ -231,5 +231,167 @@ namespace ClipCull.Extensions
 
             return withoutSpecialChars;
         }
+
+        /// <summary>
+        /// Sanitizes a filename to prevent URL encoding by Gyroflow and other systems.
+        /// Removes or replaces characters that would typically be URL encoded.
+        /// </summary>
+        /// <param name="filename">The original filename</param>
+        /// <param name="replacement">Character to replace problematic characters with (default: '_')</param>
+        /// <returns>A sanitized filename safe from URL encoding</returns>
+        public static string ToUrlSafeFilename(this string filename, char replacement = '_')
+        {
+            if (string.IsNullOrEmpty(filename))
+                return filename;
+
+            var sanitized = filename;
+
+            // Characters that get URL encoded and should be replaced
+            var urlEncodedChars = new char[]
+            {
+                // Space and special characters
+                ' ',    // %20
+                '+',    // %2B  
+                '%',    // %25
+                '&',    // %26
+                '=',    // %3D
+                '?',    // %3F
+                '#',    // %23
+                '@',    // %40
+                '!',    // %21
+                '$',    // %24
+                '\'',   // %27
+                '(',    // %28
+                ')',    // %29
+                '*',    // %2A
+                ',',    // %2C
+                ';',    // %3B
+                '[',    // %5B
+                ']',    // %5D
+                '{',    // %7B
+                '}',    // %7D
+                '|',    // %7C
+                '\\',   // %5C
+                '^',    // %5E
+                '~',    // %7E
+                '`',    // %60
+                '"',    // %22
+                '<',    // %3C
+                '>',    // %3E
+            };
+
+            // Replace problematic characters
+            foreach (var c in urlEncodedChars)
+            {
+                sanitized = sanitized.Replace(c, replacement);
+            }
+
+            // Also handle Windows invalid filename characters
+            var invalidChars = Path.GetInvalidFileNameChars();
+            foreach (var c in invalidChars)
+            {
+                sanitized = sanitized.Replace(c, replacement);
+            }
+
+            // Remove diacritics/accents that might cause encoding issues
+            sanitized = sanitized.RemoveDiacritics();
+
+            // Handle consecutive replacement characters
+            while (sanitized.Contains(new string(replacement, 2)))
+            {
+                sanitized = sanitized.Replace(new string(replacement, 2), replacement.ToString());
+            }
+
+            // Remove leading/trailing replacement characters and dots
+            sanitized = sanitized.Trim(replacement, '.', ' ');
+
+            // Handle reserved Windows names
+            var reservedNames = new string[]
+            {
+                "CON", "PRN", "AUX", "NUL",
+                "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+            };
+
+            var nameWithoutExt = Path.GetFileNameWithoutExtension(sanitized);
+            var extension = Path.GetExtension(sanitized);
+
+            if (reservedNames.Contains(nameWithoutExt.ToUpperInvariant()))
+            {
+                sanitized = $"_{nameWithoutExt}{extension}";
+            }
+
+            // Ensure filename is not empty
+            if (string.IsNullOrEmpty(sanitized) || sanitized == extension)
+            {
+                sanitized = $"sanitized_file{extension}";
+            }
+
+            // Limit length to reasonable size (Windows has 255 char limit)
+            if (sanitized.Length > 200)
+            {
+                var ext = Path.GetExtension(sanitized);
+                var nameOnly = Path.GetFileNameWithoutExtension(sanitized);
+                sanitized = nameOnly.Substring(0, 200 - ext.Length) + ext;
+            }
+
+            return sanitized;
+        }
+
+        /// <summary>
+        /// Creates a filename that only contains alphanumeric characters, hyphens, underscores, and dots.
+        /// Most conservative approach for maximum compatibility.
+        /// </summary>
+        /// <param name="filename">The original filename</param>
+        /// <returns>A filename with only safe characters</returns>
+        public static string ToAlphanumericFilename(this string filename)
+        {
+            if (string.IsNullOrEmpty(filename))
+                return filename;
+
+            var extension = Path.GetExtension(filename);
+            var nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
+
+            // Remove diacritics first
+            nameWithoutExt = nameWithoutExt.RemoveDiacritics();
+
+            // Keep only alphanumeric characters, hyphens, and underscores
+            var sanitized = Regex.Replace(nameWithoutExt, @"[^a-zA-Z0-9\-_]", "_");
+
+            // Remove consecutive underscores
+            sanitized = Regex.Replace(sanitized, @"_+", "_");
+
+            // Remove leading/trailing underscores
+            sanitized = sanitized.Trim('_');
+
+            // Ensure we have something left
+            if (string.IsNullOrEmpty(sanitized))
+            {
+                sanitized = "file";
+            }
+
+            return sanitized + extension;
+        }
+
+        /// <summary>
+        /// Validates if a filename would be URL encoded
+        /// </summary>
+        /// <param name="filename">Filename to check</param>
+        /// <returns>True if the filename contains characters that would be URL encoded</returns>
+        public static bool WouldBeUrlEncoded(this string filename)
+        {
+            if (string.IsNullOrEmpty(filename))
+                return false;
+
+            // Check for characters that typically get URL encoded
+            var urlEncodedChars = new char[]
+            {
+                ' ', '+', '%', '&', '=', '?', '#', '@', '!', '$', '\'',
+                '(', ')', '*', ',', ';', '[', ']', '{', '}', '|', '\\',
+                '^', '~', '`', '"', '<', '>'
+            };
+
+            return filename.Any(c => urlEncodedChars.Contains(c) || c > 127);
+        }
     }
 }

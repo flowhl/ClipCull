@@ -166,6 +166,13 @@ namespace ClipCull.Core.Gyroflow
             }
             var outputFile = Path.Combine(_outputDirectory, subclip.OutputName);
 
+            //if outputfile exists and overwrite is false, just skip
+            if (File.Exists(outputFile) && !overwrite)
+            {
+                Trace.WriteLine($"Output file {outputFile} already exists and overwrite is false, skipping.");
+                return outputFile;
+            }
+
             // Build Gyroflow CLI arguments
             var args = BuildGyroflowArgs(subclip, outputFile, overwrite, parallelRenders);
 
@@ -309,6 +316,12 @@ namespace ClipCull.Core.Gyroflow
                     progressCallback(e.Data);
                     stdOutBuffer.AppendLine(e.Data);
                     Trace.WriteLine($"Output: {e.Data}");
+
+                    if(e.Data.Contains("Error: file_exists:{"))
+                    {
+                        Logger.LogWarning("File already exists, but override seems disabled");
+                        throw new Exception("File already exists, skipping render");
+                    }
                 }
             };
 
