@@ -11,10 +11,10 @@ using System.Windows;
 using System.Windows.Controls;
 using ClipCull.Core;
 using ClipCull.Core.Gyroflow;
+using ClipCull.Core.Rendering;
 using ClipCull.Extensions;
 using ClipCull.Models;
 using ClipCull.Models.ClipCull.Models;
-using static ClipCull.Core.Gyroflow.GyroflowSubclipExtractor;
 
 namespace ClipCull.Controls
 {
@@ -800,49 +800,41 @@ namespace ClipCull.Controls
                 return;
             }
 
+            var settings = SettingsHandler.Settings.DefaultRenderSettings ?? new RenderSettings();
+            string extension = settings.ContainerFormat.ToString().ToLowerInvariant();
+
+            // Derive filename suffix from selected engine
+            string suffix = settings.Engine switch
+            {
+                RenderEngineType.Gyroflow => "_stabilized",
+                RenderEngineType.FFmpeg => "_trimmed",
+                RenderEngineType.AdobeMediaEncoder => "_encoded",
+                _ => "_rendered"
+            };
+
             foreach (var clip in selectedClips)
             {
                 TimeSpan startTime = TimeSpan.FromMilliseconds(clip.StartTimeMs);
                 TimeSpan endTime = TimeSpan.FromMilliseconds(clip.EndTimeMs);
 
-                //gyroflow rotates differently, 90° = 270, 180° = 180, 270° = 90, 0° = 0
-                int translatedRotation = 0;
-                if (SettingsHandler.Settings.GyroflowRenderWithRotation)
-                {
-                    switch (clip.UserMetadata.Rotation)
-                    {
-                        case 90:
-                            translatedRotation = 270;
-                            break;
-                        case 180:
-                            translatedRotation = 180;
-                            break;
-                        case 270:
-                            translatedRotation = 90;
-                            break;
-                        default:
-                            translatedRotation = 0;
-                            break;
-                    }
-                }
+                // Store actual rotation - engine-specific translation happens inside the engine
+                int rotation = clip.UserMetadata.Rotation;
 
-                // output path with clean windows file
-                string fileOutputName = $"{clip.ClipTitle}_{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}_stabilized.mp4";
+                string fileOutputName = $"{clip.ClipTitle}_{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}{suffix}.{extension}";
                 fileOutputName = fileOutputName.ToValidWindowsFileName();
-                fileOutputName = fileOutputName.ToUrlSafeFilename(); // Further clean to be URL safe as gyroflow does not like url encoded chars
+                fileOutputName = fileOutputName.ToUrlSafeFilename();
 
-                var subclipInfo = new SubclipInfo()
+                var jobInfo = new RenderJobInfo()
                 {
                     VideoFile = clip.VideoFilePath,
-                    StartTime = TimeSpan.FromMilliseconds(clip.StartTimeMs),
-                    EndTime = TimeSpan.FromMilliseconds(clip.EndTimeMs),
+                    StartTime = startTime,
+                    EndTime = endTime,
                     OutputName = fileOutputName,
-                    Rotation = translatedRotation,
+                    Rotation = rotation,
                 };
                 try
                 {
-                    // Add to render queue (assuming a method exists for this)
-                    GyroFlowRenderQueue.Enqueue(subclipInfo);
+                    RenderQueue.Enqueue(jobInfo);
                 }
                 catch (Exception ex)
                 {

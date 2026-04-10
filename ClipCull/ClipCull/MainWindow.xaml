@@ -310,7 +310,7 @@
                 </Grid>
             </TabItem>
             <TabItem Name="TabRenderqueue" Header="Render Queue">
-                <uc:GyroflowRenderQueueControl x:Name="GyroflowRenderQueueControl"/>
+                <uc:RenderQueueControl x:Name="RenderQueueControl"/>
             </TabItem>
             <TabItem Name="TabSettings" Header="Settings">
                 <uc:SettingsControl x:Name="SettingsView"/>

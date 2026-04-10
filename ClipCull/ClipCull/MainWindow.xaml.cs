@@ -50,6 +50,11 @@ public partial class MainWindow : Window
         Logger.Init();
         SettingsHandler.Initialize();
         Directory.CreateDirectory(Globals.ExternalPath);
+
+        // Register render engines
+        Core.Rendering.RenderEngineFactory.Register(new Core.Rendering.GyroflowRenderEngine());
+        Core.Rendering.RenderEngineFactory.Register(new Core.Rendering.FFmpegRenderEngine());
+        Core.Rendering.RenderEngineFactory.Register(new Core.Rendering.AdobeMediaEncoderRenderEngine());
         try
         {
 #if DEBUG

@@ -1,4 +1,5 @@
 ﻿using ClipCull.Core;
+using ClipCull.Core.Rendering;
 using ClipCull.Extensions;
 using ClipCull.Models;
 using System;
@@ -25,6 +26,8 @@ namespace ClipCull.Controls
     /// </summary>
     public partial class SettingsControl : UserControl
     {
+        private bool _isLoading;
+
         public SettingsControl()
         {
             InitializeComponent();
@@ -33,10 +36,14 @@ namespace ClipCull.Controls
 
         private void SettingsControl_Loaded(object sender, RoutedEventArgs e)
         {
+            _isLoading = true;
+
             SettingsHandler.Load();
             DataContext = SettingsHandler.Settings;
             TxCurrentGyroflowPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowPath ?? "Discoved automatically");
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
+
+            PopulateRenderSettingsControls();
 
             //Tags
             var tagCollection = new ObservableCollection<EditableTag>();
@@ -46,6 +53,155 @@ namespace ClipCull.Controls
                 Name = x.Name
             }));
             TagManagement.Tags = tagCollection;
+
+            _isLoading = false;
+        }
+
+        private void PopulateRenderSettingsControls()
+        {
+            var settings = SettingsHandler.Settings.DefaultRenderSettings ?? new RenderSettings();
+
+            // Engine
+            CbDefaultEngine.Items.Clear();
+            foreach (var engine in RenderEngineFactory.GetAllEngines())
+            {
+                var item = new ComboBoxItem { Content = engine.Name, Tag = engine.EngineType };
+                CbDefaultEngine.Items.Add(item);
+                if (engine.EngineType == settings.Engine)
+                    CbDefaultEngine.SelectedItem = item;
+            }
+
+            // Video Codec
+            CbVideoCodec.Items.Clear();
+            foreach (VideoCodec codec in Enum.GetValues(typeof(VideoCodec)))
+            {
+                var item = new ComboBoxItem { Content = codec.ToString(), Tag = codec };
+                CbVideoCodec.Items.Add(item);
+                if (codec == settings.VideoCodec)
+                    CbVideoCodec.SelectedItem = item;
+            }
+
+            // Quality Mode
+            CbQualityMode.Items.Clear();
+            foreach (QualityMode mode in Enum.GetValues(typeof(QualityMode)))
+            {
+                var item = new ComboBoxItem { Content = mode.ToString(), Tag = mode };
+                CbQualityMode.Items.Add(item);
+                if (mode == settings.QualityMode)
+                    CbQualityMode.SelectedItem = item;
+            }
+
+            // Quality value
+            TbQuality.Text = settings.Quality.ToString();
+
+            // Audio Codec
+            CbAudioCodec.Items.Clear();
+            foreach (AudioCodec codec in Enum.GetValues(typeof(AudioCodec)))
+            {
+                var item = new ComboBoxItem { Content = codec.ToString(), Tag = codec };
+                CbAudioCodec.Items.Add(item);
+                if (codec == settings.AudioCodec)
+                    CbAudioCodec.SelectedItem = item;
+            }
+
+            // Container Format
+            CbContainerFormat.Items.Clear();
+            foreach (ContainerFormat format in Enum.GetValues(typeof(ContainerFormat)))
+            {
+                var item = new ComboBoxItem { Content = format.ToString(), Tag = format };
+                CbContainerFormat.Items.Add(item);
+                if (format == settings.ContainerFormat)
+                    CbContainerFormat.SelectedItem = item;
+            }
+
+            // Hardware Acceleration
+            CbHardwareAcceleration.Items.Clear();
+            foreach (HardwareAcceleration accel in Enum.GetValues(typeof(HardwareAcceleration)))
+            {
+                var item = new ComboBoxItem { Content = accel.ToString(), Tag = accel };
+                CbHardwareAcceleration.Items.Add(item);
+                if (accel == settings.HardwareAcceleration)
+                    CbHardwareAcceleration.SelectedItem = item;
+            }
+
+            // Preset
+            CbPreset.Items.Clear();
+            string[] presets = { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow" };
+            foreach (string preset in presets)
+            {
+                var item = new ComboBoxItem { Content = preset, Tag = preset };
+                CbPreset.Items.Add(item);
+                if (preset == settings.Preset)
+                    CbPreset.SelectedItem = item;
+            }
+
+            // AME Path
+            TxCurrentAMEPath.Text = "Path: " + (SettingsHandler.Settings.AdobeMediaEncoderPath ?? "Auto-discover");
+        }
+
+        private RenderSettings EnsureRenderSettings()
+        {
+            if (SettingsHandler.Settings.DefaultRenderSettings == null)
+                SettingsHandler.Settings.DefaultRenderSettings = new RenderSettings();
+            return SettingsHandler.Settings.DefaultRenderSettings;
+        }
+
+        private void CbDefaultEngine_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbDefaultEngine.SelectedItem is ComboBoxItem item && item.Tag is RenderEngineType type)
+                EnsureRenderSettings().Engine = type;
+        }
+
+        private void CbVideoCodec_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbVideoCodec.SelectedItem is ComboBoxItem item && item.Tag is VideoCodec codec)
+                EnsureRenderSettings().VideoCodec = codec;
+        }
+
+        private void CbQualityMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbQualityMode.SelectedItem is ComboBoxItem item && item.Tag is QualityMode mode)
+                EnsureRenderSettings().QualityMode = mode;
+        }
+
+        private void CbAudioCodec_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbAudioCodec.SelectedItem is ComboBoxItem item && item.Tag is AudioCodec codec)
+                EnsureRenderSettings().AudioCodec = codec;
+        }
+
+        private void CbContainerFormat_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbContainerFormat.SelectedItem is ComboBoxItem item && item.Tag is ContainerFormat format)
+                EnsureRenderSettings().ContainerFormat = format;
+        }
+
+        private void CbHardwareAcceleration_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbHardwareAcceleration.SelectedItem is ComboBoxItem item && item.Tag is HardwareAcceleration accel)
+                EnsureRenderSettings().HardwareAcceleration = accel;
+        }
+
+        private void CbPreset_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (CbPreset.SelectedItem is ComboBoxItem item && item.Tag is string preset)
+                EnsureRenderSettings().Preset = preset;
+        }
+
+        private void BtnPickAMEExe_Click(object sender, RoutedEventArgs e)
+        {
+            string amePath = DialogHelper.ChooseFile("Select Adobe Media Encoder Executable", "Executable|*.exe");
+            if (amePath.IsNullOrEmpty())
+                return;
+            SettingsHandler.Settings.AdobeMediaEncoderPath = amePath;
+            TxCurrentAMEPath.Text = "Path: " + amePath;
         }
 
         public void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -58,6 +214,10 @@ namespace ClipCull.Controls
             }));
 
             SettingsHandler.Settings.Tags = newTags;
+
+            // Save quality value from textbox
+            if (int.TryParse(TbQuality.Text, out int quality))
+                EnsureRenderSettings().Quality = quality;
 
             SettingsHandler.Save();
             HotkeyController.SaveMappings();

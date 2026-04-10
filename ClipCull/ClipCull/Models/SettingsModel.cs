@@ -33,6 +33,10 @@ namespace ClipCull.Models
         public bool GyroflowDisableAudio { get; set; }
         public bool GyroflowUseOtherAudioCodec { get; set; }
 
+        // Render engine settings
+        public RenderSettings DefaultRenderSettings { get; set; } = new RenderSettings();
+        public string AdobeMediaEncoderPath { get; set; }
+
         public List<Tag> Tags { get; set; }
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();
     }

@@ -37,6 +37,10 @@ namespace ClipCull.Core
 
             // Ensure SkipSeconds is not 0
             Settings.SkipSeconds = Settings.SkipSeconds <= 0 ? 5 : Settings.SkipSeconds;
+
+            // Ensure render settings exist (may be null when loading old settings files)
+            if (Settings.DefaultRenderSettings == null)
+                Settings.DefaultRenderSettings = new RenderSettings();
         }
 
         public static void Save()

@@ -49,6 +49,59 @@
 
                             </StackPanel>
                         </Border>
+                        <!--Rendering-->
+                        <Border Style="{StaticResource card}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Style="{StaticResource h3}">Rendering</TextBlock>
+                                <Separator Margin="0,5,0,10"/>
+                                <!--Default Render Engine-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Default Render Engine</TextBlock>
+                                    <ComboBox Name="CbDefaultEngine" Width="200" SelectionChanged="CbDefaultEngine_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Video Codec-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Video Codec</TextBlock>
+                                    <ComboBox Name="CbVideoCodec" Width="150" SelectionChanged="CbVideoCodec_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Quality Mode-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Quality Mode</TextBlock>
+                                    <ComboBox Name="CbQualityMode" Width="150" SelectionChanged="CbQualityMode_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Quality/CRF-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="CRF value (0-51, lower = better quality). Only used in CRF mode.">Quality (CRF)</TextBlock>
+                                    <TextBox Name="TbQuality" PreviewTextInput="NumberValidationTextBox" Width="60" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                                <!--Audio Codec-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Audio Codec</TextBlock>
+                                    <ComboBox Name="CbAudioCodec" Width="150" SelectionChanged="CbAudioCodec_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Container Format-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Container Format</TextBlock>
+                                    <ComboBox Name="CbContainerFormat" Width="150" SelectionChanged="CbContainerFormat_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Hardware Acceleration-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Hardware Acceleration</TextBlock>
+                                    <ComboBox Name="CbHardwareAcceleration" Width="150" SelectionChanged="CbHardwareAcceleration_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Preset-->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="Encoding speed preset for H264/H265 (ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow)">Encoding Preset</TextBlock>
+                                    <ComboBox Name="CbPreset" Width="150" SelectionChanged="CbPreset_SelectionChanged"/>
+                                </StackPanel>
+                                <!--Adobe Media Encoder Path-->
+                                <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Adobe Media Encoder Path</TextBlock>
+                                <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentAMEPath" Style="{StaticResource muted}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Name="BtnPickAMEExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickAMEExe_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                         <!--Gyroflow-->
                         <Border Style="{StaticResource card}">
                             <StackPanel Orientation="Vertical">
