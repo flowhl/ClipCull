@@ -1,3 +1,4 @@
+using ClipCull.Core;
 using ClipCull.Models;
 using System;
 using System.Collections.Generic;

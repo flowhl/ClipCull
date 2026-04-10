@@ -818,7 +818,7 @@ namespace ClipCull.Controls
                 TimeSpan endTime = TimeSpan.FromMilliseconds(clip.EndTimeMs);
 
                 // Store actual rotation - engine-specific translation happens inside the engine
-                int rotation = clip.UserMetadata.Rotation;
+                int rotation = clip.UserMetadata?.Rotation ?? 0;
 
                 string fileOutputName = $"{clip.ClipTitle}_{Path.GetFileNameWithoutExtension(clip.VideoFileName)}_subclip_{startTime:mm\\-ss}_{endTime:mm\\-ss}{suffix}.{extension}";
                 fileOutputName = fileOutputName.ToValidWindowsFileName();
