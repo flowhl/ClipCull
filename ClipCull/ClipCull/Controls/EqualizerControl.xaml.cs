@@ -1,5 +1,8 @@
 using ClipCull.Core;
 using ClipCull.Models;
+using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -38,6 +41,7 @@ namespace ClipCull.Controls
                 BuildBandSliders();
                 ToggleEqualizerEnabled.Toggled -= ToggleEqualizerEnabled_Toggled;
                 ToggleEqualizerEnabled.Toggled += ToggleEqualizerEnabled_Toggled;
+                SliderPreamp.MouseDoubleClick += (s, e) => { SliderPreamp.Value = 0; };
                 SyncFromModel();
             };
         }
@@ -57,19 +61,23 @@ namespace ClipCull.Controls
             {
                 int freq = EqualizerSettings.BandFrequenciesHz[i];
 
-                var col = new StackPanel
+                var col = new Grid
                 {
-                    Orientation = System.Windows.Controls.Orientation.Vertical,
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Margin = new Thickness(4, 0, 4, 0)
+                    Margin = new Thickness(2, 0, 2, 0)
                 };
+                col.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                col.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                col.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
                 var freqLabel = new TextBlock
                 {
                     Text = FormatFrequency(freq),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Style = (Style)FindResource("muted")
+                    Style = (Style)FindResource("muted"),
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 4)
                 };
+                Grid.SetRow(freqLabel, 0);
 
                 var slider = new Slider
                 {
@@ -77,21 +85,27 @@ namespace ClipCull.Controls
                     Minimum = EqualizerSettings.MinGainDb,
                     Maximum = EqualizerSettings.MaxGainDb,
                     Value = 0,
-                    Height = 140,
+                    MinHeight = 100,
+                    MaxHeight = 200,
                     TickFrequency = 1,
-                    Tag = i
+                    Tag = i,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
                 slider.ValueChanged += BandSlider_ValueChanged;
+                slider.MouseDoubleClick += (s, e) => { if (s is Slider sl) sl.Value = 0; };
+                Grid.SetRow(slider, 1);
 
                 var valueLabel = new TextBlock
                 {
                     Text = FormatDb(0),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 2, 0, 0),
+                    Margin = new Thickness(0, 4, 0, 0),
                     Style = (Style)FindResource("muted"),
-                    MinWidth = 50,
-                    TextAlignment = TextAlignment.Center
+                    MinWidth = 40,
+                    TextAlignment = TextAlignment.Center,
+                    FontSize = 10
                 };
+                Grid.SetRow(valueLabel, 2);
 
                 col.Children.Add(freqLabel);
                 col.Children.Add(slider);
@@ -176,7 +190,8 @@ namespace ClipCull.Controls
 
             if (eq.BandGainsDb == null || eq.BandGainsDb.Length != EqualizerSettings.BandCount)
                 eq.BandGainsDb = new double[EqualizerSettings.BandCount];
-            eq.BandGainsDb[index] = e.NewValue;
+            
+            eq.SetBandGain(index, e.NewValue);
         }
 
         private void BtnEqReset_Click(object sender, RoutedEventArgs e)
@@ -209,6 +224,109 @@ namespace ClipCull.Controls
             EqualizerClipboard.PasteInto(Equalizer);
             SyncFromModel();
             Logger.LogInfo("Equalizer settings pasted from clipboard.");
+        }
+
+        private void BtnEqApplyAll_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not VideoPreviewControl preview || string.IsNullOrEmpty(preview.CurrentVideoPath))
+            {
+                Logger.LogWarning("No video loaded. Cannot apply EQ to folder.");
+                return;
+            }
+
+            var result = MessageBox.Show(
+                "This will apply the current equalizer settings to ALL video files in this folder by modifying their sidecar files. Existing EQ settings for those files will be overwritten.\n\nContinue?",
+                "Apply EQ to Folder",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                string directory = Path.GetDirectoryName(preview.CurrentVideoPath);
+                if (string.IsNullOrEmpty(directory)) return;
+
+                var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm", ".m4v" };
+                var videoFiles = Directory.GetFiles(directory)
+                    .Where(f => videoExtensions.Contains(Path.GetExtension(f).ToLower()))
+                    .ToList();
+
+                int count = 0;
+                foreach (var file in videoFiles)
+                {
+                    // Skip the current file if it's already updated (though updating it again is harmless)
+                    if (file.Equals(preview.CurrentVideoPath, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var sidecar = SidecarService.GetSidecarContent(file);
+                    sidecar.Equalizer = EqualizerClipboard.Clone(Equalizer);
+                    SidecarService.SaveSidecarContent(sidecar, file);
+                    count++;
+                }
+
+                Logger.LogInfo($"Successfully applied EQ settings to {count} other video(s) in folder.");
+                MessageBox.Show($"Successfully applied EQ settings to {count} other video files in the folder.", 
+                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Failed to apply EQ to folder", ex);
+                MessageBox.Show($"Failed to apply EQ to folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnEqRemoveAll_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not VideoPreviewControl preview || string.IsNullOrEmpty(preview.CurrentVideoPath))
+            {
+                Logger.LogWarning("No video loaded. Cannot remove EQ from folder.");
+                return;
+            }
+
+            var result = MessageBox.Show(
+                "This will DISABLE and RESET the equalizer settings for ALL video files in this folder. All custom EQ data for these clips will be lost.\n\nContinue?",
+                "Remove EQ from Folder",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                string directory = Path.GetDirectoryName(preview.CurrentVideoPath);
+                if (string.IsNullOrEmpty(directory)) return;
+
+                var videoExtensions = new[] { ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm", ".m4v" };
+                var videoFiles = Directory.GetFiles(directory)
+                    .Where(f => videoExtensions.Contains(Path.GetExtension(f).ToLower()))
+                    .ToList();
+
+                int count = 0;
+                foreach (var file in videoFiles)
+                {
+                    var sidecar = SidecarService.GetSidecarContent(file);
+                    sidecar.Equalizer = new EqualizerSettings { Enabled = false };
+                    SidecarService.SaveSidecarContent(sidecar, file);
+                    count++;
+                    
+                    // If we just updated the current file's sidecar, refresh the live UI
+                    if (file.Equals(preview.CurrentVideoPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        preview.Equalizer = sidecar.Equalizer;
+                        SyncFromModel();
+                    }
+                }
+
+                Logger.LogInfo($"Successfully removed EQ settings from {count} video(s) in folder.");
+                MessageBox.Show($"Successfully removed EQ settings from {count} video files in the folder.", 
+                                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Failed to remove EQ from folder", ex);
+                MessageBox.Show($"Failed to remove EQ from folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private static string FormatDb(double db) => $"{db:+0.0;-0.0;0.0} dB";

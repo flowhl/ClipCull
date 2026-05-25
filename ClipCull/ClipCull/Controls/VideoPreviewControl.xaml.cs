@@ -1,4 +1,4 @@
-﻿using LibVLCSharp.Shared;
+using LibVLCSharp.Shared;
 using MaterialDesignThemes.Wpf;
 using ClipCull.Core;
 using ClipCull.Models;
@@ -27,6 +27,7 @@ namespace ClipCull.Controls
         #region Fields
         private LibVLC _libVLC;
         private MediaPlayer _mediaPlayer;
+        private LibVLCSharp.Shared.Equalizer? _vlcEqualizer;
         private Media _media;
         private DispatcherTimer _positionTimer;
         private bool _isDisposed = false;
@@ -127,9 +128,17 @@ namespace ClipCull.Controls
             get => _equalizer;
             set
             {
+                if (_equalizer != null) _equalizer.PropertyChanged -= Equalizer_PropertyChanged;
                 _equalizer = value ?? new EqualizerSettings();
+                _equalizer.PropertyChanged += Equalizer_PropertyChanged;
                 OnPropertyChanged(nameof(Equalizer));
+                UpdateVLCEqualizer();
             }
+        }
+
+        private void Equalizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            UpdateVLCEqualizer();
         }
 
         #endregion
@@ -190,6 +199,7 @@ namespace ClipCull.Controls
                     _libVLC = new LibVLC();
                 }
                 MediaPlayer = new MediaPlayer(_libVLC);
+                UpdateVLCEqualizer();
 
                 // Subscribe to MediaPlayer events
                 MediaPlayer.EndReached += MediaPlayer_EndReached;
@@ -358,6 +368,49 @@ namespace ClipCull.Controls
             if (MediaPlayer?.Media != null && MediaPlayer.Length > 0)
             {
                 MediaPlayer.Time = Math.Max(0, Math.Min(MediaPlayer.Length, timeMs));
+            }
+        }
+
+        /// <summary>
+        /// Applies the current Equalizer settings to the VLC MediaPlayer.
+        /// </summary>
+        public void UpdateVLCEqualizer()
+        {
+            if (MediaPlayer == null) return;
+
+            if (Equalizer == null || !Equalizer.Enabled)
+            {
+                MediaPlayer.UnsetEqualizer();
+                return;
+            }
+
+            try
+            {
+                // Create equalizer if not exists
+                if (_vlcEqualizer == null)
+                {
+                    _vlcEqualizer = new LibVLCSharp.Shared.Equalizer();
+                }
+
+                // Apply Preamp
+                _vlcEqualizer.SetPreamp((float)Equalizer.PreampDb);
+
+                // Apply Bands
+                // VLC usually has 10 bands. We match them by index.
+                uint bandCount = _vlcEqualizer.BandCount;
+                var gains = Equalizer.BandGainsDb;
+                
+                for (uint i = 0; i < bandCount; i++)
+                {
+                    float gain = (gains != null && i < gains.Length) ? (float)gains[i] : 0.0f;
+                    _vlcEqualizer.SetAmp(gain, i);
+                }
+
+                MediaPlayer.SetEqualizer(_vlcEqualizer);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to apply Equalizer to VLC: {ex.Message}");
             }
         }
         #endregion
@@ -576,6 +629,7 @@ namespace ClipCull.Controls
             _positionTimer = null;
 
             _media?.Dispose();
+            _vlcEqualizer?.Dispose();
             MediaPlayer?.Dispose();
             _libVLC?.Dispose();
 

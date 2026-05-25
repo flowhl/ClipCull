@@ -53,6 +53,15 @@ namespace ClipCull.Models
             }
         }
 
+        public void SetBandGain(int index, double gainDb)
+        {
+            if (index >= 0 && index < BandCount)
+            {
+                _bandGainsDb[index] = gainDb;
+                OnPropertyChanged(nameof(BandGainsDb));
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
