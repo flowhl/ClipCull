@@ -8,17 +8,17 @@
     ".NETCoreApp,Version=v6.0": {
       "TTOOWA.AvalonDockThemes/1.0.0": {
         "dependencies": {
-          "Dirkster.AvalonDock": "4.71.2"
+          "Dirkster.AvalonDock": "4.74.1"
         },
         "runtime": {
           "TTOOWA.AvalonDockThemes.dll": {}
         }
       },
-      "Dirkster.AvalonDock/4.71.2": {
+      "Dirkster.AvalonDock/4.74.1": {
         "runtime": {
           "lib/net5.0-windows7.0/AvalonDock.dll": {
-            "assemblyVersion": "4.71.2.0",
-            "fileVersion": "4.71.2.0"
+            "assemblyVersion": "4.74.1.0",
+            "fileVersion": "4.74.1.0"
           }
         },
         "resources": {
@@ -83,12 +83,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Dirkster.AvalonDock/4.71.2": {
+    "Dirkster.AvalonDock/4.74.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-3eWkGAifVfIQVqVNSTs0KpCBB8wZyHnht0koIFm5RoINO4anVKG3m/W8SqmZLopoHHdeLplN7WGmole9nli+BQ==",
-      "path": "dirkster.avalondock/4.71.2",
-      "hashPath": "dirkster.avalondock.4.71.2.nupkg.sha512"
+      "sha512": "sha512-Wf3tjZmN8cjepp5m3dlI68TzDGBnkbxLmbdGD4BkgmbpTPHC0SUSiCTI/BY55KFwWXov714DDbebSCUnl2w97Q==",
+      "path": "dirkster.avalondock/4.74.1",
+      "hashPath": "dirkster.avalondock.4.74.1.nupkg.sha512"
     }
   }
 }
