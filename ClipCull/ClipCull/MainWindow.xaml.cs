@@ -431,10 +431,10 @@ public partial class MainWindow : Window
 
     private void TrackedUserMetadata_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        // Only the folder tree currently surfaces pick/reject icons, but rating/pick edits both
-        // need to be reflected through the same refresh path because the tree reads sidecar state.
-        if (e.PropertyName != nameof(UserMetadataContent.Pick) &&
-            e.PropertyName != nameof(UserMetadataContent.Rating))
+        // The XAML in this window has a Border named "UserMetadataContent", so the
+        // generated field shadows the model class — use the fully-qualified name.
+        if (e.PropertyName != nameof(ClipCull.Models.UserMetadataContent.Pick) &&
+            e.PropertyName != nameof(ClipCull.Models.UserMetadataContent.Rating))
             return;
 
         var path = VideoPreview?.CurrentVideoPath;
