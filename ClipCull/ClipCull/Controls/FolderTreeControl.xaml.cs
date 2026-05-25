@@ -1,4 +1,4 @@
-﻿using ClipCull.Core;
+using ClipCull.Core;
 using ClipCull.Extensions;
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using ClipCull.Models;
 
 namespace ClipCull.Controls
 {
@@ -234,7 +235,7 @@ namespace ClipCull.Controls
         /// it is used directly (so in-memory edits show up before the sidecar is written); otherwise
         /// the value is read from the file's sidecar.
         /// </summary>
-        public void UpdateFileMetadata(string filePath, bool? pickOverride = null, bool usePickOverride = false)
+        public void UpdateFileMetadata(string filePath, bool? pickOverride = null, bool usePickOverride = false, int? subClipCountOverride = null)
         {
             if (string.IsNullOrEmpty(filePath))
                 return;
@@ -264,6 +265,19 @@ namespace ClipCull.Controls
                 item.HasSidecar = hasSidecar;
                 item.IsPicked = pick == true;
                 item.IsReject = pick == false;
+
+                if (subClipCountOverride.HasValue)
+                {
+                    item.SubClipCount = subClipCountOverride.Value;
+                }
+                else
+                {
+                    var content = SidecarService.GetSidecarContent(filePath);
+                    item.SubClipCount = content?.SubClips?.Count ?? 0;
+                }
+
+                // Also try to update the parent folder counts if possible
+                // (This is more complex as it requires traversing up the tree)
             }
             catch (Exception ex)
             {
@@ -340,6 +354,20 @@ namespace ClipCull.Controls
                         {
                             var driveItem = CreateDriveTreeItem(drive);
                             FolderTreeView.Items.Add(driveItem);
+
+                            // Background calculation for drive
+                            Task.Run(() =>
+                            {
+                                try
+                                {
+                                    if (drive.RootDirectory != null)
+                                    {
+                                        int count = GetSubClipCount(drive.RootDirectory.FullName, true);
+                                        Dispatcher.Invoke(() => ((DriveItemData)driveItem.Tag).SubClipCount = count);
+                                    }
+                                }
+                                catch { }
+                            });
                         }
                         catch (Exception ex)
                         {
@@ -367,6 +395,17 @@ namespace ClipCull.Controls
 
                             FolderTreeView.Items.Add(rootItem);
                             rootItem.IsExpanded = true;
+
+                            // Background calculation for root folder
+                            Task.Run(() =>
+                            {
+                                try
+                                {
+                                    int count = GetSubClipCount(folderPath, true);
+                                    Dispatcher.Invoke(() => ((FolderItemData)rootItem.Tag).SubClipCount = count);
+                                }
+                                catch { }
+                            });
                             UpdateStatus($"Loaded folder: {folderPath}");
                         });
                     }
@@ -429,6 +468,8 @@ namespace ClipCull.Controls
                 HeaderTemplate = (DataTemplate)Resources["FolderItemTemplate"],
                 Tag = folderData
             };
+            
+            // Note: SubClipCount is populated in LoadChildItems or during initial load
 
             // Always add dummy item for folders (they can potentially have subdirectories)
             item.Items.Add(new TreeViewItem { Header = "Loading..." });
@@ -450,6 +491,7 @@ namespace ClipCull.Controls
                 HasSidecar = IsVideoFile(file.Extension) && SidecarService.HasSidecar(file.FullName),
                 IsPicked = sidecarContent?.UserMetadata?.Pick == true,
                 IsReject = sidecarContent?.UserMetadata?.Pick == false,
+                SubClipCount = sidecarContent?.SubClips?.Count ?? 0,
             };
 
             var item = new TreeViewItem
@@ -563,6 +605,24 @@ namespace ClipCull.Controls
                                 {
                                     var childItem = CreateFolderTreeItem(directory);
                                     parentItem.Items.Add(childItem);
+                                    
+                                    // Calculate subclip count for this folder (recursive)
+                                    // This is done in a task to avoid blocking the UI
+                                    Task.Run(() => 
+                                    {
+                                        try
+                                        {
+                                            int count = GetSubClipCount(directory.FullName, true);
+                                            Dispatcher.Invoke(() => 
+                                            {
+                                                if (childItem.Tag is FolderItemData data)
+                                                {
+                                                    data.SubClipCount = count;
+                                                }
+                                            });
+                                        }
+                                        catch { }
+                                    });
                                 }
                                 catch (Exception ex)
                                 {
@@ -645,6 +705,36 @@ namespace ClipCull.Controls
         #endregion
 
         #region Private Methods - Helpers
+        private int GetSubClipCount(string directoryPath, bool recursive)
+        {
+            try
+            {
+                int total = 0;
+                var dir = new DirectoryInfo(directoryPath);
+
+                // Get all .xml files
+                var xmlFiles = dir.GetFiles("*.xml", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+
+                foreach (var xmlFile in xmlFiles)
+                {
+                    try
+                    {
+                        var sc = SidecarService.GetSidecarContent(xmlFile.FullName);
+                        if (sc != null && sc.SubClips != null)
+                        {
+                            total += sc.SubClips.Count;
+                        }
+                    }
+                    catch { }
+                }
+                return total;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         private string GetItemPath(TreeViewItem item)
         {
             if (item?.Tag == null)
@@ -1120,22 +1210,52 @@ namespace ClipCull.Controls
     }
 
     #region Data Classes
-    public class DriveItemData
+    public class DriveItemData : INotifyPropertyChanged
     {
+        private int _subClipCount;
         public DriveInfo Drive { get; set; }
         public string DisplayName { get; set; }
         public string SpaceInfo { get; set; }
         public string DriveType { get; set; }
         public bool IsFile { get; set; } = false;
+
+        public int SubClipCount
+        {
+            get => _subClipCount;
+            set { if (_subClipCount != value) { _subClipCount = value; OnPropertyChanged(nameof(SubClipCount)); OnPropertyChanged(nameof(SubClipCountDisplay)); } }
+        }
+
+        public string SubClipCountDisplay => SubClipCount > 0 ? $"({SubClipCount})" : "";
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
-    public class FolderItemData
+    public class FolderItemData : INotifyPropertyChanged
     {
+        private int _subClipCount;
         public DirectoryInfo Directory { get; set; }
         public string Name { get; set; }
         public string FullPath { get; set; }
         public bool IsExpanded { get; set; }
         public bool IsFile { get; set; } = false;
+
+        public int SubClipCount
+        {
+            get => _subClipCount;
+            set { if (_subClipCount != value) { _subClipCount = value; OnPropertyChanged(nameof(SubClipCount)); OnPropertyChanged(nameof(SubClipCountDisplay)); } }
+        }
+
+        public string SubClipCountDisplay => SubClipCount > 0 ? $"({SubClipCount})" : "";
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public class FileItemData : INotifyPropertyChanged
@@ -1143,6 +1263,7 @@ namespace ClipCull.Controls
         private bool _hasSidecar;
         private bool _isPicked;
         private bool _isReject;
+        private int _subClipCount;
 
         public FileInfo File { get; set; }
         public string Name { get; set; }
@@ -1168,6 +1289,14 @@ namespace ClipCull.Controls
             get => _isReject;
             set { if (_isReject != value) { _isReject = value; OnPropertyChanged(nameof(IsReject)); } }
         }
+
+        public int SubClipCount
+        {
+            get => _subClipCount;
+            set { if (_subClipCount != value) { _subClipCount = value; OnPropertyChanged(nameof(SubClipCount)); OnPropertyChanged(nameof(SubClipCountDisplay)); } }
+        }
+
+        public string SubClipCountDisplay => SubClipCount > 0 ? $"({SubClipCount})" : "";
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged(string name)

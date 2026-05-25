@@ -211,11 +211,6 @@
                               Text="Ready" 
                               Style="{StaticResource small}"/>
                             </StackPanel>
-
-                            <TextBlock Grid.Column="2"
-                          Text="FPV Footage Manager v1.0"
-                          Style="{StaticResource muted}"
-                          VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
                 </Grid>

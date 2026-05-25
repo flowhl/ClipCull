@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ClipCull.Controls.SettingsControl"
+<UserControl x:Class="ClipCull.Controls.SettingsControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -107,6 +107,41 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+                        <!--Timeline & Snapping-->
+                        <Border Style="{StaticResource card}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Style="{StaticResource h3}">Timeline &amp; Snapping</TextBlock>
+                                <Separator Margin="0,5,0,10"/>
+
+                                <TextBlock Style="{StaticResource h4}" Margin="0,0,0,5">Snap Targets</TextBlock>
+                                
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Playhead</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToPlayhead}" Margin="5" Height="20" x:Name="ToggleSnapToPlayhead"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Markers</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToMarkers}" Margin="5" Height="20" x:Name="ToggleSnapToMarkers"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Subclips</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToSubclips}" Margin="5" Height="20" x:Name="ToggleSnapToSubclips"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to I/O Points</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToInOutPoints}" Margin="5" Height="20" x:Name="ToggleSnapToInOutPoints"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap Sensitivity (pixels)</TextBlock>
+                                    <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSnapSensitivity" Text="{Binding Path=SnapSensitivityPixels}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
                         <!--Gyroflow-->
                         <Border Style="{StaticResource card}">
                             <StackPanel Orientation="Vertical">

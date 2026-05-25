@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 using System.Linq;
@@ -32,6 +32,7 @@ namespace ClipCull.Core
         public static event Action OnPick;
         public static event Action OnReject;
         public static event Action OnRemovePickReject;
+        public static event Action OnToggleMagnet;
 
         public static event Action OnNumber1;
         public static event Action OnNumber2;
@@ -67,6 +68,7 @@ namespace ClipCull.Core
             RegisterAction("Pick", () => OnPick?.Invoke());
             RegisterAction("Reject", () => OnReject?.Invoke());
             RegisterAction("RemovePickReject", () => OnRemovePickReject?.Invoke());
+            RegisterAction("ToggleMagnet", () => OnToggleMagnet?.Invoke());
 
             RegisterAction("Number1", () => OnNumber1?.Invoke());
             RegisterAction("Number2", () => OnNumber2?.Invoke());
@@ -118,6 +120,7 @@ namespace ClipCull.Core
             defaultMappings["P"] = "Pick";
             defaultMappings["X"] = "Reject";
             defaultMappings["U"] = "RemovePickReject";
+            defaultMappings["S"] = "ToggleMagnet";
             defaultMappings["1"] = "Number1";
             defaultMappings["2"] = "Number2";
             defaultMappings["3"] = "Number3";

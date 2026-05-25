@@ -1,5 +1,6 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.IO;
+using System.Collections.Specialized;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -117,6 +118,9 @@ public partial class MainWindow : Window
 
         HotkeyController.OnReload += HotkeyController_OnReload;
         HotkeyController.OnSave += HotkeyController_OnSave;
+
+        // Subclip collection changed updates the browser counts
+        VideoPreview.VideoControls.timelineControl.SubClips.CollectionChanged += SubClips_CollectionChanged;
 
         this.Loaded += MainWindow_Loaded;
         this.Closing += MainWindow_Closing;
@@ -451,6 +455,27 @@ public partial class MainWindow : Window
 
         // Reflect the in-memory pick value directly so the tree updates before the sidecar is saved.
         FolderTree.UpdateFileMetadata(path, _trackedUserMetadata?.Pick, usePickOverride: true);
+    }
+
+    private void SubClips_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        var path = VideoPreview?.CurrentVideoPath;
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        int count = VideoPreview.VideoControls.timelineControl.SubClips.Count;
+
+        // Update Folder Tree
+        if (FolderTree != null)
+        {
+            FolderTree.UpdateFileMetadata(path, subClipCountOverride: count);
+        }
+
+        // Update Video Clip Browser
+        if (VideoClipBrowser != null)
+        {
+            VideoClipBrowser.UpdateSubClipCountForFile(path, count);
+        }
     }
 
     /// <summary>

@@ -31,6 +31,7 @@ namespace ClipCull.Controls
         private ClipPoint _outPoint;
         private SubClip _currentSubClip;
         private bool _isDetailedMode;
+        private bool _isSnappingEnabled = true;
 
         // Detailed mode layout constants
         private const double DetailedRowHeight = 18;
@@ -75,7 +76,7 @@ namespace ClipCull.Controls
                     // Force refresh if we have a current subclip (for live preview)
                     if (_currentSubClip != null)
                     {
-                        RefreshSubClips();
+                        UpdateCurrentSubClipVisual();
                     }
                 }
             }
@@ -156,6 +157,19 @@ namespace ClipCull.Controls
             }
         }
 
+        public bool IsSnappingEnabled
+        {
+            get => _isSnappingEnabled;
+            set
+            {
+                if (_isSnappingEnabled != value)
+                {
+                    _isSnappingEnabled = value;
+                    OnPropertyChanged(nameof(IsSnappingEnabled));
+                }
+            }
+        }
+
         public ObservableCollection<Marker> Markers { get; }
         public ObservableCollection<SubClip> SubClips { get; }
         #endregion
@@ -188,6 +202,7 @@ namespace ClipCull.Controls
             HotkeyController.OnMarker += HotkeyController_OnMarker;
             HotkeyController.OnSubclipStart += HotkeyController_OnSubclipStart;
             HotkeyController.OnSubclipEnd += HotkeyController_OnSubclipEnd;
+            HotkeyController.OnToggleMagnet += HotkeyController_OnToggleMagnet;
 
             Focusable = true;
         }
@@ -827,12 +842,163 @@ namespace ClipCull.Controls
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private long GetSnappedTime(double x, bool ignorePlayhead = false)
+        {
+            if (Duration <= 0 || TimelineCanvas.ActualWidth <= 0) 
+                return CalculateTimeFromPosition(x);
+
+            if (!IsSnappingEnabled)
+                return CalculateTimeFromPosition(x);
+
+            var settings = SettingsHandler.Settings;
+            double pixelThresh = settings?.SnapSensitivityPixels ?? 10.0;
+            double canvasWidth = TimelineCanvas.ActualWidth;
+
+            // Collect snap points as times, then we'll convert to pixels for distance check
+            var snapPoints = new List<long>();
+
+            // Current playhead
+            if (!ignorePlayhead && (settings?.SnapToPlayhead ?? true))
+                snapPoints.Add(CurrentTime);
+
+            // I/O points
+            if (settings?.SnapToInOutPoints ?? true)
+            {
+                if (InPoint != null) snapPoints.Add(InPoint.Timestamp);
+                if (OutPoint != null) snapPoints.Add(OutPoint.Timestamp);
+            }
+
+            // Markers
+            if (settings?.SnapToMarkers ?? true)
+            {
+                foreach (var marker in Markers)
+                    snapPoints.Add(marker.Timestamp);
+            }
+
+            // SubClips edges
+            if (settings?.SnapToSubclips ?? true)
+            {
+                foreach (var sc in SubClips)
+                {
+                    snapPoints.Add(sc.StartTime);
+                    snapPoints.Add(sc.EndTime);
+                }
+            }
+
+            double bestDistance = pixelThresh + 1;
+            long bestTimeSnap = -1;
+
+            foreach (var snapTime in snapPoints)
+            {
+                double snapX = (double)snapTime / Duration * canvasWidth;
+                double distance = Math.Abs(snapX - x);
+
+                if (distance < pixelThresh && distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestTimeSnap = snapTime;
+                }
+            }
+
+            if (bestTimeSnap != -1)
+            {
+                return bestTimeSnap;
+            }
+
+            // No snap found, return the precise time for this X position
+            return CalculateTimeFromPosition(x);
+        }
+
+        private void UpdateCurrentSubClipVisual()
+        {
+            if (!_isInitialized || Duration <= 0 || _currentSubClip == null) return;
+
+            var element = TimelineCanvas.Children.OfType<Rectangle>()
+                .FirstOrDefault(r => r.Tag as string == "CurrentSubClip");
+
+            if (element == null)
+            {
+                AddCurrentSubClipVisual();
+                return;
+            }
+
+            var startPosition = (double)_currentSubClip.StartTime / Duration * TimelineCanvas.ActualWidth;
+            var currentPosition = (double)CurrentTime / Duration * TimelineCanvas.ActualWidth;
+            var width = Math.Max(2, currentPosition - startPosition);
+
+            element.Width = width;
+            Canvas.SetLeft(element, startPosition);
+        }
+
+        private void UpdateSubClipVisuals(SubClip subClip)
+        {
+            if (!_isInitialized || Duration <= 0 || subClip == null) return;
+
+            // Find all elements associated with this subclip
+            var elements = TimelineCanvas.Children.OfType<FrameworkElement>()
+                .Where(el =>
+                {
+                    object tag = el.Tag;
+                    if (tag == subClip) return true;
+                    if (tag is SubClipResizeHandle h && h.SubClip == subClip) return true;
+                    if (tag is SubClipLabel l && l.SubClip == subClip) return true;
+                    return false;
+                })
+                .ToList();
+
+            if (elements.Count == 0)
+            {
+                // This shouldn't happen if we're resizing/updating an existing clip
+                return;
+            }
+
+            var startPosition = (double)subClip.StartTime / Duration * TimelineCanvas.ActualWidth;
+            var endPosition = (double)subClip.EndTime / Duration * TimelineCanvas.ActualWidth;
+            var width = Math.Max(8, endPosition - startPosition);
+
+            foreach (var el in elements)
+            {
+                if (el is Rectangle rect)
+                {
+                    if (el.Tag == subClip) // Main body
+                    {
+                        rect.Width = width;
+                        Canvas.SetLeft(rect, startPosition);
+                        rect.ToolTip = $"{subClip.Title}\n{subClip.StartTimeDisplay} - {subClip.EndTimeDisplay}\nDuration: {subClip.DurationDisplay}";
+                    }
+                    else if (el.Tag is SubClipResizeHandle info) // Handles
+                    {
+                        if (info.IsLeft)
+                        {
+                            Canvas.SetLeft(rect, startPosition);
+                        }
+                        else
+                        {
+                            Canvas.SetLeft(rect, startPosition + width - DetailedHandleWidth);
+                        }
+                    }
+                }
+                else if (el is TextBlock label && el.Tag is SubClipLabel info) // Label
+                {
+                    label.Text = string.IsNullOrEmpty(subClip.Title) ? "(untitled)" : subClip.Title;
+                    label.MaxWidth = Math.Max(0, width - 2 * DetailedHandleWidth - 4);
+                    Canvas.SetLeft(label, startPosition + DetailedHandleWidth + 2);
+                }
+            }
+        }
+
         #endregion
 
         #region Event Handlers
         private void TimelineControl_Loaded(object sender, RoutedEventArgs e)
         {
             _isInitialized = true;
+            
+            // Load global magnet state
+            IsSnappingEnabled = SettingsHandler.Settings.IsMagnetEnabled;
+            if (SnapModeToggle != null)
+                SnapModeToggle.IsChecked = IsSnappingEnabled;
+
             UpdateTimelineDisplay();
         }
 
@@ -896,7 +1062,10 @@ namespace ClipCull.Controls
 
         private void SubClip_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            RefreshSubClips();
+            if (sender is SubClip subClip)
+            {
+                UpdateSubClipVisuals(subClip);
+            }
         }
 
         private void TimelineCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -910,7 +1079,10 @@ namespace ClipCull.Controls
             Focus(); // Enable keyboard shortcuts
 
             var position = e.GetPosition(TimelineCanvas);
-            var newTime = CalculateTimeFromPosition(position.X);
+            
+            // Apply snapping for the initial click down too
+            var newTime = GetSnappedTime(position.X, ignorePlayhead: true);
+            
             SeekToTime(newTime);
         }
 
@@ -919,7 +1091,9 @@ namespace ClipCull.Controls
             if (_resizingSubClip != null)
             {
                 var position = e.GetPosition(TimelineCanvas);
-                var newTime = CalculateTimeFromPosition(position.X);
+
+                // Apply snapping using pixel position
+                var newTime = GetSnappedTime(position.X);
 
                 if (_resizingLeftEdge)
                 {
@@ -941,7 +1115,10 @@ namespace ClipCull.Controls
             if (_isDragging)
             {
                 var position = e.GetPosition(TimelineCanvas);
-                var newTime = CalculateTimeFromPosition(position.X);
+                
+                // Playhead snaps to markers, subclips, but NOT to its own previous position
+                var newTime = GetSnappedTime(position.X, ignorePlayhead: true);
+                
                 SeekToTime(newTime);
             }
         }
@@ -961,7 +1138,23 @@ namespace ClipCull.Controls
 
         private void DetailedModeToggle_Changed(object sender, RoutedEventArgs e)
         {
-            IsDetailedMode = DetailedModeToggle?.IsChecked == true;
+            if (DetailedModeToggle != null)
+                IsDetailedMode = DetailedModeToggle.IsChecked == true;
+        }
+
+        private void SnapModeToggle_Changed(object sender, RoutedEventArgs e)
+        {
+            if (SnapModeToggle != null)
+            {
+                IsSnappingEnabled = SnapModeToggle.IsChecked == true;
+                
+                // Save to global settings
+                if (SettingsHandler.Settings != null)
+                {
+                    SettingsHandler.Settings.IsMagnetEnabled = IsSnappingEnabled;
+                    SettingsHandler.Save();
+                }
+            }
         }
 
         private void MarkerVisual_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1128,6 +1321,16 @@ namespace ClipCull.Controls
         {
             if (!IsVisible) return;
             SetInPoint();
+        }
+
+        private void HotkeyController_OnToggleMagnet()
+        {
+            if (!IsVisible) return;
+            if (SnapModeToggle != null)
+            {
+                SnapModeToggle.IsChecked = !SnapModeToggle.IsChecked;
+                SnapModeToggle_Changed(SnapModeToggle, new RoutedEventArgs());
+            }
         }
         #endregion
         #endregion

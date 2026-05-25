@@ -84,6 +84,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- I/O Point Controls -->
@@ -197,8 +198,21 @@
                                            Foreground="{StaticResource SecondaryForegroundBrush}"/>
                 </Button>
 
+                <ToggleButton x:Name="SnapModeToggle"
+                               Grid.Column="9"
+                               Style="{StaticResource timeline-toggle}"
+                               Margin="0,0,4,0"
+                               IsChecked="True"
+                               ToolTip="Toggle snapping (Magnet)"
+                               Checked="SnapModeToggle_Changed"
+                               Unchecked="SnapModeToggle_Changed">
+                    <materialDesign:PackIcon Kind="Magnet"
+                                             Width="14" Height="14"
+                                             VerticalAlignment="Center"/>
+                </ToggleButton>
+
                 <ToggleButton x:Name="DetailedModeToggle"
-                              Grid.Column="9"
+                              Grid.Column="10"
                               Style="{StaticResource timeline-toggle}"
                               Margin="0,0,4,0"
                               ToolTip="Toggle detailed timeline mode"
@@ -214,7 +228,7 @@
                     </StackPanel>
                 </ToggleButton>
 
-                <Button Grid.Column="10"
+                <Button Grid.Column="11"
                        x:Name="ClearAllButton"
                        Click="ClearAllButton_Click"
                        Style="{StaticResource destructive}"

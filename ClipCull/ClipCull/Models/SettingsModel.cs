@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,6 +41,14 @@ namespace ClipCull.Models
         // Render engine settings
         public RenderSettings DefaultRenderSettings { get; set; } = new RenderSettings();
         public string AdobeMediaEncoderPath { get; set; }
+
+        // Snapping Settings
+        public bool IsMagnetEnabled { get; set; } = true;
+        public bool SnapToPlayhead { get; set; } = true;
+        public bool SnapToMarkers { get; set; } = true;
+        public bool SnapToSubclips { get; set; } = true;
+        public bool SnapToInOutPoints { get; set; } = true;
+        public double SnapSensitivityPixels { get; set; } = 10.0;
 
         public List<Tag> Tags { get; set; }
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();

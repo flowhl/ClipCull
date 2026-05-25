@@ -1,4 +1,4 @@
-﻿using ClipCull.Core;
+using ClipCull.Core;
 using ClipCull.Core.Rendering;
 using ClipCull.Extensions;
 using ClipCull.Models;
@@ -215,9 +215,15 @@ namespace ClipCull.Controls
 
             SettingsHandler.Settings.Tags = newTags;
 
-            // Save quality value from textbox
+            // Save numeric values from textboxes
             if (int.TryParse(TbQuality.Text, out int quality))
                 EnsureRenderSettings().Quality = quality;
+
+            if (int.TryParse(TbSkipSeconds.Text, out int skipSeconds))
+                SettingsHandler.Settings.SkipSeconds = skipSeconds;
+
+            if (double.TryParse(TbSnapSensitivity.Text, out double snapSensitivity))
+                SettingsHandler.Settings.SnapSensitivityPixels = snapSensitivity;
 
             SettingsHandler.Save();
             HotkeyController.SaveMappings();
