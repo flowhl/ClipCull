@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Path = System.IO.Path;
 
 namespace ClipCull.Controls
 {
@@ -251,6 +252,7 @@ namespace ClipCull.Controls
         private void InitializeTimelineEvents()
         {
             VideoControls.timelineControl.TimelineClicked += TimelineControl_TimelineClicked;
+            VideoControls.timelineControl.ExportFrameRequested += TimelineControl_ExportFrameRequested;
 
             HotkeyController.OnNext += HotkeyController_OnNext;
             HotkeyController.OnPrevious += HotkeyController_OnPrevious;
@@ -439,6 +441,7 @@ namespace ClipCull.Controls
             VideoControls.FrameForwardButton.IsEnabled = enabled;
             VideoControls.Skip10BackwardButton.IsEnabled = enabled;
             VideoControls.Skip10ForwardButton.IsEnabled = enabled;
+            VideoControls.timelineControl.ExportFrameButton.IsEnabled = enabled;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -584,6 +587,111 @@ namespace ClipCull.Controls
                 }
             }
             catch { }
+        }
+
+        private void TimelineControl_ExportFrameRequested(object? sender, EventArgs e)
+        {
+            if (MediaPlayer == null || string.IsNullOrEmpty(CurrentVideoPath)) return;
+
+            // Pause playback briefly if playing? 
+            // Actually TakeSnapshot works fine while playing, but pausing ensures the user gets exactly what they see.
+            bool wasPlaying = MediaPlayer.IsPlaying;
+            if (wasPlaying) MediaPlayer.Pause();
+
+            try
+            {
+                string timeStr = TimeSpan.FromMilliseconds(MediaPlayer.Time).ToString(@"hh\.mm\.ss\.fff");
+                string defaultFileName = $"{Path.GetFileNameWithoutExtension(CurrentVideoPath)}_frame_{timeStr}.png";
+                string filter = "Portable Network Graphics (*.png)|*.png|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|Bitmap Files (*.bmp)|*.bmp|TIFF Files (*.tiff)|*.tiff";
+                string initialFolder = Path.GetDirectoryName(CurrentVideoPath);
+
+                string filePath = DialogHelper.SaveFile("Export Current Frame", filter, initialFolder, defaultFileName);
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    // Call TakeSnapshot(uint stream, string filePath, uint width, uint height)
+                    // width/height 0 means original size
+                    bool success = MediaPlayer.TakeSnapshot(0, filePath, 0, 0);
+
+                    if (success)
+                    {
+                        // Apply rotation if needed (combining UI rotation and metadata rotation)
+                        // Note: Metadata rotation is often stored as the angle to rotate counter-clockwise, 
+                        // while WPF uses clockwise.
+                        int totalRotation = (Rotation - (CurrentVideoMetadata?.Rotation ?? 0) + 360) % 360;
+                        if (totalRotation != 0)
+                        {
+                            RotateSavedImage(filePath, totalRotation);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to export frame. Make sure the video is playing or paused correctly.", 
+                                      "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred during export: {ex.Message}", 
+                              "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (wasPlaying) MediaPlayer.Play();
+            }
+        }
+
+        private void RotateSavedImage(string filePath, int angle)
+        {
+            try
+            {
+                // Give VLC a tiny bit of time to finalize the file
+                int retry = 0;
+                while (!File.Exists(filePath) && retry < 10)
+                {
+                    Task.Delay(50).Wait();
+                    retry++;
+                }
+
+                if (!File.Exists(filePath)) return;
+
+                // Load image
+                var bitmap = new BitmapImage();
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.StreamSource = stream;
+                    bitmap.EndInit();
+                }
+
+                // Rotate
+                var transformedBitmap = new TransformedBitmap(bitmap, new RotateTransform(angle));
+
+                // Save back
+                BitmapEncoder encoder;
+                string extension = Path.GetExtension(filePath).ToLower();
+                if (extension == ".jpg" || extension == ".jpeg")
+                    encoder = new JpegBitmapEncoder();
+                else if (extension == ".bmp")
+                    encoder = new BmpBitmapEncoder();
+                else if (extension == ".tiff" || extension == ".tif")
+                    encoder = new TiffBitmapEncoder();
+                else
+                    encoder = new PngBitmapEncoder();
+
+                encoder.Frames.Add(BitmapFrame.Create(transformedBitmap));
+
+                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    encoder.Save(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to rotate exported image: {ex.Message}");
+            }
         }
 
         public void HotkeyController_OnTogglePlay()

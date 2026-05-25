@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -27,6 +27,7 @@ namespace ClipCull.Models
         private long _audioBitrate;
         private DateTime? _dateRecorded;
         private string _cameraModel;
+        private int _rotation;
         private bool _hasError;
         private string _errorMessage;
         #endregion
@@ -265,6 +266,22 @@ namespace ClipCull.Models
                     _cameraModel = value;
                     OnPropertyChanged(nameof(CameraModel));
                     OnPropertyChanged(nameof(HasRecordingInfo));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Video rotation in degrees (0, 90, 180, 270)
+        /// </summary>
+        public int Rotation
+        {
+            get => _rotation;
+            set
+            {
+                if (_rotation != value)
+                {
+                    _rotation = value;
+                    OnPropertyChanged(nameof(Rotation));
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿using FFMpegCore;
+using FFMpegCore;
 using ClipCull.Models;
 using System;
 using System.Collections.Generic;
@@ -58,6 +58,7 @@ namespace ClipCull.Core
                     metadata.FrameRate = primaryVideoStream.FrameRate;
                     metadata.VideoCodec = primaryVideoStream.CodecName?.ToUpperInvariant() ?? "Unknown";
                     metadata.VideoBitrate = primaryVideoStream.BitRate;
+                    metadata.Rotation = (int)primaryVideoStream.Rotation;
                 }
 
                 // Extract audio stream information
@@ -123,6 +124,7 @@ namespace ClipCull.Core
                     metadata.FrameRate = primaryVideoStream.FrameRate;
                     metadata.VideoCodec = primaryVideoStream.CodecName?.ToUpperInvariant() ?? "Unknown";
                     metadata.VideoBitrate = primaryVideoStream.BitRate;
+                    metadata.Rotation = (int)primaryVideoStream.Rotation;
                 }
 
                 // Extract audio stream information

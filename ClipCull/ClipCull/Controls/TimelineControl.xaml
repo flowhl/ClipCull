@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ClipCull.Controls.TimelineControl"
+<UserControl x:Class="ClipCull.Controls.TimelineControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -80,6 +80,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -184,8 +185,20 @@
                     </StackPanel>
                 </Button>
 
+                <Button Grid.Column="8" 
+                       x:Name="ExportFrameButton"
+                       Click="ExportFrameButton_Click"
+                       IsEnabled="False"
+                       Style="{StaticResource timeline-button}"
+                       ToolTip="Export Current Frame"
+                       Margin="0,0,4,0">
+                    <materialDesign:PackIcon Kind="Camera" 
+                                           Width="14" Height="14"
+                                           Foreground="{StaticResource SecondaryForegroundBrush}"/>
+                </Button>
+
                 <ToggleButton x:Name="DetailedModeToggle"
-                              Grid.Column="8"
+                              Grid.Column="9"
                               Style="{StaticResource timeline-toggle}"
                               Margin="0,0,4,0"
                               ToolTip="Toggle detailed timeline mode"
@@ -201,7 +214,7 @@
                     </StackPanel>
                 </ToggleButton>
 
-                <Button Grid.Column="9"
+                <Button Grid.Column="10"
                        x:Name="ClearAllButton"
                        Click="ClearAllButton_Click"
                        Style="{StaticResource destructive}"

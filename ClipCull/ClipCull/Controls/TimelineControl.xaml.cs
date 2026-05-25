@@ -1,4 +1,4 @@
-﻿using ClipCull.Core;
+using ClipCull.Core;
 using ClipCull.Models;
 using System;
 using System.Collections.Generic;
@@ -165,6 +165,7 @@ namespace ClipCull.Controls
         public event EventHandler<ClipPointEventArgs> InPointSet;
         public event EventHandler<ClipPointEventArgs> OutPointSet;
         public event EventHandler<SubClipEventArgs> SubClipCreated;
+        public event EventHandler ExportFrameRequested;
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
 
@@ -349,6 +350,11 @@ namespace ClipCull.Controls
                     RemoveSubClip(subClip);
                 }
             }
+        }
+
+        private void ExportFrameButton_Click(object sender, RoutedEventArgs e)
+        {
+            ExportFrameRequested?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
