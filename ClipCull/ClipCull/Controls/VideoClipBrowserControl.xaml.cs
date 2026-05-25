@@ -890,6 +890,64 @@ namespace ClipCull.Controls
             }
         }
 
+        private void ClipRatingStar_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button button)
+                return;
+
+            var clipInfo = button.CommandParameter as VideoClipInfo;
+            if (clipInfo == null)
+                return;
+
+            if (button.Tag is not string starNumberStr || !int.TryParse(starNumberStr, out int starNumber))
+                return;
+
+            try
+            {
+                int? newRating = clipInfo.EffectiveRating == starNumber ? (int?)null : starNumber;
+                ApplyClipRating(clipInfo, newRating);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error setting clip rating: {ex.Message}", ex);
+                StatusText = $"Error setting rating: {ex.Message}";
+            }
+        }
+
+        private void ApplyClipRating(VideoClipInfo clipInfo, int? newRating)
+        {
+            var sidecarContent = SidecarService.GetSidecarContent(clipInfo.VideoFilePath) ?? new SidecarContent();
+
+            if (clipInfo.IsSubClip && clipInfo.SubClip != null)
+            {
+                clipInfo.SubClip.Rating = newRating;
+
+                if (sidecarContent.SubClips != null)
+                {
+                    var stored = sidecarContent.SubClips.FirstOrDefault(s => s.Id == clipInfo.SubClip.Id);
+                    if (stored != null)
+                        stored.Rating = newRating;
+                }
+            }
+            else
+            {
+                if (sidecarContent.UserMetadata == null)
+                    sidecarContent.UserMetadata = new UserMetadataContent();
+                sidecarContent.UserMetadata.Rating = newRating;
+
+                if (clipInfo.UserMetadata == null)
+                    clipInfo.UserMetadata = sidecarContent.UserMetadata;
+                else
+                    clipInfo.UserMetadata.Rating = newRating;
+            }
+
+            SidecarService.SaveSidecarContent(sidecarContent, clipInfo.VideoFilePath);
+            clipInfo.NotifyEffectiveRatingChanged();
+
+            // Re-apply filter so rating changes affect the visible list immediately
+            UpdateFilteredView();
+        }
+
         private void EditSubclipButton_Click(object sender, RoutedEventArgs e)
         {
             // Check if this is a button click from within a list item
@@ -988,6 +1046,7 @@ namespace ClipCull.Controls
                         existingSubclip.StartTime = subclip.StartTime;
                         existingSubclip.EndTime = subclip.EndTime;
                         existingSubclip.Color = subclip.Color;
+                        existingSubclip.Rating = subclip.Rating;
 
                         SidecarService.SaveSidecarContent(sidecarContent, videoFile);
 
@@ -1078,6 +1137,20 @@ namespace ClipCull.Controls
         }
         public System.Windows.Media.Color ClipColor { get; set; }
         public bool IsFirstClipOfFile { get; set; }
+
+        /// <summary>
+        /// Returns the rating used for display in the clips view: subclip's own rating for subclips,
+        /// otherwise the main clip's UserMetadata.Rating.
+        /// </summary>
+        public int? EffectiveRating => IsSubClip ? SubClip?.Rating : UserMetadata?.Rating;
+
+        /// <summary>
+        /// Raise a change notification for <see cref="EffectiveRating"/> after the underlying source has been updated.
+        /// </summary>
+        public void NotifyEffectiveRatingChanged()
+        {
+            OnPropertyChanged(nameof(EffectiveRating));
+        }
 
         /// <summary>
         /// Type of clip (Main or Sub)

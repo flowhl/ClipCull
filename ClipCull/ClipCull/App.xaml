@@ -232,6 +232,73 @@
             </Style>
 
             <!-- ============================================ -->
+            <!-- TOGGLE BUTTON STYLES -->
+            <!-- ============================================ -->
+
+            <!-- Base ToggleButton template: same look as BaseButtonTemplate, plus a Checked state -->
+            <ControlTemplate x:Key="BaseToggleButtonTemplate" TargetType="ToggleButton">
+                <Border x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                    <ContentPresenter x:Name="contentPresenter"
+                                      Focusable="False"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Margin="{TemplateBinding Padding}"
+                                      RecognizesAccessKey="True"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Opacity" TargetName="border" Value="0.9"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Opacity" TargetName="border" Value="0.8"/>
+                    </Trigger>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
+                        <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource PrimaryForegroundBrush}"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Opacity" TargetName="border" Value="0.5"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <!-- Secondary ToggleButton (mirrors "secondary" Button style) -->
+            <Style x:Key="secondary-toggle" TargetType="ToggleButton">
+                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource SecondaryForegroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="12,8"/>
+                <Setter Property="FontFamily" Value="{StaticResource FontSans}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Template" Value="{StaticResource BaseToggleButtonTemplate}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+
+            <!-- Secondary Small ToggleButton -->
+            <Style x:Key="secondary-sm-toggle" TargetType="ToggleButton" BasedOn="{StaticResource secondary-toggle}">
+                <Setter Property="Padding" Value="8,4"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+
+            <!-- Timeline ToggleButton (matches the "timeline-button" sizing used in the timeline toolbar) -->
+            <Style x:Key="timeline-toggle" TargetType="ToggleButton" BasedOn="{StaticResource secondary-sm-toggle}">
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="MinWidth" Value="32"/>
+            </Style>
+
+            <!-- ============================================ -->
             <!-- INPUT STYLES -->
             <!-- ============================================ -->
 

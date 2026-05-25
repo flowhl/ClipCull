@@ -30,6 +30,7 @@ namespace ClipCull.Models
             private bool? _pickStatus; // true = picked, false = rejected, null = any/none
             private ObservableCollection<Tag> _selectedTags;
             private bool _matchAllTags;
+            private bool _ignoreSubclipRating;
             #endregion
 
             #region Public Properties
@@ -100,6 +101,16 @@ namespace ClipCull.Models
                 set { _matchAllTags = value; OnPropertyChanged(); OnFilterChanged(); }
             }
 
+            /// <summary>
+            /// If true, rating filters only apply to the main clip's UserMetadata rating (subclip ratings are ignored).
+            /// If false, subclip ratings are also considered.
+            /// </summary>
+            public bool IgnoreSubclipRating
+            {
+                get => _ignoreSubclipRating;
+                set { _ignoreSubclipRating = value; OnPropertyChanged(); OnFilterChanged(); }
+            }
+
             #endregion
 
             #region Computed Properties
@@ -126,12 +137,39 @@ namespace ClipCull.Models
                 if (subClip == null)
                     return false;
 
-                // Only check search text for SubClips (they don't have other metadata)
-                if (string.IsNullOrWhiteSpace(SearchText))
-                    return false; // No search text means match
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    var searchLower = SearchText.ToLowerInvariant();
+                    if (ContainsIgnoreCase(subClip.Title, searchLower))
+                        return true;
+                }
 
-                var searchLower = SearchText.ToLowerInvariant();
-                return ContainsIgnoreCase(subClip.Title, searchLower);
+                if (!IgnoreSubclipRating && MatchesSubclipRating(subClip))
+                    return true;
+
+                return false;
+            }
+
+            /// <summary>
+            /// True if the subclip's own rating satisfies the active rating filter.
+            /// Returns false when no rating filter is active.
+            /// </summary>
+            public bool MatchesSubclipRating(SubClip subClip)
+            {
+                if (subClip == null) return false;
+                if (!MinRating.HasValue && !MaxRating.HasValue) return false;
+
+                if (MinRating.HasValue)
+                {
+                    if (!subClip.Rating.HasValue || subClip.Rating.Value < MinRating.Value)
+                        return false;
+                }
+                if (MaxRating.HasValue)
+                {
+                    if (!subClip.Rating.HasValue || subClip.Rating.Value > MaxRating.Value)
+                        return false;
+                }
+                return true;
             }
 
             /// <summary>
@@ -281,6 +319,7 @@ namespace ClipCull.Models
                 PickStatus = null;
                 SelectedTags?.Clear();
                 MatchAllTags = SettingsHandler.Settings.FilterMustMatchAllTags;
+                IgnoreSubclipRating = SettingsHandler.Settings.FilterIgnoreSubclipRating;
             }
 
             /// <summary>
@@ -294,7 +333,8 @@ namespace ClipCull.Models
                     MinRating = MinRating,
                     MaxRating = MaxRating,
                     PickStatus = PickStatus,
-                    MatchAllTags = MatchAllTags
+                    MatchAllTags = MatchAllTags,
+                    IgnoreSubclipRating = IgnoreSubclipRating
                 };
 
                 if (SelectedTags != null)

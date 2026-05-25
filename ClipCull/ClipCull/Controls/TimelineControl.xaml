@@ -82,6 +82,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- I/O Point Controls -->
@@ -183,7 +184,24 @@
                     </StackPanel>
                 </Button>
 
-                <Button Grid.Column="8" 
+                <ToggleButton x:Name="DetailedModeToggle"
+                              Grid.Column="8"
+                              Style="{StaticResource timeline-toggle}"
+                              Margin="0,0,4,0"
+                              ToolTip="Toggle detailed timeline mode"
+                              Checked="DetailedModeToggle_Changed"
+                              Unchecked="DetailedModeToggle_Changed">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ViewSequential"
+                                                 Width="12" Height="12"
+                                                 VerticalAlignment="Center"
+                                                 Margin="0,0,4,0"/>
+                        <TextBlock Text="Detailed"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ToggleButton>
+
+                <Button Grid.Column="9"
                        x:Name="ClearAllButton"
                        Click="ClearAllButton_Click"
                        Style="{StaticResource destructive}"
@@ -208,7 +226,7 @@
             </Grid>
 
             <!-- Timeline Track Row -->
-            <Grid Grid.Row="2" Height="30" Margin="0,0,0,8">
+            <Grid x:Name="TimelineTrackRow" Grid.Row="2" Height="30" Margin="0,0,0,8">
                 <Canvas x:Name="TimelineCanvas"
                        Background="Transparent"
                        MouseLeftButtonDown="TimelineCanvas_MouseLeftButtonDown"

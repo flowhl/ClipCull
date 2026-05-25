@@ -30,6 +30,11 @@
                                     <TextBlock Style="{StaticResource h4}" ToolTip="If active, clips must have ALL selected tags. If inactive, clips must have ANY of the selected tags." VerticalAlignment="Center" Margin="0,2,0,0">Filter must match all tags</TextBlock>
                                     <local:ToggleButtonControl IsToggled="{Binding Path=FilterMustMatchAllTags}" Margin="5" Height="20" x:Name="ToggleFilterMustMatchAllTags"/>
                                 </StackPanel>
+                                <!--Filter ignore subclip rating-->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rating filter only applies to the main clip's metadata rating and ignores subclip ratings." VerticalAlignment="Center" Margin="0,2,0,0">Rating filter ignores subclip rating</TextBlock>
+                                    <local:ToggleButtonControl IsToggled="{Binding Path=FilterIgnoreSubclipRating}" Margin="5" Height="20" x:Name="ToggleFilterIgnoreSubclipRating"/>
+                                </StackPanel>
                                 <!--LoadFileBrowserOnLastFolder-->
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource h4}" ToolTip="If active, the filebrowser starts in the last selected folder. If inactive, filebrowser starts on drive mode." VerticalAlignment="Center" Margin="0,2,0,0">Filebrowser start on last folder</TextBlock>

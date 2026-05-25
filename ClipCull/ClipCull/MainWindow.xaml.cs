@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     public System.Timers.Timer AutoSaveTimer { get; private set; }
 
     private FilterCriteria _filterCriteria;
+    private UserMetadataContent _trackedUserMetadata;
     public VideoControlsControl VideoControls { get; set; }
     public VideoPreviewControl VideoPreview { get; set; }
     public VideoControlsControl ClipVideoControls { get; set; }
@@ -69,6 +70,7 @@ public partial class MainWindow : Window
 
         _filterCriteria = new FilterCriteria();
         _filterCriteria.MatchAllTags = SettingsHandler.Settings.FilterMustMatchAllTags;
+        _filterCriteria.IgnoreSubclipRating = SettingsHandler.Settings.FilterIgnoreSubclipRating;
 
         //Call before InitializeComponent
         LoadLayoutCommand = LayoutManager.CreateLoadLayoutCommand();
@@ -412,7 +414,40 @@ public partial class MainWindow : Window
 
         VideoPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
 
+        TrackUserMetadataChanges(VideoPreview.UserMetadata);
+
         UpdateStatus("Sidecar content applied successfully.", false);
+    }
+
+    /// <summary>
+    /// Subscribe to UserMetadata changes so the folder tree icons reflect rating/pick edits live
+    /// without requiring a manual reload.
+    /// </summary>
+    private void TrackUserMetadataChanges(UserMetadataContent metadata)
+    {
+        if (_trackedUserMetadata != null)
+            _trackedUserMetadata.PropertyChanged -= TrackedUserMetadata_PropertyChanged;
+
+        _trackedUserMetadata = metadata;
+
+        if (_trackedUserMetadata != null)
+            _trackedUserMetadata.PropertyChanged += TrackedUserMetadata_PropertyChanged;
+    }
+
+    private void TrackedUserMetadata_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        // The XAML in this window has a Border named "UserMetadataContent", so the
+        // generated field shadows the model class — use the fully-qualified name.
+        if (e.PropertyName != nameof(ClipCull.Models.UserMetadataContent.Pick) &&
+            e.PropertyName != nameof(ClipCull.Models.UserMetadataContent.Rating))
+            return;
+
+        var path = VideoPreview?.CurrentVideoPath;
+        if (string.IsNullOrEmpty(path) || FolderTree == null)
+            return;
+
+        // Reflect the in-memory pick value directly so the tree updates before the sidecar is saved.
+        FolderTree.UpdateFileMetadata(path, _trackedUserMetadata?.Pick, usePickOverride: true);
     }
 
     /// <summary>

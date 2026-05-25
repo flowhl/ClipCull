@@ -112,7 +112,24 @@
 
                 <!-- Rating Filter -->
                 <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                    <Label Content="Rating" Style="{StaticResource FilterLabelStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Content="Rating" Style="{StaticResource FilterLabelStyle}"/>
+
+                        <CheckBox Grid.Column="1"
+                                  x:Name="IgnoreSubclipRatingCheckbox"
+                                  Content="Main only"
+                                  FontSize="10"
+                                  Foreground="{StaticResource MutedForegroundBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="6,0,0,0"
+                                  IsChecked="{Binding FilterCriteria.IgnoreSubclipRating, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  ToolTip="When checked, the rating filter applies only to the main clip's metadata rating (subclip ratings are ignored)."/>
+                    </Grid>
                     <StackPanel Orientation="Horizontal">
                         <!-- Min Rating Stars -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,4,0">

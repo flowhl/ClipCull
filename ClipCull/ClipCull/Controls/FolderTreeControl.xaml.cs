@@ -228,6 +228,70 @@ namespace ClipCull.Controls
         {
             return SelectedPath;
         }
+
+        /// <summary>
+        /// Update the tree icons for a specific file. If <paramref name="pickOverride"/> is supplied,
+        /// it is used directly (so in-memory edits show up before the sidecar is written); otherwise
+        /// the value is read from the file's sidecar.
+        /// </summary>
+        public void UpdateFileMetadata(string filePath, bool? pickOverride = null, bool usePickOverride = false)
+        {
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            FileItemData item = FindFileItem(FolderTreeView.Items, filePath);
+            if (item == null)
+                return;
+
+            try
+            {
+                bool hasSidecar = SidecarService.HasSidecar(filePath);
+                bool? pick;
+                if (usePickOverride)
+                {
+                    pick = pickOverride;
+                }
+                else if (hasSidecar)
+                {
+                    var sc = SidecarService.GetSidecarContent(filePath);
+                    pick = sc?.UserMetadata?.Pick;
+                }
+                else
+                {
+                    pick = null;
+                }
+
+                item.HasSidecar = hasSidecar;
+                item.IsPicked = pick == true;
+                item.IsReject = pick == false;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"UpdateFileMetadata failed for {filePath}: {ex.Message}");
+            }
+        }
+
+        private FileItemData FindFileItem(ItemCollection items, string filePath)
+        {
+            foreach (var raw in items)
+            {
+                if (raw is not TreeViewItem item)
+                    continue;
+
+                if (item.Tag is FileItemData fd &&
+                    string.Equals(fd.FullPath, filePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return fd;
+                }
+
+                if (item.Items.Count > 0)
+                {
+                    var found = FindFileItem(item.Items, filePath);
+                    if (found != null) return found;
+                }
+            }
+            return null;
+        }
         #endregion
 
         #region Private Methods - Tree Loading
@@ -1074,17 +1138,40 @@ namespace ClipCull.Controls
         public bool IsFile { get; set; } = false;
     }
 
-    public class FileItemData
+    public class FileItemData : INotifyPropertyChanged
     {
+        private bool _hasSidecar;
+        private bool _isPicked;
+        private bool _isReject;
+
         public FileInfo File { get; set; }
         public string Name { get; set; }
         public string FullPath { get; set; }
         public string SizeDisplay { get; set; }
         public bool IsVideoFile { get; set; }
         public bool IsFile { get; set; } = true;
-        public bool HasSidecar { get; set; }
-        public bool IsPicked{ get; set; }
-        public bool IsReject { get; set; }
+
+        public bool HasSidecar
+        {
+            get => _hasSidecar;
+            set { if (_hasSidecar != value) { _hasSidecar = value; OnPropertyChanged(nameof(HasSidecar)); } }
+        }
+
+        public bool IsPicked
+        {
+            get => _isPicked;
+            set { if (_isPicked != value) { _isPicked = value; OnPropertyChanged(nameof(IsPicked)); } }
+        }
+
+        public bool IsReject
+        {
+            get => _isReject;
+            set { if (_isReject != value) { _isReject = value; OnPropertyChanged(nameof(IsReject)); } }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string name)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
     #endregion
 
