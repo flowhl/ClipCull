@@ -261,6 +261,7 @@
                     <Trigger Property="IsChecked" Value="True">
                         <Setter Property="Background" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
                         <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
                         <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource PrimaryForegroundBrush}"/>
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
