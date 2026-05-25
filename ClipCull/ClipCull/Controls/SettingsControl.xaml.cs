@@ -177,21 +177,21 @@ namespace ClipCull.Controls
 
                 var col = new StackPanel
                 {
-                    Orientation = Orientation.Vertical,
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Orientation = System.Windows.Controls.Orientation.Vertical,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     Margin = new Thickness(4, 0, 4, 0)
                 };
 
                 var freqLabel = new TextBlock
                 {
                     Text = FormatFrequency(freq),
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     Style = (Style)FindResource("muted")
                 };
 
                 var slider = new Slider
                 {
-                    Orientation = Orientation.Vertical,
+                    Orientation = System.Windows.Controls.Orientation.Vertical,
                     Minimum = EqualizerSettings.MinGainDb,
                     Maximum = EqualizerSettings.MaxGainDb,
                     Value = gain,
@@ -205,7 +205,7 @@ namespace ClipCull.Controls
                 var valueLabel = new TextBlock
                 {
                     Text = FormatDb(gain),
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     Margin = new Thickness(0, 2, 0, 0),
                     Style = (Style)FindResource("muted"),
                     MinWidth = 50,
