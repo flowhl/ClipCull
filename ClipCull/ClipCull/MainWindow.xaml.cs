@@ -132,6 +132,7 @@ public partial class MainWindow : Window
 
         VideoMetadataViewer.DataContext = VideoPreview;
         UserMetadataViewer.DataContext = VideoPreview;
+        EqualizerView.DataContext = VideoPreview;
 
         //Hide save button if autosave is enabled
         SaveSidecarButton.Visibility = SettingsHandler.Settings.AutosaveSidecar ? Visibility.Collapsed : Visibility.Visible;
@@ -366,6 +367,7 @@ public partial class MainWindow : Window
         sidecarContent.InPoint = VideoPreview.VideoControls.timelineControl.InPoint;
         sidecarContent.OutPoint = VideoPreview.VideoControls.timelineControl.OutPoint;
         sidecarContent.UserMetadata = VideoPreview.UserMetadata;
+        sidecarContent.Equalizer = VideoPreview.Equalizer;
 
         return sidecarContent;
     }
@@ -411,6 +413,7 @@ public partial class MainWindow : Window
         VideoPreview.VideoControls.timelineControl.InPoint = sidecarContent.InPoint;
         VideoPreview.VideoControls.timelineControl.OutPoint = sidecarContent.OutPoint;
         VideoPreview.UserMetadata = sidecarContent.UserMetadata;
+        VideoPreview.Equalizer = sidecarContent.Equalizer ?? new EqualizerSettings();
 
         VideoPreview.Rotation = sidecarContent?.UserMetadata?.Rotation ?? 0;
 

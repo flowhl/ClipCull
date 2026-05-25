@@ -168,13 +168,21 @@
                                         </Border>
                                     </xcad:LayoutAnchorable>
 
-                                    <xcad:LayoutAnchorable Title="Metadata" 
+                                    <xcad:LayoutAnchorable Title="Metadata"
                                               ContentId="userMetadata"
                                               CanClose="False"
                                               CanHide="True">
                                         <Border Style="{StaticResource card}" Margin="4" x:Name="UserMetadataContent">
                                             <uc:UserMetadataControl UserMetadata="{Binding Path=UserMetadata}" x:Name="UserMetadataViewer"/>
                                         </Border>
+                                    </xcad:LayoutAnchorable>
+
+                                    <xcad:LayoutAnchorable Title="Equalizer"
+                                              ContentId="equalizer"
+                                              CanClose="False"
+                                              CanHide="True">
+                                        <uc:EqualizerControl x:Name="EqualizerView"
+                                                             Equalizer="{Binding Path=Equalizer}"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
 
