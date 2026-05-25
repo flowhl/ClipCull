@@ -20,6 +20,11 @@ namespace ClipCull.Models
         //Filtering
         public bool FilterMustMatchAllTags { get; set; }
 
+        /// <summary>
+        /// When true, the rating filter ignores subclip ratings and only matches against the main clip's UserMetadata rating.
+        /// </summary>
+        public bool FilterIgnoreSubclipRating { get; set; }
+
         public int SkipSeconds { get; set; }
         public int VolumeInPercent { get; set; } = 20;
 

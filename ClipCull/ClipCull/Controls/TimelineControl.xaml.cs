@@ -30,6 +30,19 @@ namespace ClipCull.Controls
         private ClipPoint _inPoint;
         private ClipPoint _outPoint;
         private SubClip _currentSubClip;
+        private bool _isDetailedMode;
+
+        // Detailed mode layout constants
+        private const double DetailedRowHeight = 18;
+        private const double DetailedRowGap = 3;
+        private const double DetailedFirstRowTop = 30; // below standard track + playhead handle
+        private const double DetailedHandleWidth = 6;
+        private const double CompactRowHeight = 30;
+
+        // Drag-resize state
+        private SubClip _resizingSubClip;
+        private bool _resizingLeftEdge;
+        private long _resizeOtherEdgeTime;
         #endregion
 
         #region Properties
@@ -121,6 +134,25 @@ namespace ClipCull.Controls
             {
                 _readonly = value;
                 OnPropertyChanged(nameof(Readonly));
+            }
+        }
+
+        /// <summary>
+        /// When true, subclips are arranged in their own vertical rows below the timeline,
+        /// each with drag-resize handles on its left and right edges.
+        /// </summary>
+        public bool IsDetailedMode
+        {
+            get => _isDetailedMode;
+            set
+            {
+                if (_isDetailedMode != value)
+                {
+                    _isDetailedMode = value;
+                    OnPropertyChanged(nameof(IsDetailedMode));
+                    UpdateTimelineRowHeight();
+                    ForceRefreshAll();
+                }
             }
         }
 
@@ -481,18 +513,38 @@ namespace ClipCull.Controls
 
         private void RefreshSubClips()
         {
-            // Remove ALL existing subclip visuals (including current one)
-            var subClipsToRemove = TimelineCanvas.Children.OfType<Rectangle>()
-                .Where(r => r.Tag is SubClip || r.Tag?.ToString() == "CurrentSubClip").ToList();
-            foreach (var subClip in subClipsToRemove)
+            // Remove ALL existing subclip visuals (including current one + handles + labels)
+            var toRemove = TimelineCanvas.Children.OfType<UIElement>()
+                .Where(el =>
+                {
+                    object tag = (el as FrameworkElement)?.Tag;
+                    if (tag is SubClip) return true;
+                    if (tag is SubClipResizeHandle) return true;
+                    if (tag is SubClipLabel) return true;
+                    if (tag is string s && s == "CurrentSubClip") return true;
+                    return false;
+                })
+                .ToList();
+            foreach (var el in toRemove)
             {
-                TimelineCanvas.Children.Remove(subClip);
+                TimelineCanvas.Children.Remove(el);
             }
 
-            // Add current subclips
-            foreach (var subClip in SubClips)
+            if (IsDetailedMode)
             {
-                AddSubClipVisual(subClip);
+                int rowIndex = 0;
+                foreach (var subClip in SubClips)
+                {
+                    AddDetailedSubClipVisual(subClip, rowIndex);
+                    rowIndex++;
+                }
+            }
+            else
+            {
+                foreach (var subClip in SubClips)
+                {
+                    AddSubClipVisual(subClip);
+                }
             }
 
             // Add current subclip being created
@@ -500,6 +552,131 @@ namespace ClipCull.Controls
             {
                 AddCurrentSubClipVisual();
             }
+
+            UpdateTimelineRowHeight();
+        }
+
+        private void UpdateTimelineRowHeight()
+        {
+            if (!_isInitialized || TimelineTrackRow == null)
+                return;
+
+            if (IsDetailedMode)
+            {
+                int rows = SubClips?.Count ?? 0;
+                double extra = rows > 0 ? rows * (DetailedRowHeight + DetailedRowGap) : 0;
+                TimelineTrackRow.Height = CompactRowHeight + extra;
+            }
+            else
+            {
+                TimelineTrackRow.Height = CompactRowHeight;
+            }
+        }
+
+        /// <summary>
+        /// Tag marker classes so we can identify and remove our overlays without affecting other visuals.
+        /// </summary>
+        private class SubClipResizeHandle
+        {
+            public SubClip SubClip { get; set; }
+            public bool IsLeft { get; set; }
+        }
+
+        private class SubClipLabel
+        {
+            public SubClip SubClip { get; set; }
+        }
+
+        private void AddDetailedSubClipVisual(SubClip subClip, int rowIndex)
+        {
+            if (!_isInitialized || Duration <= 0) return;
+
+            var startPosition = (double)subClip.StartTime / Duration * TimelineCanvas.ActualWidth;
+            var endPosition = (double)subClip.EndTime / Duration * TimelineCanvas.ActualWidth;
+            var width = Math.Max(8, endPosition - startPosition);
+            var top = DetailedFirstRowTop + rowIndex * (DetailedRowHeight + DetailedRowGap);
+
+            // Main body
+            var body = new Rectangle
+            {
+                Width = width,
+                Height = DetailedRowHeight,
+                Fill = new SolidColorBrush(Color.FromArgb(180, subClip.Color.R, subClip.Color.G, subClip.Color.B)),
+                Stroke = subClip.ColorBrush,
+                StrokeThickness = 1,
+                Cursor = Cursors.Hand,
+                Tag = subClip,
+                ToolTip = $"{subClip.Title}\n{subClip.StartTimeDisplay} - {subClip.EndTimeDisplay}\nDuration: {subClip.DurationDisplay}"
+            };
+            body.MouseLeftButtonDown += SubClipVisual_MouseLeftButtonDown;
+            Canvas.SetLeft(body, startPosition);
+            Canvas.SetTop(body, top);
+            Canvas.SetZIndex(body, 2);
+            TimelineCanvas.Children.Add(body);
+
+            // Title label
+            if (width > 30)
+            {
+                var label = new TextBlock
+                {
+                    Text = string.IsNullOrEmpty(subClip.Title) ? "(untitled)" : subClip.Title,
+                    Foreground = new SolidColorBrush(Colors.White),
+                    FontSize = 10,
+                    IsHitTestVisible = false,
+                    Tag = new SubClipLabel { SubClip = subClip },
+                    MaxWidth = Math.Max(0, width - 2 * DetailedHandleWidth - 4)
+                };
+                Canvas.SetLeft(label, startPosition + DetailedHandleWidth + 2);
+                Canvas.SetTop(label, top + (DetailedRowHeight - 14) / 2.0);
+                Canvas.SetZIndex(label, 4);
+                TimelineCanvas.Children.Add(label);
+            }
+
+            // Resize handles (only when editable)
+            if (!Readonly)
+            {
+                var leftHandle = CreateResizeHandle(subClip, isLeft: true);
+                Canvas.SetLeft(leftHandle, startPosition);
+                Canvas.SetTop(leftHandle, top);
+                Canvas.SetZIndex(leftHandle, 3);
+                TimelineCanvas.Children.Add(leftHandle);
+
+                var rightHandle = CreateResizeHandle(subClip, isLeft: false);
+                Canvas.SetLeft(rightHandle, startPosition + width - DetailedHandleWidth);
+                Canvas.SetTop(rightHandle, top);
+                Canvas.SetZIndex(rightHandle, 3);
+                TimelineCanvas.Children.Add(rightHandle);
+            }
+        }
+
+        private Rectangle CreateResizeHandle(SubClip subClip, bool isLeft)
+        {
+            var handle = new Rectangle
+            {
+                Width = DetailedHandleWidth,
+                Height = DetailedRowHeight,
+                Fill = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)),
+                Stroke = subClip.ColorBrush,
+                StrokeThickness = 1,
+                Cursor = Cursors.SizeWE,
+                Tag = new SubClipResizeHandle { SubClip = subClip, IsLeft = isLeft },
+                ToolTip = isLeft ? "Drag to change start time" : "Drag to change end time"
+            };
+            handle.MouseLeftButtonDown += ResizeHandle_MouseLeftButtonDown;
+            return handle;
+        }
+
+        private void ResizeHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Readonly) return;
+            if (sender is not Rectangle handle || handle.Tag is not SubClipResizeHandle info)
+                return;
+
+            _resizingSubClip = info.SubClip;
+            _resizingLeftEdge = info.IsLeft;
+            _resizeOtherEdgeTime = info.IsLeft ? info.SubClip.EndTime : info.SubClip.StartTime;
+            TimelineCanvas.CaptureMouse();
+            e.Handled = true;
         }
 
         private void ForceRefreshAll()
@@ -718,6 +895,10 @@ namespace ClipCull.Controls
 
         private void TimelineCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            // Don't start a seek-drag if a resize-drag was initiated by a handle (it set capture already).
+            if (_resizingSubClip != null)
+                return;
+
             _isDragging = true;
             TimelineCanvas.CaptureMouse();
             Focus(); // Enable keyboard shortcuts
@@ -729,6 +910,28 @@ namespace ClipCull.Controls
 
         private void TimelineCanvas_MouseMove(object sender, MouseEventArgs e)
         {
+            if (_resizingSubClip != null)
+            {
+                var position = e.GetPosition(TimelineCanvas);
+                var newTime = CalculateTimeFromPosition(position.X);
+
+                if (_resizingLeftEdge)
+                {
+                    // New start time cannot exceed end time
+                    var clamped = Math.Min(newTime, _resizeOtherEdgeTime - 1);
+                    clamped = Math.Max(0, clamped);
+                    _resizingSubClip.StartTime = clamped;
+                }
+                else
+                {
+                    // New end time cannot precede start time
+                    var clamped = Math.Max(newTime, _resizeOtherEdgeTime + 1);
+                    clamped = Math.Min(Duration > 0 ? Duration : long.MaxValue, clamped);
+                    _resizingSubClip.EndTime = clamped;
+                }
+                return;
+            }
+
             if (_isDragging)
             {
                 var position = e.GetPosition(TimelineCanvas);
@@ -739,8 +942,20 @@ namespace ClipCull.Controls
 
         private void TimelineCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            if (_resizingSubClip != null)
+            {
+                _resizingSubClip = null;
+                TimelineCanvas.ReleaseMouseCapture();
+                return;
+            }
+
             _isDragging = false;
             TimelineCanvas.ReleaseMouseCapture();
+        }
+
+        private void DetailedModeToggle_Changed(object sender, RoutedEventArgs e)
+        {
+            IsDetailedMode = DetailedModeToggle?.IsChecked == true;
         }
 
         private void MarkerVisual_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

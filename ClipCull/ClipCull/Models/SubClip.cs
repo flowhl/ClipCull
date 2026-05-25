@@ -17,6 +17,7 @@ namespace ClipCull.Models
         private Color _color;
         private Guid _id;
         private SolidColorBrush _colorBrush;
+        private int? _rating;
 
         public Guid Id
         {
@@ -101,6 +102,22 @@ namespace ClipCull.Models
                     _colorBrush.Freeze(); // Make it thread-safe
                 }
                 return _colorBrush;
+            }
+        }
+
+        /// <summary>
+        /// Rating from 1 to 5 (null when unset).
+        /// </summary>
+        public int? Rating
+        {
+            get => _rating;
+            set
+            {
+                if (_rating != value)
+                {
+                    _rating = value;
+                    OnPropertyChanged(nameof(Rating));
+                }
             }
         }
 

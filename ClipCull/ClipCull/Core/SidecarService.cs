@@ -130,12 +130,19 @@ namespace ClipCull.Core
             if (a == null || b == null) return false;
             if (a.Count != b.Count) return false;
 
-            // Order-independent comparison
-            // Since SubClip has proper Equals implementation (based on Id), we can use HashSet
-            var setA = new HashSet<SubClip>(a);
-            var setB = new HashSet<SubClip>(b);
-
-            return setA.SetEquals(setB);
+            // SubClip.Equals is Id-based, so compare field values explicitly per Id
+            var mapA = a.ToDictionary(s => s.Id);
+            foreach (var sb in b)
+            {
+                if (!mapA.TryGetValue(sb.Id, out var sa)) return false;
+                if (sa.StartTime != sb.StartTime ||
+                    sa.EndTime != sb.EndTime ||
+                    sa.Title != sb.Title ||
+                    sa.Color != sb.Color ||
+                    sa.Rating != sb.Rating)
+                    return false;
+            }
+            return true;
         }
         #endregion
     }

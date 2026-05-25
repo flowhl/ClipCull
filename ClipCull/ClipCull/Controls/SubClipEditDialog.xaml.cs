@@ -43,6 +43,7 @@ namespace ClipCull.Controls
             ColorPreview.Fill = new SolidColorBrush(subClip.Color);
 
             UpdateDurationDisplay();
+            UpdateRatingStars(subClip.Rating);
 
             // Focus on title textbox
             TitleTextBox.Focus();
@@ -104,6 +105,33 @@ namespace ClipCull.Controls
             var nextIndex = (currentIndex + 1) % colors.Length;
             SubClip.Color = colors[nextIndex];
             ColorPreview.Fill = new SolidColorBrush(SubClip.Color);
+        }
+
+        private void RatingStar_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string starNumberStr &&
+                int.TryParse(starNumberStr, out int starNumber))
+            {
+                // Click the same star to clear
+                if (SubClip.Rating == starNumber)
+                    SubClip.Rating = null;
+                else
+                    SubClip.Rating = starNumber;
+
+                UpdateRatingStars(SubClip.Rating);
+            }
+        }
+
+        private void UpdateRatingStars(int? rating)
+        {
+            var starIcons = new[] { RatingStar1Icon, RatingStar2Icon, RatingStar3Icon, RatingStar4Icon, RatingStar5Icon };
+            var yellow = new SolidColorBrush(Color.FromRgb(255, 187, 36));
+            var gray = new SolidColorBrush(Color.FromRgb(136, 136, 136));
+
+            for (int i = 0; i < starIcons.Length; i++)
+            {
+                starIcons[i].Foreground = (rating.HasValue && rating.Value > i) ? yellow : gray;
+            }
         }
 
         private void StartTimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
