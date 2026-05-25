@@ -30,6 +30,8 @@ namespace ClipCull.Core
             {
                 if (sidecarContent.UserMetadata == null)
                     sidecarContent.UserMetadata = new UserMetadataContent();
+                if (sidecarContent.Equalizer == null)
+                    sidecarContent.Equalizer = new EqualizerSettings();
                 return sidecarContent;
             }
 
@@ -74,6 +76,27 @@ namespace ClipCull.Core
 
             // Compare SubClips collection (order-independent)
             if (!EqualsSubClips(a.SubClips, b.SubClips)) return false;
+
+            // Compare Equalizer
+            if (!EqualsEqualizer(a.Equalizer, b.Equalizer)) return false;
+
+            return true;
+        }
+
+        private static bool EqualsEqualizer(EqualizerSettings a, EqualizerSettings b)
+        {
+            if (ReferenceEquals(a, b)) return true;
+            a ??= new EqualizerSettings();
+            b ??= new EqualizerSettings();
+
+            if (a.Enabled != b.Enabled) return false;
+            if (Math.Abs(a.PreampDb - b.PreampDb) > 0.0001) return false;
+
+            var ga = a.BandGainsDb ?? new double[EqualizerSettings.BandCount];
+            var gb = b.BandGainsDb ?? new double[EqualizerSettings.BandCount];
+            if (ga.Length != gb.Length) return false;
+            for (int i = 0; i < ga.Length; i++)
+                if (Math.Abs(ga[i] - gb[i]) > 0.0001) return false;
 
             return true;
         }

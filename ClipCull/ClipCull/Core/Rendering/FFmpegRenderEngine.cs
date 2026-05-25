@@ -203,7 +203,7 @@ namespace ClipCull.Core.Rendering
                 args.Add($"-c:a {audioCodecArg}");
                 args.Add($"-b:a {settings.AudioBitrate}k");
 
-                string audioFilter = BuildAudioFilterChain(settings.Equalizer);
+                string audioFilter = BuildAudioFilterChain(job.Equalizer);
                 if (!string.IsNullOrEmpty(audioFilter))
                     args.Add($"-af \"{audioFilter}\"");
             }

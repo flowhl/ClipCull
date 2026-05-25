@@ -824,6 +824,16 @@ namespace ClipCull.Controls
                 fileOutputName = fileOutputName.ToValidWindowsFileName();
                 fileOutputName = fileOutputName.ToUrlSafeFilename();
 
+                EqualizerSettings clipEqualizer = null;
+                try
+                {
+                    clipEqualizer = SidecarService.GetSidecarContent(clip.VideoFilePath)?.Equalizer;
+                }
+                catch
+                {
+                    // Sidecar missing or unreadable — render without EQ.
+                }
+
                 var jobInfo = new RenderJobInfo()
                 {
                     VideoFile = clip.VideoFilePath,
@@ -831,6 +841,7 @@ namespace ClipCull.Controls
                     EndTime = endTime,
                     OutputName = fileOutputName,
                     Rotation = rotation,
+                    Equalizer = clipEqualizer,
                 };
                 try
                 {

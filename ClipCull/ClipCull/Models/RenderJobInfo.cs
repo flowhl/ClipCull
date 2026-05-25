@@ -95,6 +95,12 @@ namespace ClipCull.Models
 
         public int Rotation { get; set; }
 
+        /// <summary>
+        /// Per-clip equalizer settings (loaded from the clip's sidecar).
+        /// Only honored by render engines that support audio filtering (FFmpeg).
+        /// </summary>
+        public EqualizerSettings Equalizer { get; set; }
+
         // New properties
         private RenderProgress _progress;
         public RenderProgress Progress

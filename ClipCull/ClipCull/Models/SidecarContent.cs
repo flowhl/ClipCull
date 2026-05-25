@@ -16,11 +16,13 @@ namespace ClipCull.Models
         public ClipPoint InPoint { get; set; }
         public ClipPoint OutPoint { get; set; }
         public UserMetadataContent UserMetadata { get; set; }
+        public EqualizerSettings Equalizer { get; set; }
         public SidecarContent()
         {
             Markers = new List<Marker>();
             SubClips = new List<SubClip>();
             UserMetadata = new UserMetadataContent();
+            Equalizer = new EqualizerSettings();
         }
     }
 

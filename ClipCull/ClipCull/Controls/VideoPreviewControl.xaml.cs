@@ -118,6 +118,20 @@ namespace ClipCull.Controls
             }
         }
 
+        private EqualizerSettings _equalizer = new EqualizerSettings();
+        /// <summary>
+        /// Equalizer settings for the currently loaded clip. Persisted to the sidecar.
+        /// </summary>
+        public EqualizerSettings Equalizer
+        {
+            get => _equalizer;
+            set
+            {
+                _equalizer = value ?? new EqualizerSettings();
+                OnPropertyChanged(nameof(Equalizer));
+            }
+        }
+
         #endregion
 
         #region Events

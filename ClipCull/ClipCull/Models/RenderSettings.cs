@@ -87,16 +87,6 @@ namespace ClipCull.Models
             set { _audioBitrate = value; OnPropertyChanged(); }
         }
 
-        private EqualizerSettings _equalizer = new EqualizerSettings();
-        /// <summary>
-        /// Audio equalizer settings. Only applied when rendering with the FFmpeg engine.
-        /// </summary>
-        public EqualizerSettings Equalizer
-        {
-            get => _equalizer;
-            set { _equalizer = value ?? new EqualizerSettings(); OnPropertyChanged(); }
-        }
-
         // Container
         private ContainerFormat _containerFormat = ContainerFormat.MP4;
         public ContainerFormat ContainerFormat

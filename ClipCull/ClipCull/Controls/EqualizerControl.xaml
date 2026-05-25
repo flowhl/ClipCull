@@ -1,0 +1,62 @@
+<UserControl x:Class="ClipCull.Controls.EqualizerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:ClipCull.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="340" d:DesignWidth="500">
+    <Border Style="{StaticResource card}" Margin="4">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource h3}">Audio Equalizer</TextBlock>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Name="BtnEqCopy" Content="Copy" Style="{StaticResource primary-sm}"
+                                ToolTip="Copy equalizer settings to clipboard"
+                                Click="BtnEqCopy_Click"/>
+                        <Button Name="BtnEqPaste" Content="Paste" Style="{StaticResource primary-sm}"
+                                Margin="5,0,0,0"
+                                ToolTip="Paste equalizer settings from clipboard"
+                                Click="BtnEqPaste_Click"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Style="{StaticResource muted}" Margin="0,0,0,5"
+                           TextWrapping="Wrap"
+                           Text="Stored per clip in the sidecar file. Only applied when rendering with the FFmpeg engine."/>
+                <Separator Margin="0,5,0,10"/>
+
+                <!--Enable-->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Enable Equalizer</TextBlock>
+                    <local:ToggleButtonControl Margin="5" Height="20" x:Name="ToggleEqualizerEnabled"/>
+                </StackPanel>
+
+                <!--Preamp-->
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Width="80">Preamp</TextBlock>
+                    <Slider x:Name="SliderPreamp" Width="180" VerticalAlignment="Center"
+                            Minimum="-20" Maximum="20" Value="0"
+                            TickFrequency="1" IsSnapToTickEnabled="False"
+                            ValueChanged="SliderPreamp_ValueChanged"/>
+                    <TextBlock x:Name="LblPreamp" VerticalAlignment="Center" Margin="8,0,0,0"
+                               Style="{StaticResource muted}" MinWidth="50" Text="0.0 dB"/>
+                </StackPanel>
+
+                <!--Bands-->
+                <TextBlock Style="{StaticResource h4}" Margin="0,12,0,4">Bands (dB)</TextBlock>
+                <UniformGrid x:Name="EqBandsGrid" Rows="1" Columns="10" HorizontalAlignment="Left"/>
+
+                <!--Reset-->
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Name="BtnEqReset" Content="Reset to flat" Style="{StaticResource primary-sm}" Click="BtnEqReset_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

@@ -117,6 +117,30 @@ namespace ClipCull.Core
             return new RelayCommand<DockLayoutParameter>(SaveLayout);
         }
 
+        /// <summary>
+        /// Map of dock manager name -> ContentIds that MUST appear in any saved
+        /// layout for it to be considered up to date. When a new dockable panel
+        /// is added in XAML, list its ContentId here so existing users get the
+        /// new panel instead of an outdated layout that doesn't reference it.
+        /// </summary>
+        private static readonly Dictionary<string, string[]> _requiredContentIds =
+            new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                ["EditingDockManager"] = new[] { "equalizer" }
+            };
+
+        private static bool IsLayoutOutdated(string managerName, string layoutXml)
+        {
+            if (!_requiredContentIds.TryGetValue(managerName, out var ids))
+                return false;
+            foreach (var id in ids)
+            {
+                if (layoutXml.IndexOf($"ContentId=\"{id}\"", StringComparison.Ordinal) < 0)
+                    return true;
+            }
+            return false;
+        }
+
         private static void LoadLayout(DockLayoutParameter parameter)
         {
             if (parameter?.DockingManager == null) return;
@@ -125,6 +149,15 @@ namespace ClipCull.Core
             {
                 var layoutXml = GetDockLayoutXml(parameter.ManagerName);
                 if (string.IsNullOrEmpty(layoutXml)) return;
+
+                if (IsLayoutOutdated(parameter.ManagerName, layoutXml))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Saved layout for {parameter.ManagerName} is missing required content ids; using XAML default.");
+                    SetDockLayoutXml(parameter.ManagerName, string.Empty);
+                    SaveSettings(_windowSettings);
+                    return;
+                }
 
                 var layoutSerializer = new XmlLayoutSerializer(parameter.DockingManager);
 
