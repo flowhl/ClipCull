@@ -202,6 +202,10 @@ namespace ClipCull.Core.Rendering
                 string audioCodecArg = GetAudioCodecArg(settings.AudioCodec);
                 args.Add($"-c:a {audioCodecArg}");
                 args.Add($"-b:a {settings.AudioBitrate}k");
+
+                string audioFilter = BuildAudioFilterChain(settings.Equalizer);
+                if (!string.IsNullOrEmpty(audioFilter))
+                    args.Add($"-af \"{audioFilter}\"");
             }
 
             // Metadata: strip rotation since we handle it in filters
@@ -274,6 +278,31 @@ namespace ClipCull.Core.Rendering
                 AudioCodec.Opus => "libopus",
                 _ => "aac"
             };
+        }
+
+        private static string BuildAudioFilterChain(EqualizerSettings eq)
+        {
+            if (eq == null || !eq.Enabled)
+                return null;
+
+            var parts = new List<string>();
+
+            if (Math.Abs(eq.PreampDb) > 0.01)
+                parts.Add($"volume={eq.PreampDb.ToString("F2", CultureInfo.InvariantCulture)}dB");
+
+            for (int i = 0; i < EqualizerSettings.BandCount; i++)
+            {
+                double gain = eq.BandGainsDb[i];
+                if (Math.Abs(gain) < 0.01)
+                    continue;
+
+                int freq = EqualizerSettings.BandFrequenciesHz[i];
+                // width_type=o (octave), width=1 -> 1-octave wide band centred on freq
+                parts.Add(
+                    $"equalizer=f={freq}:width_type=o:width=1:g={gain.ToString("F2", CultureInfo.InvariantCulture)}");
+            }
+
+            return parts.Count > 0 ? string.Join(",", parts) : null;
         }
 
         private static string GetRotationFilter(int rotation)

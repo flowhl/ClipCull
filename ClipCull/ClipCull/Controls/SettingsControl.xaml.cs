@@ -27,6 +27,8 @@ namespace ClipCull.Controls
     public partial class SettingsControl : UserControl
     {
         private bool _isLoading;
+        private readonly Slider[] _eqBandSliders = new Slider[EqualizerSettings.BandCount];
+        private readonly TextBlock[] _eqBandLabels = new TextBlock[EqualizerSettings.BandCount];
 
         public SettingsControl()
         {
@@ -44,6 +46,7 @@ namespace ClipCull.Controls
             TxCurrentGyroflowSettingsPath.Text = "Path: " + (SettingsHandler.Settings.GyroflowSettingsPath ?? "Using Default");
 
             PopulateRenderSettingsControls();
+            BuildEqualizerControls();
 
             //Tags
             var tagCollection = new ObservableCollection<EditableTag>();
@@ -145,6 +148,131 @@ namespace ClipCull.Controls
                 SettingsHandler.Settings.DefaultRenderSettings = new RenderSettings();
             return SettingsHandler.Settings.DefaultRenderSettings;
         }
+
+        private EqualizerSettings EnsureEqualizer()
+        {
+            var rs = EnsureRenderSettings();
+            if (rs.Equalizer == null)
+                rs.Equalizer = new EqualizerSettings();
+            return rs.Equalizer;
+        }
+
+        private void BuildEqualizerControls()
+        {
+            var eq = EnsureEqualizer();
+
+            ToggleEqualizerEnabled.IsToggled = eq.Enabled;
+            ToggleEqualizerEnabled.Toggled -= ToggleEqualizerEnabled_Toggled;
+            ToggleEqualizerEnabled.Toggled += ToggleEqualizerEnabled_Toggled;
+
+            SliderPreamp.Value = eq.PreampDb;
+            LblPreamp.Text = FormatDb(eq.PreampDb);
+
+            EqBandsGrid.Children.Clear();
+            for (int i = 0; i < EqualizerSettings.BandCount; i++)
+            {
+                int freq = EqualizerSettings.BandFrequenciesHz[i];
+                double gain = (eq.BandGainsDb != null && eq.BandGainsDb.Length == EqualizerSettings.BandCount)
+                    ? eq.BandGainsDb[i] : 0.0;
+
+                var col = new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(4, 0, 4, 0)
+                };
+
+                var freqLabel = new TextBlock
+                {
+                    Text = FormatFrequency(freq),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Style = (Style)FindResource("muted")
+                };
+
+                var slider = new Slider
+                {
+                    Orientation = Orientation.Vertical,
+                    Minimum = EqualizerSettings.MinGainDb,
+                    Maximum = EqualizerSettings.MaxGainDb,
+                    Value = gain,
+                    Height = 140,
+                    TickFrequency = 1,
+                    IsDirectionReversed = false,
+                    Tag = i
+                };
+                slider.ValueChanged += BandSlider_ValueChanged;
+
+                var valueLabel = new TextBlock
+                {
+                    Text = FormatDb(gain),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 2, 0, 0),
+                    Style = (Style)FindResource("muted"),
+                    MinWidth = 50,
+                    TextAlignment = TextAlignment.Center
+                };
+
+                col.Children.Add(freqLabel);
+                col.Children.Add(slider);
+                col.Children.Add(valueLabel);
+
+                _eqBandSliders[i] = slider;
+                _eqBandLabels[i] = valueLabel;
+
+                EqBandsGrid.Children.Add(col);
+            }
+        }
+
+        private void ToggleEqualizerEnabled_Toggled(object sender, bool isToggled)
+        {
+            if (_isLoading) return;
+            EnsureEqualizer().Enabled = isToggled;
+        }
+
+        private void SliderEq_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isLoading) return;
+            if (sender == SliderPreamp)
+            {
+                EnsureEqualizer().PreampDb = e.NewValue;
+                if (LblPreamp != null)
+                    LblPreamp.Text = FormatDb(e.NewValue);
+            }
+        }
+
+        private void BandSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isLoading) return;
+            if (sender is Slider s && s.Tag is int index)
+            {
+                var eq = EnsureEqualizer();
+                if (eq.BandGainsDb == null || eq.BandGainsDb.Length != EqualizerSettings.BandCount)
+                    eq.BandGainsDb = new double[EqualizerSettings.BandCount];
+                eq.BandGainsDb[index] = e.NewValue;
+                if (_eqBandLabels[index] != null)
+                    _eqBandLabels[index].Text = FormatDb(e.NewValue);
+            }
+        }
+
+        private void BtnEqReset_Click(object sender, RoutedEventArgs e)
+        {
+            var eq = EnsureEqualizer();
+            eq.PreampDb = 0;
+            eq.BandGainsDb = new double[EqualizerSettings.BandCount];
+
+            SliderPreamp.Value = 0;
+            LblPreamp.Text = FormatDb(0);
+            for (int i = 0; i < EqualizerSettings.BandCount; i++)
+            {
+                if (_eqBandSliders[i] != null) _eqBandSliders[i].Value = 0;
+                if (_eqBandLabels[i] != null) _eqBandLabels[i].Text = FormatDb(0);
+            }
+        }
+
+        private static string FormatDb(double db) => $"{db:+0.0;-0.0;0.0} dB";
+
+        private static string FormatFrequency(int hz) =>
+            hz >= 1000 ? $"{hz / 1000}k" : hz.ToString();
 
         private void CbDefaultEngine_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
