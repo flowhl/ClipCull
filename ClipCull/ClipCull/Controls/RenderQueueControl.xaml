@@ -245,7 +245,13 @@
                               Name="TxRenderingEngineInfo"
                               Text="Processing video clips"
                               HorizontalAlignment="Center"
-                              Margin="0,0,0,16"/>
+                              Margin="0,0,0,8"/>
+                    <TextBlock Style="{StaticResource body}"
+                              Name="TxRenderingProgress"
+                              Text=""
+                              HorizontalAlignment="Center"
+                              Margin="0,0,0,16"
+                              FontWeight="SemiBold"/>
                     <ProgressBar Height="4"
                                 IsIndeterminate="True"
                                 Background="{StaticResource MutedBrush}"
