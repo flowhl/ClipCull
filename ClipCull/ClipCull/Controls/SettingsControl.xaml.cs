@@ -28,6 +28,13 @@ namespace ClipCull.Controls
     {
         private bool _isLoading;
 
+        /// <summary>
+        /// Working copy of the workspaces being edited. Changes are committed to settings on Save.
+        /// </summary>
+        private List<Workspace> _editWorkspaces = new List<Workspace>();
+        private Workspace _selectedEditWorkspace;
+        private bool _isLoadingWorkspaces;
+
         public SettingsControl()
         {
             InitializeComponent();
@@ -45,17 +52,296 @@ namespace ClipCull.Controls
 
             PopulateRenderSettingsControls();
 
-            //Tags
-            var tagCollection = new ObservableCollection<EditableTag>();
-            SettingsHandler.Settings.Tags.ForEach(x => tagCollection.Add(new EditableTag
-            {
-                Color = x.Color,
-                Name = x.Name
-            }));
-            TagManagement.Tags = tagCollection;
+            //Tags (per workspace)
+            LoadWorkspacesIntoEditor();
 
             _isLoading = false;
         }
+
+        #region Tag Workspaces
+
+        /// <summary>
+        /// Builds a working copy of the workspaces and populates the workspace selector.
+        /// </summary>
+        private void LoadWorkspacesIntoEditor()
+        {
+            _isLoadingWorkspaces = true;
+            try
+            {
+                _editWorkspaces = SettingsHandler.Settings.Workspaces
+                    .Select(CloneWorkspace)
+                    .ToList();
+
+                if (_editWorkspaces.Count == 0)
+                    _editWorkspaces.Add(new Workspace { Name = SettingsHandler.DefaultWorkspaceName });
+
+                // Prefer the currently active workspace as the initial selection.
+                var initial = _editWorkspaces.FirstOrDefault(w =>
+                                  string.Equals(w.Name, SettingsHandler.Settings.CurrentWorkspaceName, StringComparison.OrdinalIgnoreCase))
+                              ?? _editWorkspaces[0];
+
+                _selectedEditWorkspace = initial;
+                RepopulateWorkspaceCombos(initial.Name);
+                LoadWorkspaceTags(initial);
+            }
+            finally
+            {
+                _isLoadingWorkspaces = false;
+            }
+        }
+
+        /// <summary>
+        /// Rebuilds both workspace dropdowns from the working list. The edit combo is set to
+        /// <paramref name="selectInEditCombo"/>; the target combo defaults to a different workspace.
+        /// </summary>
+        private void RepopulateWorkspaceCombos(string selectInEditCombo)
+        {
+            bool previous = _isLoadingWorkspaces;
+            _isLoadingWorkspaces = true;
+            try
+            {
+                CbTagWorkspace.Items.Clear();
+                CbTargetWorkspace.Items.Clear();
+                foreach (var ws in _editWorkspaces)
+                {
+                    CbTagWorkspace.Items.Add(ws.Name);
+                    CbTargetWorkspace.Items.Add(ws.Name);
+                }
+
+                if (selectInEditCombo != null)
+                    CbTagWorkspace.SelectedItem = selectInEditCombo;
+
+                CbTargetWorkspace.SelectedItem =
+                    _editWorkspaces.FirstOrDefault(w => !string.Equals(w.Name, selectInEditCombo, StringComparison.OrdinalIgnoreCase))?.Name
+                    ?? (_editWorkspaces.Count > 0 ? _editWorkspaces[0].Name : null);
+            }
+            finally
+            {
+                _isLoadingWorkspaces = previous;
+            }
+        }
+
+        private static Workspace CloneWorkspace(Workspace source)
+        {
+            return new Workspace
+            {
+                Name = source.Name,
+                Tags = (source.Tags ?? new List<Tag>())
+                    .Select(t => new Tag { Name = t.Name, Color = t.Color })
+                    .ToList()
+            };
+        }
+
+        private void LoadWorkspaceTags(Workspace workspace)
+        {
+            var tagCollection = new ObservableCollection<EditableTag>();
+            if (workspace?.Tags != null)
+            {
+                workspace.Tags.ForEach(x => tagCollection.Add(new EditableTag
+                {
+                    Color = x.Color,
+                    Name = x.Name
+                }));
+            }
+            TagManagement.Tags = tagCollection;
+        }
+
+        /// <summary>
+        /// Stores the tags currently shown in the editor back into the selected working workspace.
+        /// </summary>
+        private void CommitTagsToSelectedWorkspace()
+        {
+            if (_selectedEditWorkspace == null)
+                return;
+
+            _selectedEditWorkspace.Tags = TagManagement.Tags
+                .Select(x => new Tag { Name = x.Name, Color = x.Color })
+                .ToList();
+        }
+
+        private void CbTagWorkspace_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoadingWorkspaces)
+                return;
+
+            // Persist edits made to the previously selected workspace before switching.
+            CommitTagsToSelectedWorkspace();
+
+            if (CbTagWorkspace.SelectedItem is string name)
+            {
+                _selectedEditWorkspace = _editWorkspaces.FirstOrDefault(w =>
+                    string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase));
+                LoadWorkspaceTags(_selectedEditWorkspace);
+            }
+        }
+
+        private void BtnAddWorkspace_Click(object sender, RoutedEventArgs e)
+        {
+            var name = TbWorkspaceName.Text?.Trim();
+            if (string.IsNullOrEmpty(name))
+            {
+                Logger.LogWarning("Enter a workspace name first.");
+                return;
+            }
+            if (_editWorkspaces.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                Logger.LogWarning($"A workspace named '{name}' already exists.");
+                return;
+            }
+
+            CommitTagsToSelectedWorkspace();
+
+            var newWorkspace = new Workspace { Name = name };
+            _editWorkspaces.Add(newWorkspace);
+            _selectedEditWorkspace = newWorkspace;
+
+            RepopulateWorkspaceCombos(name);
+            LoadWorkspaceTags(newWorkspace);
+            TbWorkspaceName.Text = string.Empty;
+        }
+
+        private void BtnDuplicateWorkspace_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedEditWorkspace == null)
+                return;
+
+            // Make sure the editor's pending tag edits are part of the duplicate.
+            CommitTagsToSelectedWorkspace();
+
+            var requested = TbWorkspaceName.Text?.Trim();
+            var name = MakeUniqueWorkspaceName(
+                string.IsNullOrEmpty(requested) ? _selectedEditWorkspace.Name + " copy" : requested);
+
+            var duplicate = CloneWorkspace(_selectedEditWorkspace);
+            duplicate.Name = name;
+
+            _editWorkspaces.Add(duplicate);
+            _selectedEditWorkspace = duplicate;
+
+            RepopulateWorkspaceCombos(name);
+            LoadWorkspaceTags(duplicate);
+            TbWorkspaceName.Text = string.Empty;
+        }
+
+        /// <summary>
+        /// Returns a workspace name based on <paramref name="baseName"/> that is not yet in use.
+        /// </summary>
+        private string MakeUniqueWorkspaceName(string baseName)
+        {
+            if (!_editWorkspaces.Any(w => string.Equals(w.Name, baseName, StringComparison.OrdinalIgnoreCase)))
+                return baseName;
+
+            for (int i = 2; ; i++)
+            {
+                var candidate = $"{baseName} {i}";
+                if (!_editWorkspaces.Any(w => string.Equals(w.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+                    return candidate;
+            }
+        }
+
+        private void BtnCopyTags_Click(object sender, RoutedEventArgs e) => TransferSelectedTags(move: false);
+
+        private void BtnMoveTags_Click(object sender, RoutedEventArgs e) => TransferSelectedTags(move: true);
+
+        /// <summary>
+        /// Copies (or moves) the tags selected in the list into the chosen target workspace.
+        /// </summary>
+        private void TransferSelectedTags(bool move)
+        {
+            if (CbTargetWorkspace.SelectedItem is not string targetName)
+            {
+                Logger.LogWarning("Select a target workspace first.");
+                return;
+            }
+
+            var target = _editWorkspaces.FirstOrDefault(w =>
+                string.Equals(w.Name, targetName, StringComparison.OrdinalIgnoreCase));
+            if (target == null)
+                return;
+
+            if (target == _selectedEditWorkspace)
+            {
+                Logger.LogWarning("Target workspace must differ from the current one.");
+                return;
+            }
+
+            var selected = TagManagement.GetSelectedTags();
+            if (selected.Count == 0)
+            {
+                Logger.LogWarning("Select one or more tags in the list first.");
+                return;
+            }
+
+            if (target.Tags == null)
+                target.Tags = new List<Tag>();
+
+            int transferred = 0;
+            foreach (var tag in selected)
+            {
+                if (target.Tags.Any(t => string.Equals(t.Name, tag.Name, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                target.Tags.Add(new Tag { Name = tag.Name, Color = tag.Color });
+                transferred++;
+            }
+
+            if (move)
+            {
+                TagManagement.RemoveTagsByName(selected.Select(t => t.Name));
+                CommitTagsToSelectedWorkspace();
+            }
+
+            Logger.LogSuccess($"{(move ? "Moved" : "Copied")} {transferred} tag(s) to '{target.Name}'.");
+        }
+
+        private void BtnRenameWorkspace_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedEditWorkspace == null)
+                return;
+
+            var name = TbWorkspaceName.Text?.Trim();
+            if (string.IsNullOrEmpty(name))
+            {
+                Logger.LogWarning("Enter the new workspace name first.");
+                return;
+            }
+            if (_editWorkspaces.Any(w => w != _selectedEditWorkspace &&
+                                         string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                Logger.LogWarning($"A workspace named '{name}' already exists.");
+                return;
+            }
+
+            _selectedEditWorkspace.Name = name;
+
+            RepopulateWorkspaceCombos(name);
+            TbWorkspaceName.Text = string.Empty;
+        }
+
+        private void BtnDeleteWorkspace_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedEditWorkspace == null)
+                return;
+
+            if (_editWorkspaces.Count <= 1)
+            {
+                Logger.LogWarning("At least one workspace is required.");
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Delete the workspace '{_selectedEditWorkspace.Name}' and all of its tags?",
+                "Delete Workspace", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            _editWorkspaces.Remove(_selectedEditWorkspace);
+            _selectedEditWorkspace = _editWorkspaces[0];
+
+            RepopulateWorkspaceCombos(_selectedEditWorkspace.Name);
+            LoadWorkspaceTags(_selectedEditWorkspace);
+        }
+
+        #endregion
 
         private void PopulateRenderSettingsControls()
         {
@@ -206,14 +492,19 @@ namespace ClipCull.Controls
 
         public void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            var newTags = new List<Tag>();
-            TagManagement.Tags.ToList().ForEach(x => newTags.Add(new Models.Tag
-            {
-                Color = x.Color,
-                Name = x.Name
-            }));
+            // Commit pending tag edits and persist the workspaces.
+            CommitTagsToSelectedWorkspace();
 
-            SettingsHandler.Settings.Tags = newTags;
+            SettingsHandler.Settings.Workspaces = _editWorkspaces
+                .Select(CloneWorkspace)
+                .ToList();
+
+            // Keep the active workspace valid (e.g. if it was renamed or deleted here).
+            if (SettingsHandler.Settings.Workspaces.All(w =>
+                    !string.Equals(w.Name, SettingsHandler.Settings.CurrentWorkspaceName, StringComparison.OrdinalIgnoreCase)))
+            {
+                SettingsHandler.Settings.CurrentWorkspaceName = SettingsHandler.Settings.Workspaces[0].Name;
+            }
 
             // Save numeric values from textboxes
             if (int.TryParse(TbQuality.Text, out int quality))
@@ -227,6 +518,10 @@ namespace ClipCull.Controls
 
             SettingsHandler.Save();
             HotkeyController.SaveMappings();
+
+            // Refresh tag dropdowns and the workspace selector with the new workspace set.
+            SettingsHandler.NotifyWorkspaceChanged();
+
             Logger.LogSuccess("Settings saved successfully.");
         }
 

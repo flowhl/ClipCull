@@ -34,9 +34,9 @@
 
                             <!-- Left Actions -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="OpenVideoButton" 
-                            Content="Open Video File" 
-                            Click="OpenVideoButton_Click"
+                                <Button x:Name="OpenFolderButton"
+                            Content="Open Folder"
+                            Click="OpenFolderButton_Click"
                             Style="{StaticResource primary-lg}">
                                     <Button.ContentTemplate>
                                         <DataTemplate>
@@ -203,13 +203,31 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <materialDesign:PackIcon Kind="Information" 
+                                <materialDesign:PackIcon Kind="Information"
                                            Width="14" Height="14"
                                            Foreground="{StaticResource MutedForegroundBrush}"
                                            Margin="0,0,8,0"/>
-                                <TextBlock x:Name="StatusLabel" 
-                              Text="Ready" 
+                                <TextBlock x:Name="StatusLabel"
+                              Text="Ready"
                               Style="{StaticResource small}"/>
+                            </StackPanel>
+
+                            <!-- Workspace Selector -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <materialDesign:PackIcon Kind="Tag"
+                                           Width="14" Height="14"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource MutedForegroundBrush}"
+                                           Margin="0,0,6,0"/>
+                                <TextBlock Text="Workspace:"
+                                           Style="{StaticResource small}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,6,0"/>
+                                <ComboBox x:Name="WorkspaceSelector"
+                                          MinWidth="140"
+                                          VerticalAlignment="Center"
+                                          ToolTip="Active label workspace (filters the tag dropdowns)"
+                                          SelectionChanged="WorkspaceSelector_SelectionChanged"/>
                             </StackPanel>
                         </Grid>
                     </Border>

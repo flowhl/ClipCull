@@ -183,7 +183,49 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Tags">
-                <local:TagManagementControl x:Name="TagManagement"  AllowDuplicateNames="False" MaxTagNameLength="20"/>
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Workspace management bar -->
+                    <Border Grid.Row="0" Style="{StaticResource card}" Margin="0,0,0,8" Padding="12,10">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,0,8,0">Workspace</TextBlock>
+                                <ComboBox Name="CbTagWorkspace" Width="180" VerticalAlignment="Center"
+                                          SelectionChanged="CbTagWorkspace_SelectionChanged"
+                                          ToolTip="Tags are managed separately per workspace"/>
+                                <TextBox Name="TbWorkspaceName" Width="160" Margin="16,0,0,0" VerticalContentAlignment="Center"
+                                         Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}"
+                                         ToolTip="Name used when adding, renaming or duplicating a workspace"/>
+                                <Button Name="BtnAddWorkspace" Content="Add" Margin="6,0,0,0" Style="{StaticResource primary-sm}" Click="BtnAddWorkspace_Click"/>
+                                <Button Name="BtnDuplicateWorkspace" Content="Duplicate" Margin="6,0,0,0" Style="{StaticResource secondary-sm}" Click="BtnDuplicateWorkspace_Click"/>
+                                <Button Name="BtnRenameWorkspace" Content="Rename" Margin="6,0,0,0" Style="{StaticResource secondary-sm}" Click="BtnRenameWorkspace_Click"/>
+                                <Button Name="BtnDeleteWorkspace" Content="Delete" Margin="6,0,0,0" Style="{StaticResource secondary-sm}" Click="BtnDeleteWorkspace_Click"/>
+                            </StackPanel>
+
+                            <!-- Move / copy selected tags to another workspace -->
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,0,8,0">Selected tags →</TextBlock>
+                                <ComboBox Name="CbTargetWorkspace" Width="180" VerticalAlignment="Center"
+                                          ToolTip="Target workspace for the selected tags"/>
+                                <Button Name="BtnCopyTags" Content="Copy" Margin="6,0,0,0" Style="{StaticResource secondary-sm}" Click="BtnCopyTags_Click"
+                                        ToolTip="Copy the tags selected in the list to the target workspace"/>
+                                <Button Name="BtnMoveTags" Content="Move" Margin="6,0,0,0" Style="{StaticResource secondary-sm}" Click="BtnMoveTags_Click"
+                                        ToolTip="Move the tags selected in the list to the target workspace"/>
+                            </StackPanel>
+
+                            <TextBlock Style="{StaticResource small}" Foreground="{StaticResource MutedForegroundBrush}" Margin="0,6,0,0"
+                                       TextWrapping="Wrap">
+                                Tags below belong to the selected workspace. Switch the active workspace from the status bar in the Editing tab. Existing labels on clips always load regardless of the active workspace.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <local:TagManagementControl Grid.Row="1" x:Name="TagManagement" AllowDuplicateNames="False" MaxTagNameLength="20"/>
+                </Grid>
             </TabItem>
             <TabItem Header="Hotkeys">
                 <local:HotkeySettingsControl x:Name="HotkeyView" />

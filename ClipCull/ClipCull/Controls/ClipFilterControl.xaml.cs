@@ -56,12 +56,25 @@ namespace ClipCull.Controls
             InitializeComponent();
             DataContext = this;
 
-            // Set up TaggingControl with available tags
-            var availableTags = new ObservableCollection<Tag>();
-            SettingsHandler.Settings.Tags.ForEach(tag => availableTags.Add(tag));
-            TagFilterControl.AvailableTags = availableTags;
+            // Set up TaggingControl with available tags from the active workspace
+            RefreshAvailableTags();
+
+            // Refresh the filter dropdown when the active workspace changes
+            SettingsHandler.WorkspaceChanged += OnWorkspaceChanged;
 
             this.Loaded += ClipFilterControl_Loaded;
+        }
+
+        private void RefreshAvailableTags()
+        {
+            var availableTags = new ObservableCollection<Tag>();
+            SettingsHandler.GetCurrentWorkspaceTags().ForEach(tag => availableTags.Add(tag));
+            TagFilterControl.AvailableTags = availableTags;
+        }
+
+        private void OnWorkspaceChanged()
+        {
+            Dispatcher.Invoke(RefreshAvailableTags);
         }
 
         private void ClipFilterControl_Loaded(object sender, RoutedEventArgs e)

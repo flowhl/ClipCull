@@ -11,6 +11,8 @@ namespace ClipCull.Models
         public SettingsModel()
         {
             Tags = new List<Tag>();
+            Workspaces = new List<Workspace>();
+            FolderWorkspaces = new List<FolderWorkspace>();
         }
 
         public bool AutosaveSidecar { get; set; }
@@ -50,7 +52,27 @@ namespace ClipCull.Models
         public bool SnapToInOutPoints { get; set; } = true;
         public double SnapSensitivityPixels { get; set; } = 10.0;
 
+        /// <summary>
+        /// Legacy flat tag list. Kept only so old settings files can be migrated into
+        /// the default workspace on load. Tags now live inside <see cref="Workspaces"/>.
+        /// </summary>
         public List<Tag> Tags { get; set; }
+
+        /// <summary>
+        /// All tag workspaces. Each workspace has its own set of labels.
+        /// </summary>
+        public List<Workspace> Workspaces { get; set; }
+
+        /// <summary>
+        /// Name of the currently active workspace whose tags are offered in the dropdowns.
+        /// </summary>
+        public string CurrentWorkspaceName { get; set; }
+
+        /// <summary>
+        /// Remembered workspace per folder loaded in the file browser.
+        /// </summary>
+        public List<FolderWorkspace> FolderWorkspaces { get; set; }
+
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();
     }
 }
