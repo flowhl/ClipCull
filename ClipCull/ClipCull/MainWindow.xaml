@@ -34,9 +34,9 @@
 
                             <!-- Left Actions -->
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="OpenVideoButton" 
-                            Content="Open Video File" 
-                            Click="OpenVideoButton_Click"
+                                <Button x:Name="OpenFolderButton"
+                            Content="Open Folder"
+                            Click="OpenFolderButton_Click"
                             Style="{StaticResource primary-lg}">
                                     <Button.ContentTemplate>
                                         <DataTemplate>

@@ -121,6 +121,10 @@ namespace ClipCull.Controls
 
         #region Events
         public event EventHandler<FolderSelectedEventArgs> FolderSelected;
+        /// <summary>
+        /// Raised when a new root folder is loaded into the browser (e.g. via Select Folder).
+        /// </summary>
+        public event EventHandler<FolderSelectedEventArgs> FolderLoaded;
         public event EventHandler<FileSelectedEventArgs> FileSelected;
         public event EventHandler<PathChangedEventArgs> PathChanged;
         public event EventHandler<FolderDoubleClickEventArgs> FolderDoubleClick;
@@ -158,6 +162,8 @@ namespace ClipCull.Controls
         public void LoadFolder(string rootPath)
         {
             RootPath = rootPath;
+            if (!string.IsNullOrEmpty(rootPath))
+                FolderLoaded?.Invoke(this, new FolderSelectedEventArgs(rootPath));
         }
 
         public async void JumpToFolder(string path)

@@ -110,6 +110,7 @@ public partial class MainWindow : Window
 
         FolderTree.FolderSelected += FolderTree_FolderSelected;
         FolderTree.FileSelected += FolderTree_FileSelected;
+        FolderTree.FolderLoaded += FolderTree_FolderLoaded;
 
         VideoClipBrowser.ClipSelectionChanged += VideoClipBrowser_ClipSelectionChanged;
         ClipPreview.VideoLoaded += ClipPreview_VideoLoaded;
@@ -136,6 +137,10 @@ public partial class MainWindow : Window
         // MainWindow_Loaded can run more than once; keep the subscription single.
         SettingsHandler.WorkspaceChanged -= RefreshWorkspaceSelector;
         SettingsHandler.WorkspaceChanged += RefreshWorkspaceSelector;
+
+        // Restore the workspace remembered for the folder the browser started on.
+        if (!string.IsNullOrEmpty(FolderTree.RootPath))
+            ApplyWorkspaceForFolder(FolderTree.RootPath);
 
         ClipFilter.FilterCriteria = _filterCriteria;
         LayoutManager.InitializeLayoutManagement(this);
@@ -179,6 +184,39 @@ public partial class MainWindow : Window
 
     #region Workspace Selector
 
+    private string _currentFolderTreeRoot;
+
+    private void FolderTree_FolderLoaded(object sender, Controls.FolderSelectedEventArgs e)
+    {
+        ApplyWorkspaceForFolder(e.FolderPath);
+    }
+
+    /// <summary>
+    /// When a folder is loaded, switch to the workspace remembered for it, or remember the
+    /// current workspace for that folder if there is no association yet.
+    /// </summary>
+    private void ApplyWorkspaceForFolder(string folder)
+    {
+        if (string.IsNullOrEmpty(folder))
+            return;
+
+        _currentFolderTreeRoot = folder;
+
+        var remembered = SettingsHandler.GetWorkspaceForFolder(folder);
+        bool exists = !string.IsNullOrEmpty(remembered) &&
+                      SettingsHandler.Settings.Workspaces.Any(w =>
+                          string.Equals(w.Name, remembered, StringComparison.OrdinalIgnoreCase));
+
+        if (exists)
+        {
+            SettingsHandler.SetCurrentWorkspace(remembered);
+        }
+        else
+        {
+            SettingsHandler.RememberWorkspaceForFolder(folder, SettingsHandler.Settings.CurrentWorkspaceName);
+        }
+    }
+
     /// <summary>
     /// Repopulates the status bar workspace dropdown from settings and selects the active one.
     /// </summary>
@@ -211,6 +249,10 @@ public partial class MainWindow : Window
         if (WorkspaceSelector.SelectedItem is string name)
         {
             SettingsHandler.SetCurrentWorkspace(name);
+
+            // Tie the manual choice to the folder currently loaded in the browser.
+            if (!string.IsNullOrEmpty(_currentFolderTreeRoot))
+                SettingsHandler.RememberWorkspaceForFolder(_currentFolderTreeRoot, name);
         }
     }
 
@@ -320,30 +362,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenVideoButton_Click(object sender, RoutedEventArgs e)
+    private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
     {
-        // Check for unsaved changes before opening a new video
-        if (!AllowNavigation())
+        // Load a folder into the file browser, the same way the browser's own picker does.
+        string folder = DialogHelper.ChooseFolder("Select Folder", FolderTree?.RootPath ?? SettingsHandler.Settings.LastFolderPath);
+
+        if (folder.IsNullOrEmpty() || !Directory.Exists(folder))
             return;
 
-        string title = "Select Video File";
-        string filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.wmv;*.flv;*.webm;*.m4v|" +
-                "MP4 Files|*.mp4|" +
-                "MOV Files|*.mov|" +
-                "All Files|*.*";
-        string selectedFile = DialogHelper.ChooseFile(title, filter, initialFolder: SettingsHandler.Settings.LastFolderPath);
-
-        if (selectedFile.IsNullOrEmpty())
-            return;
-
-        // Validate file exists and is accessible
-        if (!File.Exists(selectedFile))
-        {
-            UpdateStatus("Error: Selected file does not exist.", true);
-            return;
-        }
-
-        LoadVideoFile(selectedFile);
+        FolderTree.LoadFolder(folder);
     }
 
     #region File Loading

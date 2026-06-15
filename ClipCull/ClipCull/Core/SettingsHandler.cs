@@ -45,6 +45,9 @@ namespace ClipCull.Core
 
             EnsureWorkspaces();
 
+            if (Settings.FolderWorkspaces == null)
+                Settings.FolderWorkspaces = new List<FolderWorkspace>();
+
             // Ensure SkipSeconds is not 0
             Settings.SkipSeconds = Settings.SkipSeconds <= 0 ? 5 : Settings.SkipSeconds;
 
@@ -141,6 +144,56 @@ namespace ClipCull.Core
         public static void NotifyWorkspaceChanged()
         {
             WorkspaceChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Returns the workspace name remembered for the given folder, or null if none.
+        /// </summary>
+        public static string GetWorkspaceForFolder(string folderPath)
+        {
+            if (string.IsNullOrEmpty(folderPath) || Settings?.FolderWorkspaces == null)
+                return null;
+
+            var normalized = NormalizeFolder(folderPath);
+            return Settings.FolderWorkspaces
+                .FirstOrDefault(f => string.Equals(NormalizeFolder(f.FolderPath), normalized, StringComparison.OrdinalIgnoreCase))
+                ?.WorkspaceName;
+        }
+
+        /// <summary>
+        /// Stores the workspace that should be active when the given folder is loaded.
+        /// </summary>
+        public static void RememberWorkspaceForFolder(string folderPath, string workspaceName)
+        {
+            if (string.IsNullOrEmpty(folderPath) || string.IsNullOrEmpty(workspaceName))
+                return;
+
+            if (Settings.FolderWorkspaces == null)
+                Settings.FolderWorkspaces = new List<FolderWorkspace>();
+
+            var normalized = NormalizeFolder(folderPath);
+            var match = Settings.FolderWorkspaces
+                .FirstOrDefault(f => string.Equals(NormalizeFolder(f.FolderPath), normalized, StringComparison.OrdinalIgnoreCase));
+
+            if (match == null)
+            {
+                Settings.FolderWorkspaces.Add(new FolderWorkspace { FolderPath = folderPath, WorkspaceName = workspaceName });
+            }
+            else
+            {
+                if (string.Equals(match.WorkspaceName, workspaceName, StringComparison.OrdinalIgnoreCase))
+                    return;
+                match.WorkspaceName = workspaceName;
+            }
+
+            Save();
+        }
+
+        private static string NormalizeFolder(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+            return path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
         public static void Save()

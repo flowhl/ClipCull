@@ -12,6 +12,7 @@ namespace ClipCull.Models
         {
             Tags = new List<Tag>();
             Workspaces = new List<Workspace>();
+            FolderWorkspaces = new List<FolderWorkspace>();
         }
 
         public bool AutosaveSidecar { get; set; }
@@ -66,6 +67,11 @@ namespace ClipCull.Models
         /// Name of the currently active workspace whose tags are offered in the dropdowns.
         /// </summary>
         public string CurrentWorkspaceName { get; set; }
+
+        /// <summary>
+        /// Remembered workspace per folder loaded in the file browser.
+        /// </summary>
+        public List<FolderWorkspace> FolderWorkspaces { get; set; }
 
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();
     }

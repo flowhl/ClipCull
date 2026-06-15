@@ -318,6 +318,35 @@ namespace ClipCull.Controls
         }
 
         /// <summary>
+        /// Returns the tags currently selected in the list as plain <see cref="Tag"/> objects.
+        /// </summary>
+        public List<Tag> GetSelectedTags()
+        {
+            if (TagsListView?.SelectedItems == null)
+                return new List<Tag>();
+
+            return TagsListView.SelectedItems
+                .Cast<EditableTag>()
+                .Select(ConvertToTag)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Removes the tags with the given names from the managed collection.
+        /// </summary>
+        public void RemoveTagsByName(IEnumerable<string> names)
+        {
+            if (names == null) return;
+
+            var set = new HashSet<string>(names, StringComparer.OrdinalIgnoreCase);
+            var toRemove = Tags.Where(t => set.Contains(t.Name)).ToList();
+            foreach (var tag in toRemove)
+                Tags.Remove(tag);
+
+            OnPropertyChanged(nameof(TotalTagCount));
+        }
+
+        /// <summary>
         /// Deletes the specified tag
         /// </summary>
         public void DeleteTag(EditableTag tag)
