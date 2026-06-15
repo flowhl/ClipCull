@@ -64,6 +64,7 @@ namespace ClipCull.Controls
                     var currentSelectedPath = SelectedPath; // Remember current selection
                     _showFiles = value;
                     OnPropertyChanged(nameof(ShowFiles));
+                    OnPropertyChanged(nameof(ShowFoldersOnly));
                     RefreshCurrentFolder();
 
                     // Try to restore selection after refresh
@@ -77,6 +78,15 @@ namespace ClipCull.Controls
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Inverse of <see cref="ShowFiles"/>. When true only folders are shown in the tree.
+        /// </summary>
+        public bool ShowFoldersOnly
+        {
+            get => !ShowFiles;
+            set => ShowFiles = !value;
         }
 
         public string FileFilter

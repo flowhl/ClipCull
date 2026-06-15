@@ -126,9 +126,16 @@ public partial class MainWindow : Window
         this.Closing += MainWindow_Closing;
     }
 
+    private bool _updatingWorkspaceSelector;
+
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         FolderTree.JumpToFolder(SettingsHandler.Settings.LastFolderPath);
+
+        RefreshWorkspaceSelector();
+        // MainWindow_Loaded can run more than once; keep the subscription single.
+        SettingsHandler.WorkspaceChanged -= RefreshWorkspaceSelector;
+        SettingsHandler.WorkspaceChanged += RefreshWorkspaceSelector;
 
         ClipFilter.FilterCriteria = _filterCriteria;
         LayoutManager.InitializeLayoutManagement(this);
@@ -169,6 +176,45 @@ public partial class MainWindow : Window
         };
         bFolderTree.Child = FolderTree;
     }
+
+    #region Workspace Selector
+
+    /// <summary>
+    /// Repopulates the status bar workspace dropdown from settings and selects the active one.
+    /// </summary>
+    private void RefreshWorkspaceSelector()
+    {
+        if (WorkspaceSelector == null)
+            return;
+
+        _updatingWorkspaceSelector = true;
+        try
+        {
+            WorkspaceSelector.Items.Clear();
+            foreach (var workspace in SettingsHandler.Settings.Workspaces)
+            {
+                WorkspaceSelector.Items.Add(workspace.Name);
+            }
+            WorkspaceSelector.SelectedItem = SettingsHandler.CurrentWorkspace?.Name;
+        }
+        finally
+        {
+            _updatingWorkspaceSelector = false;
+        }
+    }
+
+    private void WorkspaceSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingWorkspaceSelector)
+            return;
+
+        if (WorkspaceSelector.SelectedItem is string name)
+        {
+            SettingsHandler.SetCurrentWorkspace(name);
+        }
+    }
+
+    #endregion
 
     private void HotkeyController_OnSave()
     {

@@ -72,6 +72,9 @@ namespace ClipCull.Controls
             // Ensure templates are loaded before we try to update them
             this.Loaded += UserMetadataControl_Loaded;
 
+            //Refresh available tags when the active workspace changes
+            SettingsHandler.WorkspaceChanged += OnWorkspaceChanged;
+
             //Subscribe Hotkeys
             HotkeyController.OnPick += HotkeyController_OnPick;
             HotkeyController.OnReject += HotkeyController_OnReject;
@@ -92,11 +95,11 @@ namespace ClipCull.Controls
 
         private void RefreshAvailableTags()
         {
-            //Tags
+            //Tags for the active workspace
             if (AvailableTags != null)
                 AvailableTags.CollectionChanged -= AvailableTags_CollectionChanged;
             AvailableTags = new ObservableCollection<Tag>();
-            SettingsHandler.Settings.Tags.ForEach(tag => AvailableTags.Add(tag));
+            SettingsHandler.GetCurrentWorkspaceTags().ForEach(tag => AvailableTags.Add(tag));
             AvailableTags.CollectionChanged += AvailableTags_CollectionChanged;
         }
 
@@ -106,8 +109,18 @@ namespace ClipCull.Controls
             if (AvailableTags == null || AvailableTags.Count == 0)
                 return;
 
-            SettingsHandler.Settings.Tags = AvailableTags.ToList();
+            // Newly created tags belong to the active workspace.
+            SettingsHandler.CurrentWorkspace.Tags = AvailableTags.ToList();
             SettingsHandler.Save();
+        }
+
+        private void OnWorkspaceChanged()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                RefreshAvailableTags();
+                TagControl.AvailableTags = AvailableTags;
+            });
         }
 
         #endregion

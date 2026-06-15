@@ -365,43 +365,48 @@
                               Style="{StaticResource small}"
                               Foreground="{StaticResource MutedForegroundBrush}"/>
 
-                    <StackPanel Grid.Column="1" 
-                               Orientation="Horizontal">
+                    <StackPanel Grid.Column="1"
+                               Orientation="Horizontal"
+                               VerticalAlignment="Center">
 
-                        <!-- Custom Checkbox Style -->
-                        <CheckBox x:Name="ShowFilesCheckBox"
-                                 Content="Show Files"
-                                 IsChecked="{Binding ShowFiles, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}"
+                        <!-- Compact "folders only" toggle -->
+                        <CheckBox x:Name="ShowFoldersOnlyCheckBox"
+                                 Content="Folders only"
+                                 IsChecked="{Binding ShowFoldersOnly, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}"
                                  Checked="ShowFilesCheckBox_Changed"
                                  Unchecked="ShowFilesCheckBox_Changed"
-                                 Foreground="{StaticResource ForegroundBrush}"
-                                 Margin="0,0,12,0">
+                                 Cursor="Hand"
+                                 ToolTip="Hide files and only show folders in the tree"
+                                 VerticalAlignment="Center">
                             <CheckBox.Style>
                                 <Style TargetType="CheckBox">
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="CheckBox">
-                                                <StackPanel Orientation="Horizontal">
+                                                <StackPanel Orientation="Horizontal" Background="Transparent">
                                                     <Border x:Name="CheckBorder"
-                                                           Width="16" Height="16"
-                                                           Background="{StaticResource InputBrush}"
-                                                           BorderBrush="{StaticResource BorderBrush}"
+                                                           Width="13" Height="13"
+                                                           Background="Transparent"
+                                                           BorderBrush="{StaticResource MutedForegroundBrush}"
                                                            BorderThickness="1"
                                                            CornerRadius="3"
-                                                           Margin="0,0,6,0">
+                                                           Margin="0,0,5,0"
+                                                           VerticalAlignment="Center">
                                                         <materialDesign:PackIcon x:Name="CheckIcon"
                                                                                Kind="Check"
-                                                                               Width="12" Height="12"
-                                                                               Foreground="{StaticResource ForegroundBrush}"
+                                                                               Width="10" Height="10"
+                                                                               Foreground="{StaticResource AccentForegroundBrush}"
                                                                                Visibility="Collapsed"/>
                                                     </Border>
-                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                    <ContentPresenter VerticalAlignment="Center"
+                                                                      TextElement.FontSize="11"
+                                                                      TextElement.Foreground="{StaticResource MutedForegroundBrush}"/>
                                                 </StackPanel>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsChecked" Value="True">
                                                         <Setter TargetName="CheckIcon" Property="Visibility" Value="Visible"/>
-                                                        <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                                        <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                        <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
@@ -413,10 +418,6 @@
                                 </Style>
                             </CheckBox.Style>
                         </CheckBox>
-
-                        <TextBlock Text="{Binding FileFilter, RelativeSource={RelativeSource AncestorType=local:FolderTreeControl}}" 
-                                  Style="{StaticResource small}"
-                                  Foreground="{StaticResource MutedForegroundBrush}"/>
                     </StackPanel>
                 </Grid>
             </Border>
