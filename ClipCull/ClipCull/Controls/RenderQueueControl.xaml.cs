@@ -18,13 +18,41 @@ namespace ClipCull.Controls
         {
             InitializeComponent();
             RenderQueue.Jobs.CollectionChanged += Jobs_CollectionChanged;
+            foreach (var job in RenderQueue.Jobs)
+            {
+                job.PropertyChanged += Job_PropertyChanged;
+            }
+            Unloaded += RenderQueueControl_Unloaded;
             PopulateEngineSelector();
             UpdateUI();
             DataContext = this;
         }
 
+        private void RenderQueueControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            RenderQueue.Jobs.CollectionChanged -= Jobs_CollectionChanged;
+            foreach (var job in RenderQueue.Jobs)
+            {
+                job.PropertyChanged -= Job_PropertyChanged;
+            }
+        }
+
         private void Jobs_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
+            if (e.OldItems != null)
+            {
+                foreach (RenderJobInfo oldItem in e.OldItems)
+                {
+                    oldItem.PropertyChanged -= Job_PropertyChanged;
+                }
+            }
+            if (e.NewItems != null)
+            {
+                foreach (RenderJobInfo newItem in e.NewItems)
+                {
+                    newItem.PropertyChanged += Job_PropertyChanged;
+                }
+            }
             UpdateUI();
         }
 
@@ -91,8 +119,49 @@ namespace ClipCull.Controls
 
             StartRenderButton.IsEnabled = !IsRendering && RenderQueue.Jobs.Count > 0;
             CancelRenderButton.Visibility = IsRendering ? Visibility.Visible : Visibility.Collapsed;
+            UpdateRenderingProgressText();
             OnPropertyChanged(nameof(QueueCount));
             OnPropertyChanged(nameof(IsQueueEmpty));
+        }
+
+        private void Job_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(RenderJobInfo.Rendering))
+            {
+                if (sender is RenderJobInfo job && job.Rendering)
+                {
+                    ScrollToJob(job);
+                }
+                UpdateRenderingProgressText();
+            }
+        }
+
+        private void ScrollToJob(RenderJobInfo job)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var container = QueueItemsControl.ItemContainerGenerator.ContainerFromItem(job) as FrameworkElement;
+                if (container != null)
+                {
+                    container.BringIntoView();
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void UpdateRenderingProgressText()
+        {
+            var jobs = RenderQueue.Jobs;
+            int total = jobs.Count;
+            if (total == 0)
+            {
+                TxRenderingProgress.Text = "";
+                return;
+            }
+
+            var currentJob = jobs.FirstOrDefault(j => j.Rendering);
+            int currentIndex = currentJob != null ? jobs.IndexOf(currentJob) + 1 : 1;
+
+            TxRenderingProgress.Text = $"Clip {currentIndex}/{total}";
         }
 
         private void CbRenderEngine_SelectionChanged(object sender, SelectionChangedEventArgs e)
