@@ -53,7 +53,7 @@
                                             Kind="Video"
                                             Width="16"
                                             Height="16"
-                                            Foreground="{StaticResource AccentBrush}"
+                                            Foreground="{StaticResource InfoBrush}"
                                             VerticalAlignment="Center"
                                             HorizontalAlignment="Center"
                                             ToolTip="Main Clip">
@@ -123,7 +123,7 @@
                                 IsIndeterminate="True"
                                 Width="40"
                                 Height="4"
-                                Foreground="{StaticResource AccentBrush}"
+                                Foreground="{StaticResource InfoBrush}"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
                                 <ProgressBar.Style>
@@ -597,8 +597,8 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="🎥"
-                                  FontSize="16"
+                        <materialDesign:PackIcon Kind="MovieRoll"
+                                  Width="18" Height="18"
                                   Foreground="{StaticResource SecondaryForegroundBrush}"
                                   VerticalAlignment="Center"
                                   Margin="0,0,8,0"/>
@@ -622,7 +622,7 @@
                                   Text="{Binding SelectedClipCount, StringFormat='- {0} selected'}"
                                   FontFamily="{StaticResource FontSans}"
                                   FontSize="14"
-                                  Foreground="{StaticResource AccentBrush}"
+                                  Foreground="{StaticResource InfoBrush}"
                                   VerticalAlignment="Center"
                                   Margin="8,0,0,0">
                             <TextBlock.Style>
@@ -643,7 +643,8 @@
                            Click="RefreshButton_Click"
                            Style="{StaticResource icon}"
                            ToolTip="Refresh clips">
-                        <TextBlock Text="🔄" FontSize="14"/>
+                        <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16"
+                                                 Foreground="{StaticResource ForegroundBrush}"/>
                     </Button>
                 </Grid>
             </Border>
@@ -671,8 +672,9 @@
                             Margin="0,0,8,0"
                             ToolTip="Select all clips">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="☑" FontSize="12" Margin="0,0,4,0"/>
-                            <TextBlock Text="Select All" FontSize="12"/>
+                            <materialDesign:PackIcon Kind="CheckboxMultipleMarkedOutline" Width="13" Height="13"
+                                                     VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock Text="Select All" FontSize="12" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -683,19 +685,32 @@
                             Margin="0,0,16,0"
                             ToolTip="Deselect all clips">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="☐" FontSize="12" Margin="0,0,4,0"/>
-                            <TextBlock Text="Deselect All" FontSize="12"/>
+                            <materialDesign:PackIcon Kind="CheckboxMultipleBlankOutline" Width="13" Height="13"
+                                                     VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock Text="Deselect All" FontSize="12" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <!-- Helper: clarify the checkbox vs. preview selection model -->
+                    <TextBlock Grid.Column="2"
+                               Text="Check clips to batch-add · click a row to preview"
+                               FontFamily="{StaticResource FontSans}"
+                               FontSize="11"
+                               Foreground="{StaticResource MutedForegroundBrush}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
+                               Margin="8,0,8,0"
+                               TextTrimming="CharacterEllipsis"/>
 
                     <Button Grid.Column="4"
                             x:Name="AddToRenderQueueButton"
                             Click="AddToRenderQueueButton_Click"
                             Style="{StaticResource primary-sm}"
-                            ToolTip="Open selected clips with default program">
+                            ToolTip="Add the checked clips to the render queue">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="▶" FontSize="12" Margin="0,0,4,0"/>
-                            <TextBlock Text="Add to Render Queue" FontSize="12"/>
+                            <materialDesign:PackIcon Kind="PlaylistPlus" Width="14" Height="14"
+                                                     VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock Text="Add to Render Queue" FontSize="12" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -711,7 +726,7 @@
                         <ProgressBar IsIndeterminate="True" 
                                    Width="50" 
                                    Height="50"
-                                   Foreground="{StaticResource AccentBrush}"/>
+                                   Foreground="{StaticResource InfoBrush}"/>
                         <TextBlock Text="Loading video clips..."
                                  FontFamily="{StaticResource FontSans}"
                                  FontSize="14"
@@ -726,8 +741,8 @@
                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center" 
                                VerticalAlignment="Center">
-                        <TextBlock Text="📹"
-                                  FontSize="48"
+                        <materialDesign:PackIcon Kind="FileVideoOutline"
+                                  Width="48" Height="48"
                                   Foreground="{StaticResource MutedForegroundBrush}"
                                   HorizontalAlignment="Center"
                                   Opacity="0.5"/>

@@ -102,7 +102,7 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <!--<Setter TargetName="PART_Header" Property="Background" Value="{StaticResource SecondaryBrush}"/>-->
                                 <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
                             </Trigger>
 
                             <!-- Hide Expander for Files Only -->
@@ -337,11 +337,11 @@
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                       Color="{StaticResource Secondary}" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
-                      Color="Black" />
+                      Color="{StaticResource Foreground}" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
                       Color="{StaticResource Secondary}" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
-                      Color="Black" />
+                      Color="{StaticResource Foreground}" />
                     </TreeView.Resources>
                 </TreeView>
             </ScrollViewer>

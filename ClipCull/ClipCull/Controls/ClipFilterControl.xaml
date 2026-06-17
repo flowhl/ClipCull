@@ -123,7 +123,7 @@
                         <CheckBox Grid.Column="1"
                                   x:Name="IgnoreSubclipRatingCheckbox"
                                   Content="Main only"
-                                  FontSize="10"
+                                  FontSize="11"
                                   Foreground="{StaticResource MutedForegroundBrush}"
                                   VerticalAlignment="Center"
                                   Margin="6,0,0,0"
@@ -195,7 +195,7 @@
                         <!-- Tag Match Mode Toggle -->
                         <ToggleButton Grid.Column="1" 
                                       x:Name="TagMatchModeToggle"
-                                      Width="40" Height="20"
+                                      Width="52" Height="24"
                                       Margin="4,0,0,0"
                                       IsChecked="{Binding FilterCriteria.MatchAllTags, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       ToolTip="Toggle between AND (all tags) and OR (any tag) matching">
@@ -204,10 +204,10 @@
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="ToggleButton">
-                                                <Border Background="{StaticResource MutedBrush}" 
-                                                        CornerRadius="10" Padding="2">
-                                                    <TextBlock x:Name="ToggleText" Text="OR" 
-                                                               FontSize="9" FontWeight="Bold"
+                                                <Border Background="{StaticResource MutedBrush}"
+                                                        CornerRadius="12" Padding="2">
+                                                    <TextBlock x:Name="ToggleText" Text="OR"
+                                                               FontSize="11" FontWeight="Bold"
                                                                HorizontalAlignment="Center" 
                                                                VerticalAlignment="Center"
                                                                Foreground="{StaticResource MutedForegroundBrush}"/>
@@ -228,14 +228,14 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Tagging Control -->
-                <Viewbox Grid.Column="4" MaxHeight="150" Width="500" HorizontalAlignment="Left">
-                    <controls:TaggingControl x:Name="TagFilterControl" 
+                <!-- Tagging Control (responsive: fills the remaining column instead of being scaled by a Viewbox) -->
+                <controls:TaggingControl Grid.Column="4"
+                       x:Name="TagFilterControl"
+                       MaxHeight="150"
+                       HorizontalAlignment="Stretch"
                        CurrentTags="{Binding FilterCriteria.SelectedTags, RelativeSource={RelativeSource AncestorType=UserControl}}"
                        IsReadOnly="False"
-                       AllowModifyAvailableTags="False"
-                                             Width="500"/>
-                </Viewbox>
+                       AllowModifyAvailableTags="False"/>
 
             </Grid>
         </Grid>

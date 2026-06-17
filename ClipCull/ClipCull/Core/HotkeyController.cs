@@ -95,6 +95,15 @@ namespace ClipCull.Core
             _hotkeyMappings = GetDefaultMappings();
         }
 
+        /// <summary>
+        /// Resets all hotkey mappings back to the application defaults and persists them.
+        /// </summary>
+        public static void ResetToDefaults()
+        {
+            _hotkeyMappings = GetDefaultMappings();
+            SaveMappings();
+        }
+
         private static Dictionary<string, string> GetDefaultMappings()
         {
             var defaultMappings = new Dictionary<string, string>();

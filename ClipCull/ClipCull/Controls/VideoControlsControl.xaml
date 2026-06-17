@@ -137,18 +137,21 @@
                           Width="35"/>
                         </StackPanel>
                         <!--Rotation-->
-                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
-                            <materialDesign:PackIcon Kind="ScreenRotation" 
-           Width="14" Height="14"
-           Foreground="{StaticResource MutedForegroundBrush}"
-           Margin="0,0,8,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="ScreenRotation"
+                                Width="14" Height="14"
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource MutedForegroundBrush}"
+                                Margin="0,0,8,0"/>
+                            <ComboBox Width="100" SelectedValuePath="Tag" SelectedValue="{Binding Path=Rotation}"
+                                      VerticalAlignment="Center"
+                                      ToolTip="Rotate the video preview">
+                                <ComboBoxItem Tag="0" Content="0°" IsSelected="True"/>
+                                <ComboBoxItem Tag="90" Content="90°"/>
+                                <ComboBoxItem Tag="180" Content="180°"/>
+                                <ComboBoxItem Tag="270" Content="270°"/>
+                            </ComboBox>
                         </StackPanel>
-                        <ComboBox Margin="8,0,0,0" Width="100" SelectedValuePath="Tag" SelectedValue="{Binding Path=Rotation}">
-                            <ComboBoxItem Tag="0" Content="0°" IsSelected="True"/>
-                            <ComboBoxItem Tag="90" Content="90°"/>
-                            <ComboBoxItem Tag="180" Content="180°"/>
-                            <ComboBoxItem Tag="270" Content="270°"/>
-                        </ComboBox>
                     </StackPanel>
 
                     <!-- Spacer -->

@@ -12,7 +12,13 @@
 
     <Grid>
         <TabControl Background="Transparent" BorderThickness="0">
-            <TabItem Name="TabEditing" Header="Editing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+            <TabItem Name="TabEditing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="MovieEdit" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Editing" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -96,11 +102,17 @@
                                                Foreground="{StaticResource ForegroundBrush}"/>
                                 </Button>
 
+                                <!-- Divider: separates the destructive layout reset from reload -->
+                                <Rectangle Width="1" Height="20"
+                                           Fill="{StaticResource BorderBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,4,0"/>
+
                                 <!-- Reset Layout Button -->
                                 <Button Click="ResetLayoutButton_Click"
                             Style="{StaticResource icon}"
                             ToolTip="Reset Layout"
-                            Margin="4,0,0,0">
+                            Margin="0,0,0,0">
                                     <materialDesign:PackIcon Kind="ViewDashboard" 
                                                Width="16" Height="16"
                                                Foreground="{StaticResource ForegroundBrush}"/>
@@ -233,7 +245,13 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabClips" Header="Clips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+            <TabItem Name="TabClips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Filmstrip" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Clips" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -330,10 +348,22 @@
                     </xcad:DockingManager>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabRenderqueue" Header="Render Queue">
+            <TabItem Name="TabRenderqueue">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Export" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Render Queue" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <uc:RenderQueueControl x:Name="RenderQueueControl"/>
             </TabItem>
-            <TabItem Name="TabSettings" Header="Settings">
+            <TabItem Name="TabSettings">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <uc:SettingsControl x:Name="SettingsView"/>
             </TabItem>
         </TabControl>

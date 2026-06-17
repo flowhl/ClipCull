@@ -234,6 +234,7 @@
                        Style="{StaticResource destructive}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        Height="32"
+                       Margin="12,0,0,0"
                        ToolTip="Clear All Markers and Clips">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="Delete" 

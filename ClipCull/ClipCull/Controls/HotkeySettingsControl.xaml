@@ -24,57 +24,69 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="Hotkey Configuration" 
-                   Style="{StaticResource h3}" 
-                   Margin="0,0,0,16"/>
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="Hotkey Configuration"
+                       Style="{StaticResource h3}"
+                       VerticalAlignment="Center"/>
+            <Button Grid.Column="1"
+                    Content="Reset to Defaults"
+                    Style="{StaticResource secondary-sm}"
+                    Click="ResetToDefaultsButton_Click"/>
+        </Grid>
 
-        <!-- Hotkey List -->
-        <ScrollViewer Grid.Row="1" 
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="HotkeyListView">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource card}" 
-                                Padding="16" 
-                                Margin="0,2">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+        <!-- Hotkey List (single card with compact rows) -->
+        <Border Grid.Row="1" Style="{StaticResource card}" Padding="4">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="HotkeyListView">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="8,6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- Action Name -->
-                                <TextBlock Grid.Column="0" 
-                                           Text="{Binding ActionName}"
-                                           Style="{StaticResource body}"
-                                           VerticalAlignment="Center"/>
+                                    <!-- Action Name -->
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding ActionName}"
+                                               Style="{StaticResource body}"
+                                               VerticalAlignment="Center"/>
 
-                                <!-- Hotkey Input -->
-                                <TextBox Grid.Column="1" 
-                                         x:Name="HotkeyTextBox"
-                                         Text="{Binding Hotkey, Mode=OneWay}"
-                                         Style="{StaticResource HotkeyTextBoxStyle}"
-                                         Margin="8,0"
-                                         PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
-                                         GotFocus="HotkeyTextBox_GotFocus"
-                                         LostFocus="HotkeyTextBox_LostFocus"
-                                         Tag="{Binding}"/>
+                                    <!-- Hotkey Input -->
+                                    <TextBox Grid.Column="1"
+                                             x:Name="HotkeyTextBox"
+                                             Text="{Binding Hotkey, Mode=OneWay}"
+                                             Style="{StaticResource HotkeyTextBoxStyle}"
+                                             Margin="8,0"
+                                             PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
+                                             GotFocus="HotkeyTextBox_GotFocus"
+                                             LostFocus="HotkeyTextBox_LostFocus"
+                                             Tag="{Binding}"/>
 
-                                <!-- Clear Button -->
-                                <Button Grid.Column="2"
-                                        Content="Clear"
-                                        Style="{StaticResource secondary-sm}"
-                                        Click="ClearButton_Click"
-                                        Tag="{Binding}"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                                    <!-- Clear Button -->
+                                    <Button Grid.Column="2"
+                                            Content="Clear"
+                                            Style="{StaticResource secondary-sm}"
+                                            VerticalAlignment="Center"
+                                            Click="ClearButton_Click"
+                                            Tag="{Binding}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
 
         <!-- Info Text -->
         <TextBlock Grid.Row="2" 

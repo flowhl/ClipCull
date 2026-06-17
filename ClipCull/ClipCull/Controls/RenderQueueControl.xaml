@@ -178,14 +178,14 @@
                                 <TextBlock Grid.Row="4" Grid.Column="0"
                                            Style="{StaticResource InfoTextStyle}"
                                            Visibility="{Binding Rendering, Converter={StaticResource BoolToVisibilityConverter}}"
-                                           Foreground="Orange"
+                                           Foreground="{StaticResource WarningBrush}"
                                            Text="Rendering..."/>
 
                                 <!--Rendered-->
                                 <TextBlock Grid.Row="4" Grid.Column="0"
                                            Style="{StaticResource InfoTextStyle}"
                                            Visibility="{Binding Rendered, Converter={StaticResource BoolToVisibilityConverter}}"
-                                           Foreground="Green"
+                                           Foreground="{StaticResource SuccessBrush}"
                                            Text="Rendered"/>
 
                                 <!-- Progress Bar -->

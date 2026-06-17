@@ -38,7 +38,7 @@
                                   Style="{StaticResource h3}"
                                   HorizontalAlignment="Center" 
                                   Foreground="{StaticResource SecondaryForegroundBrush}"/>
-                        <TextBlock Text="Use 'Open Video File' to load a video" 
+                        <TextBlock Text="Use 'Open Folder' to load your footage"
                                   Style="{StaticResource muted}"
                                   HorizontalAlignment="Center" 
                                   Margin="0,8,0,0"/>

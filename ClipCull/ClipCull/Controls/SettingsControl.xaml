@@ -13,8 +13,8 @@
         </Grid.RowDefinitions>
         <TabControl>
             <TabItem Header="Settings">
-                <Grid>
-                    <StackPanel Orientation="Vertical" Grid.Row="0" Name="spMain">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Vertical" Name="spMain" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,0,8">
                         <!--General-->
                         <Border Style="{StaticResource card}">
                             <StackPanel Orientation="Vertical">
@@ -180,7 +180,7 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem Header="Tags">
                 <Grid Margin="8">

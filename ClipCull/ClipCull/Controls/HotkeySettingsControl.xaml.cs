@@ -138,7 +138,7 @@ namespace ClipCull.Controls
             _activeTextBox = sender as TextBox;
             if (_activeTextBox != null)
             {
-                _activeTextBox.Background = System.Windows.Media.Brushes.LightBlue;
+                _activeTextBox.SetResourceReference(Control.BackgroundProperty, "AccentBrush");
                 _activeTextBox.Text = "Press keys...";
             }
         }
@@ -156,6 +156,21 @@ namespace ClipCull.Controls
                 }
             }
             _activeTextBox = null;
+        }
+
+        private void ResetToDefaultsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Reset all hotkeys to their defaults?",
+                "Reset Hotkeys",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                HotkeyController.ResetToDefaults();
+                LoadHotkeyMappings();
+            }
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
