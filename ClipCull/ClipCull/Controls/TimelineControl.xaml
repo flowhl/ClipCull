@@ -70,183 +70,131 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Control Buttons Row -->
-            <Grid Grid.Row="0" Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Control Buttons Row (icon-only; wraps instead of overflowing when narrow) -->
+            <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
 
                 <!-- I/O Point Controls -->
-                <Button Grid.Column="0" 
-                       x:Name="SetInPointButton"
+                <Button x:Name="SetInPointButton"
                        Click="SetInPointButton_Click"
                        Style="{StaticResource timeline-button-in}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Set In Point (I)"
-                       Margin="0,0,4,0">
-                    <materialDesign:PackIcon Kind="SkipPrevious" 
-                                           Width="14" Height="14"
-                                           Foreground="White"/>
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="SkipPrevious" Width="14" Height="14" Foreground="White"/>
                 </Button>
 
-                <Button Grid.Column="1" 
-                       x:Name="SetOutPointButton"
+                <Button x:Name="SetOutPointButton"
                        Click="SetOutPointButton_Click"
                        Style="{StaticResource timeline-button-out}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Set Out Point (O)"
-                       Margin="0,0,4,0">
-                    <materialDesign:PackIcon Kind="SkipNext" 
-                                           Width="14" Height="14"
-                                           Foreground="White"/>
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="SkipNext" Width="14" Height="14" Foreground="White"/>
                 </Button>
 
-                <Button Grid.Column="2" 
-                       x:Name="ClearInOutButton"
+                <Button x:Name="ClearInOutButton"
                        Click="ClearInOutButton_Click"
                        Style="{StaticResource timeline-button}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Clear In/Out Points"
-                       Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Close" 
-                                               Width="12" Height="12"
-                                               Foreground="{StaticResource SecondaryForegroundBrush}"
-                                               Margin="0,0,4,0"/>
-                        <TextBlock Text="Clear" 
-                                  Style="{StaticResource small}"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="Close" Width="14" Height="14"
+                                             Foreground="{StaticResource SecondaryForegroundBrush}"/>
                 </Button>
 
                 <!-- Separator -->
-                <Rectangle Grid.Column="3" 
-                          Width="1" 
-                          Height="20"
-                          Fill="{StaticResource BorderBrush}" 
+                <Rectangle Width="1" Height="20"
+                          Fill="{StaticResource BorderBrush}"
+                          VerticalAlignment="Center"
                           Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                          Margin="0,0,8,0"/>
+                          Margin="4,0,8,4"/>
 
                 <!-- SubClip Controls -->
-                <Button Grid.Column="4" 
-                       x:Name="StartSubClipButton"
+                <Button x:Name="StartSubClipButton"
                        Click="StartSubClipButton_Click"
                        Style="{StaticResource timeline-button-subclip}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                       ToolTip="Start SubClip ([)"
-                       Margin="0,0,4,0">
-                    <materialDesign:PackIcon Kind="Play" 
-                                           Width="14" Height="14"
-                                           Foreground="White"/>
+                       ToolTip="Start SubClip (Q)"
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="Play" Width="14" Height="14" Foreground="White"/>
                 </Button>
 
-                <Button Grid.Column="5" 
-                       x:Name="FinishSubClipButton"
+                <Button x:Name="FinishSubClipButton"
                        Click="FinishSubClipButton_Click"
                        Style="{StaticResource timeline-button-subclip}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                       ToolTip="Finish SubClip (])"
-                       Margin="0,0,8,0">
-                    <materialDesign:PackIcon Kind="Stop" 
-                                           Width="14" Height="14"
-                                           Foreground="White"/>
+                       ToolTip="Finish SubClip (E)"
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="Stop" Width="14" Height="14" Foreground="White"/>
                 </Button>
 
-                <!-- Spacer -->
-                <Grid Grid.Column="6"/>
+                <!-- Separator -->
+                <Rectangle Width="1" Height="20"
+                          Fill="{StaticResource BorderBrush}"
+                          VerticalAlignment="Center"
+                          Margin="4,0,8,4"/>
 
-                <!-- Marker Controls -->
-                <Button Grid.Column="7" 
-                       x:Name="AddMarkerButton"
+                <!-- Marker / Export -->
+                <Button x:Name="AddMarkerButton"
                        Click="AddMarkerButton_Click"
                        Style="{StaticResource timeline-button}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        ToolTip="Add Marker (M)"
-                       Margin="0,0,4,0">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="MapMarker" 
-                                               Width="12" Height="12"
-                                               Foreground="{StaticResource SecondaryForegroundBrush}"
-                                               Margin="0,0,4,0"/>
-                        <TextBlock Text="M" 
-                                  Style="{StaticResource small}"
-                                  FontWeight="Medium"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="MapMarkerPlus" Width="14" Height="14"
+                                             Foreground="{StaticResource SecondaryForegroundBrush}"/>
                 </Button>
 
-                <Button Grid.Column="8" 
-                       x:Name="ExportFrameButton"
+                <Button x:Name="ExportFrameButton"
                        Click="ExportFrameButton_Click"
                        IsEnabled="False"
                        Style="{StaticResource timeline-button}"
                        ToolTip="Export Current Frame"
-                       Margin="0,0,4,0">
-                    <materialDesign:PackIcon Kind="Camera" 
-                                           Width="14" Height="14"
-                                           Foreground="{StaticResource SecondaryForegroundBrush}"/>
+                       Margin="0,0,4,4">
+                    <materialDesign:PackIcon Kind="Camera" Width="14" Height="14"
+                                             Foreground="{StaticResource SecondaryForegroundBrush}"/>
                 </Button>
 
+                <!-- View toggles -->
                 <ToggleButton x:Name="SnapModeToggle"
-                               Grid.Column="9"
                                Style="{StaticResource timeline-toggle}"
-                               Margin="0,0,4,0"
+                               Margin="0,0,4,4"
                                IsChecked="True"
                                ToolTip="Toggle snapping (Magnet)"
                                Checked="SnapModeToggle_Changed"
                                Unchecked="SnapModeToggle_Changed">
-                    <materialDesign:PackIcon Kind="Magnet"
-                                             Width="14" Height="14"
-                                             VerticalAlignment="Center"/>
+                    <materialDesign:PackIcon Kind="Magnet" Width="14" Height="14" VerticalAlignment="Center"/>
                 </ToggleButton>
 
                 <ToggleButton x:Name="DetailedModeToggle"
-                              Grid.Column="10"
                               Style="{StaticResource timeline-toggle}"
-                              Margin="0,0,4,0"
+                              Margin="0,0,4,4"
                               ToolTip="Toggle detailed timeline mode"
                               Checked="DetailedModeToggle_Changed"
                               Unchecked="DetailedModeToggle_Changed">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ViewSequential"
-                                                 Width="12" Height="12"
-                                                 VerticalAlignment="Center"
-                                                 Margin="0,0,4,0"/>
-                        <TextBlock Text="Detailed"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <materialDesign:PackIcon Kind="ViewSequential" Width="14" Height="14" VerticalAlignment="Center"/>
                 </ToggleButton>
 
-                <Button Grid.Column="11"
-                       x:Name="ClearAllButton"
+                <!-- Separator -->
+                <Rectangle Width="1" Height="20"
+                          Fill="{StaticResource BorderBrush}"
+                          VerticalAlignment="Center"
+                          Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                          Margin="4,0,8,4"/>
+
+                <Button x:Name="ClearAllButton"
                        Click="ClearAllButton_Click"
                        Style="{StaticResource destructive}"
                        Visibility="{Binding Path=Readonly, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                        Height="32"
-                       Margin="12,0,0,0"
+                       MinWidth="32"
+                       Padding="8,4"
+                       Margin="0,0,4,4"
                        ToolTip="Clear All Markers and Clips">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Delete" 
-                                               Width="12" Height="12"
-                                               Foreground="{StaticResource DestructiveForegroundBrush}"
-                                               Margin="0,0,4,0"/>
-                        <TextBlock Text="Clear All" 
-                                  Style="{StaticResource small}"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <materialDesign:PackIcon Kind="DeleteSweep" Width="14" Height="14"
+                                             Foreground="{StaticResource DestructiveForegroundBrush}"/>
                 </Button>
-            </Grid>
+            </WrapPanel>
 
             <!-- Time Labels Row -->
             <Grid Grid.Row="1" Height="20" Margin="0,0,0,4">

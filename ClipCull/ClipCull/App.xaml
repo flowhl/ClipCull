@@ -352,6 +352,99 @@
 
 
             <!-- ============================================ -->
+            <!-- SLIDER STYLES -->
+            <!-- ============================================ -->
+
+            <Style x:Key="SliderThumbStyle" TargetType="Thumb">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Width" Value="16"/>
+                <Setter Property="Height" Value="16"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Thumb">
+                            <Border x:Name="thumbBorder"
+                                    Background="{StaticResource PrimaryBrush}"
+                                    BorderBrush="{StaticResource BackgroundBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="8"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="thumbBorder" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsDragging" Value="True">
+                                    <Setter TargetName="thumbBorder" Property="BorderBrush" Value="{StaticResource RingBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="SliderRepeatButtonStyle" TargetType="RepeatButton">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="IsTabStop" Value="False"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RepeatButton">
+                            <Border Background="Transparent"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Default Slider Style (horizontal + vertical) -->
+            <Style TargetType="Slider">
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Slider">
+                            <Grid Background="Transparent">
+                                <!-- Rail -->
+                                <Border x:Name="Rail"
+                                        Background="{StaticResource SecondaryBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="2"
+                                        Height="4"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"/>
+
+                                <Track x:Name="PART_Track">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Style="{StaticResource SliderRepeatButtonStyle}"
+                                                      Command="Slider.DecreaseLarge"/>
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Style="{StaticResource SliderRepeatButtonStyle}"
+                                                      Command="Slider.IncreaseLarge"/>
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Orientation" Value="Vertical">
+                                    <Setter TargetName="Rail" Property="Width" Value="4"/>
+                                    <Setter TargetName="Rail" Property="Height" Value="Auto"/>
+                                    <Setter TargetName="Rail" Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter TargetName="Rail" Property="VerticalAlignment" Value="Stretch"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ============================================ -->
             <!-- LABELS -->
             <!-- ============================================ -->
             <Style x:Key="primary-lb" TargetType="Label">

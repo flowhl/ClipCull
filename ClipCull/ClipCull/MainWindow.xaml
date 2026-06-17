@@ -12,13 +12,7 @@
 
     <Grid>
         <TabControl Background="Transparent" BorderThickness="0">
-            <TabItem Name="TabEditing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="MovieEdit" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="Editing" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Name="TabEditing" Header="Editing" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -245,13 +239,7 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabClips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Filmstrip" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="Clips" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Name="TabClips" Header="Clips" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -348,22 +336,10 @@
                     </xcad:DockingManager>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabRenderqueue">
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Export" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="Render Queue" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Name="TabRenderqueue" Header="Render Queue">
                 <uc:RenderQueueControl x:Name="RenderQueueControl"/>
             </TabItem>
-            <TabItem Name="TabSettings">
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Name="TabSettings" Header="Settings">
                 <uc:SettingsControl x:Name="SettingsView"/>
             </TabItem>
         </TabControl>
