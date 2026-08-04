@@ -373,6 +373,19 @@ public partial class MainWindow : Window
         FolderTree.LoadFolder(folder);
     }
 
+    /// <summary>
+    /// Switches to the Editing tab and loads <paramref name="path"/> in the file browser.
+    /// Used by the importer's "open in ClipCull editor" post-import action.
+    /// </summary>
+    public void OpenFolderInEditor(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            return;
+
+        TabEditing.IsSelected = true;
+        FolderTree?.LoadFolder(path);
+    }
+
     #region File Loading
 
     public void LoadVideoFile(string filePath)

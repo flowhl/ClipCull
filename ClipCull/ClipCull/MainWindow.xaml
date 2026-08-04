@@ -330,6 +330,9 @@
                     </xcad:DockingManager>
                 </Grid>
             </TabItem>
+            <TabItem Name="TabImport" Header="Import">
+                <uc:ImportControl x:Name="ImportView"/>
+            </TabItem>
             <TabItem Name="TabRenderqueue" Header="Render Queue">
                 <uc:RenderQueueControl x:Name="RenderQueueControl"/>
             </TabItem>

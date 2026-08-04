@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ClipCull.Models.Import;
 
 namespace ClipCull.Models
 {
@@ -74,5 +75,15 @@ namespace ClipCull.Models
         public List<FolderWorkspace> FolderWorkspaces { get; set; }
 
         public List<HotkeyMapping> HotkeyMappings { get; set; } = new List<HotkeyMapping>();
+
+        // Import feature
+        public string LastImportSourcePath { get; set; }
+        public string LastImportTargetPath { get; set; }
+        public string ImportDateFormat { get; set; } = "yyyy-MM-dd";
+        public ImportStructureMode ImportStructureMode { get; set; } = ImportStructureMode.SubfolderPerDay;
+        public ImportDateBasis ImportDateBasis { get; set; } = ImportDateBasis.Created;
+        public ImportOperation ImportOperation { get; set; } = ImportOperation.Copy;
+        public bool ImportOpenExplorerAfter { get; set; } = true;
+        public bool ImportOpenEditorAfter { get; set; }
     }
 }

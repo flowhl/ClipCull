@@ -162,6 +162,15 @@ namespace ClipCull.Core
             });
         }
 
+        /// <summary>
+        /// Writes an error to the log file only (no toast). Use for high-volume per-item
+        /// failures where a notification per item would be overwhelming.
+        /// </summary>
+        public static void LogErrorToFile(string message)
+        {
+            _logger?.Error(message);
+        }
+
         public static void LogError(string message, Exception ex, string title = null)
         {
             _logger?.Error(ex, message);

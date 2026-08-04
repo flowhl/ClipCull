@@ -246,9 +246,14 @@ namespace ClipCull.Core
                 window.Top = _windowSettings.Top;
                 window.Width = _windowSettings.Width;
                 window.Height = _windowSettings.Height;
-                window.WindowState = _windowSettings.WindowState;
 
                 EnsureWindowIsVisible(window);
+
+                // Never bring the window back minimized – it looks like the app failed to start
+                // and can be hard to recover. Fall back to a normal window instead.
+                window.WindowState = _windowSettings.WindowState == WindowState.Minimized
+                    ? WindowState.Normal
+                    : _windowSettings.WindowState;
             }
             catch (Exception ex)
             {
@@ -290,6 +295,11 @@ namespace ClipCull.Core
 
         private static void UpdateWindowSettings(Window window)
         {
+            // Never persist a minimized state – keep the last good size/state so the next
+            // launch restores a usable window instead of a minimized one.
+            if (window.WindowState == WindowState.Minimized)
+                return;
+
             if (window.WindowState == WindowState.Normal)
             {
                 _windowSettings.Left = window.Left;

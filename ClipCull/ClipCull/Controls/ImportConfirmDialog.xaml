@@ -1,0 +1,50 @@
+<Window x:Class="ClipCull.Controls.ImportConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Confirm Import"
+        Height="360" Width="460"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource ForegroundBrush}"
+        FontFamily="{StaticResource FontSans}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Ready to import" Style="{StaticResource h3}" Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="1" x:Name="SummaryLabel" Style="{StaticResource muted}" Margin="0,0,0,16"/>
+
+        <!-- Operation -->
+        <TextBlock Grid.Row="2" Text="Operation" Style="{StaticResource small}" Margin="0,0,0,6"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,16">
+            <ToggleButton x:Name="CopyToggle" Content="Copy" Style="{StaticResource secondary-toggle}"
+                          Width="120" Click="CopyToggle_Click" Margin="0,0,8,0"/>
+            <ToggleButton x:Name="MoveToggle" Content="Move" Style="{StaticResource secondary-toggle}"
+                          Width="120" Click="MoveToggle_Click"/>
+        </StackPanel>
+
+        <!-- Post-import -->
+        <TextBlock Grid.Row="4" Text="After importing" Style="{StaticResource small}" Margin="0,0,0,6"/>
+        <StackPanel Grid.Row="5">
+            <CheckBox x:Name="OpenExplorerCheck" Content="Open target folder in Explorer" Margin="0,0,0,8"/>
+            <CheckBox x:Name="OpenEditorCheck" Content="Open target folder in ClipCull editor"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Click="Cancel_Click" Style="{StaticResource secondary}" Margin="0,0,8,0"/>
+            <Button Content="Start Import" Click="Confirm_Click" Style="{StaticResource primary}" IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
