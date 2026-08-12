@@ -11,25 +11,20 @@ using ClipCull.Models.Import;
 namespace ClipCull.Core.Import
 {
     /// <summary>
-    /// Streaming SHA-256 hashing with an in-process cache keyed by path + mtime + size,
-    /// so a given file's bytes are only read once per session.
+    /// File hashing helpers. <see cref="Hash"/> goes through the global persistent
+    /// <see cref="HashCache"/>; <see cref="Compute"/> is the raw streaming SHA-256 used on a miss.
     /// </summary>
     public static class FileHasher
     {
-        private static readonly ConcurrentDictionary<string, string> Cache = new();
+        /// <summary>Cache-backed hash (global persistent cache + in-memory). Preferred entry point.</summary>
+        public static string Hash(string path) => HashCache.GetHash(path);
 
-        public static string Hash(string path)
+        /// <summary>Raw streaming SHA-256, no caching. Reads the whole file.</summary>
+        public static string Compute(string path)
         {
-            var fi = new FileInfo(path);
-            string key = $"{path}|{fi.LastWriteTimeUtc.Ticks}|{fi.Length}";
-            if (Cache.TryGetValue(key, out var cached))
-                return cached;
-
             using var sha = SHA256.Create();
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20);
-            var hash = Convert.ToHexString(sha.ComputeHash(stream));
-            Cache[key] = hash;
-            return hash;
+            return Convert.ToHexString(sha.ComputeHash(stream));
         }
     }
 
@@ -113,8 +108,20 @@ namespace ClipCull.Core.Import
         /// <summary>
         /// Classifies a source item against the target tree and fills its conflict fields.
         /// <see cref="ImportFileItem.DestinationPath"/> must already be set by the organizer.
+        /// Convenience wrapper – must be called on the UI thread (it mutates bound properties).
         /// </summary>
         public void Classify(ImportFileItem item)
+        {
+            var (status, existingPath) = Evaluate(item);
+            ApplyResult(item, status, existingPath);
+        }
+
+        /// <summary>
+        /// Computes the conflict status for an item WITHOUT touching any bound properties, so it is
+        /// safe to run on a background thread. Apply the result on the UI thread via <see cref="ApplyResult"/>.
+        /// <see cref="ImportFileItem.DestinationPath"/> must already be set by the organizer.
+        /// </summary>
+        public (ConflictStatus status, string existingPath) Evaluate(ImportFileItem item)
         {
             var result = ConflictStatus.None;
             string existingPath = null;
@@ -165,7 +172,16 @@ namespace ClipCull.Core.Import
                 Logger.LogDebug($"Conflict check failed for {item.FullPath}: {ex.Message}");
             }
 
-            item.ConflictStatus = result;
+            return (result, existingPath);
+        }
+
+        /// <summary>
+        /// Applies a computed conflict result to the item. Mutates bound properties, so it MUST run
+        /// on the UI thread.
+        /// </summary>
+        public static void ApplyResult(ImportFileItem item, ConflictStatus status, string existingPath)
+        {
+            item.ConflictStatus = status;
             item.ConflictExistingPath = existingPath;
             ApplyDefaultResolution(item);
         }
@@ -183,6 +199,7 @@ namespace ClipCull.Core.Import
 
         private static bool SameContentByHash(string a, string b)
         {
+            // Both sides go through the global persistent hash cache.
             return string.Equals(FileHasher.Hash(a), FileHasher.Hash(b), StringComparison.OrdinalIgnoreCase);
         }
 

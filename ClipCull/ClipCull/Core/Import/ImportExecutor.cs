@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using ClipCull.Models;
@@ -102,10 +103,25 @@ namespace ClipCull.Core.Import
 
                     Directory.CreateDirectory(Path.GetDirectoryName(finalPath)!);
 
+                    // Capture an already-known hash before the operation (source still present) so a
+                    // move can prefill the new location for free.
+                    string knownHash = HashCache.TryGetKnown(item.FullPath);
+
                     if (operation == ImportOperation.Move)
+                    {
                         File.Move(item.FullPath, finalPath, overwrite);
+                    }
                     else
-                        File.Copy(item.FullPath, finalPath, overwrite);
+                    {
+                        // Hash while copying (single read pass) so both locations get cached and
+                        // future duplicate checks against this library are free.
+                        knownHash = CopyWithHash(item.FullPath, finalPath, overwrite);
+                        HashCache.Prefill(item.FullPath, knownHash);
+                    }
+
+                    // Prefill the destination so it's already hashed on the next run.
+                    if (!string.IsNullOrEmpty(knownHash))
+                        HashCache.Prefill(finalPath, knownHash);
 
                     reserved.Add(Path.GetFullPath(finalPath));
 
@@ -197,6 +213,37 @@ namespace ClipCull.Core.Import
             {
                 Logger.LogErrorToFile($"Companion sidecar move failed '{src}' -> '{dest}': {ex}");
             }
+        }
+
+        /// <summary>
+        /// Copies a file while computing its SHA-256 in the same read pass, returning the hash.
+        /// Mirrors <see cref="File.Copy(string,string,bool)"/> semantics (throws if the destination
+        /// exists and <paramref name="overwrite"/> is false) and preserves the source's last-write time.
+        /// </summary>
+        private static string CopyWithHash(string src, string dest, bool overwrite)
+        {
+            string hash;
+            var destMode = overwrite ? FileMode.Create : FileMode.CreateNew;
+
+            using (var srcStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20))
+            using (var dstStream = new FileStream(dest, destMode, FileAccess.Write, FileShare.None, 1 << 20))
+            using (var sha = SHA256.Create())
+            {
+                var buffer = new byte[1 << 20];
+                int read;
+                while ((read = srcStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    dstStream.Write(buffer, 0, read);
+                    sha.TransformBlock(buffer, 0, read, null, 0);
+                }
+                sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                hash = Convert.ToHexString(sha.Hash);
+            }
+
+            // Match File.Copy: the copy keeps the source's last-write (capture) time.
+            try { File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(src)); } catch { }
+
+            return hash;
         }
 
         private static bool Collides(string path, ISet<string> reserved)

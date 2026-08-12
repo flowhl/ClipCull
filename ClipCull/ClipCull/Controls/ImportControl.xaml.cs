@@ -33,6 +33,7 @@ namespace ClipCull.Controls
         private CancellationTokenSource _scanCts;
         private CancellationTokenSource _probeCts;
         private CancellationTokenSource _classifyCts;
+        private string _lastClassifyKey;
         private bool _initialized;
         private bool _busy;
 
@@ -279,6 +280,8 @@ namespace ClipCull.Controls
             try
             {
                 SetStatus("Indexing target folder…");
+                ProgressBarControl.IsIndeterminate = true;
+                ProgressBarControl.Visibility = Visibility.Visible;
                 _targetIndex = await TargetIndex.BuildAsync(_targetPath, cts.Token);
                 await ClassifyAsync(cts.Token);
             }
@@ -287,33 +290,97 @@ namespace ClipCull.Controls
             {
                 Logger.LogError("Failed to index target folder", ex);
             }
+            finally
+            {
+                if (!_busy && !cts.IsCancellationRequested)
+                    ProgressBarControl.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        /// <summary>
+        /// Re-runs duplicate classification against the already-built index (e.g. after the
+        /// structure options change), cancelling any in-flight classification first.
+        /// </summary>
+        private async Task ReclassifyAsync()
+        {
+            if (_targetIndex == null) return;
+
+            _classifyCts?.Cancel();
+            var cts = _classifyCts = new CancellationTokenSource();
+            try { await ClassifyAsync(cts.Token); }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { Logger.LogError("Duplicate check failed", ex); }
         }
 
         private async Task ClassifyAsync(CancellationToken token)
         {
             if (_targetIndex == null) return;
 
+            var index = _targetIndex;
             var mode = CurrentStructureMode();
             var basis = CurrentDateBasis();
             var format = DateFormatCombo.Text;
             var snapshot = _files.ToList();
+            int total = snapshot.Count;
 
             // Destinations must be set first (classification compares against them).
             foreach (var item in snapshot)
                 ImportOrganizer.SetNaturalDestination(item, _targetPath, mode, basis, format);
 
-            SetStatus("Checking for duplicates…");
-            await Task.Run(() =>
-            {
-                foreach (var item in snapshot)
-                {
-                    token.ThrowIfCancellationRequested();
-                    _targetIndex.Classify(item);
-                }
-            }, token);
+            SetStatus(total > 0 ? $"Checking for duplicates… 0/{total}" : "Checking for duplicates…");
+            ShowProgress(0, total);
 
-            int conflicts = snapshot.Count(i => i.HasConflict);
-            SetStatus(conflicts > 0 ? $"{conflicts} possible duplicate(s) found" : "No duplicates found");
+            try
+            {
+                // Hash/compare on a background thread; apply the result (which mutates bound
+                // properties) back on the UI thread. Progress is reported every few items.
+                // Cancellation is cooperative and exception-free: a superseded run just stops.
+                await Task.Run(() =>
+                {
+                    for (int i = 0; i < snapshot.Count; i++)
+                    {
+                        if (token.IsCancellationRequested) return;
+
+                        var item = snapshot[i];
+                        var (status, existing) = index.Evaluate(item);
+                        int done = i + 1;
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            TargetIndex.ApplyResult(item, status, existing);
+                            if (done == total || done % 20 == 0)
+                            {
+                                SetStatus($"Checking for duplicates… {done}/{total}");
+                                ProgressBarControl.Value = done;
+                            }
+                        });
+                    }
+                });
+
+                if (token.IsCancellationRequested)
+                    return; // a newer run took over – let it report the result
+
+                _lastClassifyKey = ClassifyKey(mode, basis, format);
+                int conflicts = snapshot.Count(i => i.HasConflict);
+                SetStatus(conflicts > 0 ? $"{conflicts} possible duplicate(s) found" : "No duplicates found");
+            }
+            finally
+            {
+                // Leave the progress bar for a newer run (cancelled) or the import (busy).
+                if (!_busy && !token.IsCancellationRequested)
+                    ProgressBarControl.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private static string ClassifyKey(ImportStructureMode mode, ImportDateBasis basis, string format)
+            => $"{mode}|{basis}|{format}";
+
+        private void ShowProgress(int value, int max)
+        {
+            ProgressBarControl.IsIndeterminate = false;
+            ProgressBarControl.Maximum = Math.Max(1, max);
+            ProgressBarControl.Value = value;
+            ProgressBarControl.Visibility = Visibility.Visible;
         }
 
         #endregion
@@ -324,9 +391,13 @@ namespace ClipCull.Controls
         {
             if (!_initialized) return;
             UpdateDateFormatUi();
-            // Re-evaluate destinations + conflicts when the structure changes.
-            if (_targetIndex != null)
-                _ = ClassifyAsync((_classifyCts ??= new CancellationTokenSource()).Token);
+
+            // Only re-classify when an option actually changed. This avoids a needless (and
+            // cancelling) reclassify when e.g. focus merely leaves the editable format combo.
+            if (ClassifyKey(CurrentStructureMode(), CurrentDateBasis(), DateFormatCombo.Text) == _lastClassifyKey)
+                return;
+
+            _ = ReclassifyAsync();
         }
 
         private void UpdateDateFormatUi()
