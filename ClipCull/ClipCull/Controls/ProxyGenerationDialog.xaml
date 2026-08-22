@@ -1,0 +1,121 @@
+<Window x:Class="ClipCull.Controls.ProxyGenerationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Generate Proxies"
+        Height="620" Width="640"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource ForegroundBrush}"
+        FontFamily="{StaticResource FontSans}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Generate Proxies" Style="{StaticResource h3}"/>
+            <TextBlock x:Name="SubtitleLabel" Style="{StaticResource muted}" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <!-- Options -->
+        <Border Grid.Row="1" Style="{StaticResource card}" Margin="0,0,0,10">
+            <StackPanel>
+                <WrapPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,0,6,0">Resolution</TextBlock>
+                        <ComboBox x:Name="CbResolution" Width="150"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,0,6,0">Frame rate</TextBlock>
+                        <ComboBox x:Name="CbFrameRate" Width="120"/>
+                    </StackPanel>
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <CheckBox x:Name="ChkHardware" Content="Use GPU encoding (AMD AMF, falls back to CPU)" Margin="0,0,0,0"
+                              ToolTip="Encode proxies on the GPU for maximum speed. If the GPU encoder is unavailable, a fast CPU encode is used instead."/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <CheckBox x:Name="ChkSkipExisting" Content="Skip files that already have a proxy"
+                              Checked="ChkSkipExisting_Changed" Unchecked="ChkSkipExisting_Changed"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- File list header -->
+        <Grid Grid.Row="2" Margin="2,0,2,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" x:Name="ChkSelectAll" Content="Select all" IsChecked="True"
+                      Checked="ChkSelectAll_Changed" Unchecked="ChkSelectAll_Changed"/>
+            <TextBlock Grid.Column="2" x:Name="SelectionCountLabel" Style="{StaticResource small}"
+                       Foreground="{StaticResource MutedForegroundBrush}" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- File list -->
+        <Border Grid.Row="3" Style="{StaticResource card}" Padding="0">
+            <ListBox x:Name="FileList" Background="Transparent" BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="4,2"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                      VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" Style="{StaticResource body}"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                        Visibility="{Binding HasProxyVisibility}">
+                                <materialDesign:PackIcon Kind="CheckCircle" Width="14" Height="14"
+                                                         Foreground="#FF22C55E" VerticalAlignment="Center"/>
+                                <TextBlock Text="proxy exists" Margin="4,0,0,0" Style="{StaticResource small}"
+                                           Foreground="{StaticResource MutedForegroundBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <!-- Progress -->
+        <StackPanel Grid.Row="4" x:Name="ProgressPanel" Margin="0,12,0,0" Visibility="Collapsed">
+            <TextBlock x:Name="OverallStatusLabel" Style="{StaticResource h4}" Margin="0,0,0,4"/>
+            <ProgressBar x:Name="OverallProgress" Height="10" Minimum="0" Maximum="100"
+                         Foreground="{StaticResource AccentBrush}" Background="{StaticResource MutedBrush}"/>
+            <TextBlock x:Name="CurrentFileLabel" Style="{StaticResource small}"
+                       Foreground="{StaticResource MutedForegroundBrush}" Margin="0,8,0,2" TextTrimming="CharacterEllipsis"/>
+            <ProgressBar x:Name="CurrentProgress" Height="6" Minimum="0" Maximum="100"
+                         Foreground="{StaticResource AccentBrush}" Background="{StaticResource MutedBrush}"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="BtnGenerate" Content="Generate" Width="130" Style="{StaticResource primary}"
+                    Click="BtnGenerate_Click"/>
+            <Button x:Name="BtnClose" Content="Close" Width="110" Margin="8,0,0,0"
+                    Style="{StaticResource secondary}" Click="BtnClose_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

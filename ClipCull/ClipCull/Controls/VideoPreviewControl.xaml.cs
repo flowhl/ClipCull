@@ -1,6 +1,7 @@
 using LibVLCSharp.Shared;
 using MaterialDesignThemes.Wpf;
 using ClipCull.Core;
+using ClipCull.Core.Proxy;
 using ClipCull.Models;
 using System;
 using System.Collections.Generic;
@@ -83,6 +84,9 @@ namespace ClipCull.Controls
 
                     var playheadPosition = MediaPlayer?.Position ?? 0;
 
+                    // The transform (rotation) filter is a LibVLC-instance option, so the engine
+                    // must be rebuilt with the new rotation. Per-media decoder options (hardware
+                    // decoding / performance mode) are re-applied by the following LoadVideo.
                     DisposeVLC();
                     InitializeVLC(_rotation);
                     LoadVideo(CurrentVideoPath, playheadPosition); // Reload video with new rotation
@@ -182,23 +186,19 @@ namespace ClipCull.Controls
         #region Initialization
         private void InitializeVLC(int rotationAngle = 0)
         {
+            // Rotation uses VLC's "transform" video filter, which is a video-output level option
+            // and only takes effect when set on the LibVLC instance (not as a per-media option),
+            // so it must live here. Hardware decoding and performance mode are decoder options and
+            // are applied per-media instead (see ApplyPlaybackOptions).
             string[] args = null;
             if (rotationAngle != 0)
             {
-                //args = new string[] { };
                 args = new string[] { "--video-filter=transform", "--transform-type=" + rotationAngle };
             }
             try
             {
                 LibVLCSharp.Shared.Core.Initialize();
-                if (args != null)
-                {
-                    _libVLC = new LibVLC(args);
-                }
-                else
-                {
-                    _libVLC = new LibVLC();
-                }
+                _libVLC = args != null ? new LibVLC(args) : new LibVLC();
                 MediaPlayer = new MediaPlayer(_libVLC);
                 UpdateVLCEqualizer();
 
@@ -215,6 +215,37 @@ namespace ClipCull.Controls
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
             BorderVideoArea.SizeChanged += BorderVideoArea_SizeChanged;
+        }
+
+        /// <summary>
+        /// Applies decoding, performance and rotation options to a media before it is played.
+        /// These are set per-media (with the ":" prefix) so they can change per clip without
+        /// rebuilding the LibVLC engine.
+        /// </summary>
+        private void ApplyPlaybackOptions(Media media)
+        {
+            if (media == null)
+                return;
+
+            var settings = SettingsHandler.Settings;
+
+            // Hardware (GPU) decoding. Direct3D11 is the best path on modern Windows / AMD GPUs.
+            // Falling back to software ("none") is dramatically slower for 4K / high-fps footage.
+            bool hwDecoding = settings?.PlaybackHardwareDecoding ?? true;
+            media.AddOption(hwDecoding ? ":avcodec-hw=d3d11va" : ":avcodec-hw=none");
+
+            // Performance mode: trade some decode accuracy for smoother playback of demanding
+            // footage. Skips the deblocking loop filter and drops non-reference frames instead
+            // of stuttering. Especially helps when rotation forces per-frame CPU work.
+            // NOTE: the avcodec skip options are integer-valued in VLC (0=None, 1=Non-ref,
+            // 2=Bidir, 3=Non-key, 4=All) - passing named strings silently parses to 0.
+            if (settings?.PlaybackPerformanceMode ?? false)
+            {
+                media.AddOption(":avcodec-fast");              // allow inaccurate but fast decode
+                media.AddOption(":avcodec-skiploopfilter=4");  // 4 = All: skip deblocking filter
+                media.AddOption(":avcodec-skip-frame=1");      // 1 = Non-ref: drop non-reference frames
+                media.AddOption(":avcodec-skip-idct=1");       // 1 = Non-ref
+            }
         }
 
         private void DisposeVLC()
@@ -289,8 +320,13 @@ namespace ClipCull.Controls
                     CurrentVideoMetadata = null;
                 }
 
-                // Create new media
-                _media = new Media(_libVLC, filePath);
+                // Create new media. When a proxy exists for this clip, play the (lightweight) proxy
+                // for smooth preview; everything else (sidecar, metadata, timeline) stays keyed to
+                // the original path via CurrentVideoPath. The proxy has the same duration, so
+                // playhead positions remain valid.
+                string playbackPath = ProxyService.GetPlaybackPath(filePath);
+                _media = new Media(_libVLC, playbackPath);
+                ApplyPlaybackOptions(_media);
                 MediaPlayer.Media = _media;
 
                 // Parse media to get duration info

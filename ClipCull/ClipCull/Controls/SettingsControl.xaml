@@ -13,174 +13,196 @@
         </Grid.RowDefinitions>
         <TabControl>
             <TabItem Header="Settings">
-                <Grid>
-                    <StackPanel Orientation="Vertical" Grid.Row="0" Name="spMain">
-                        <!--General-->
-                        <Border Style="{StaticResource card}">
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Style="{StaticResource h3}" >General</TextBlock>
-                                <Separator Margin="0,5,0,10"/>
-                                <!--Autosave sidecar-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Save changes automatically</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=AutosaveSidecar}" Margin="5" Height="20" x:Name="ToggleAutosaveSidecar"/>
-                                </StackPanel>
-                                <!--Filter must match all tags-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, clips must have ALL selected tags. If inactive, clips must have ANY of the selected tags." VerticalAlignment="Center" Margin="0,2,0,0">Filter must match all tags</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=FilterMustMatchAllTags}" Margin="5" Height="20" x:Name="ToggleFilterMustMatchAllTags"/>
-                                </StackPanel>
-                                <!--Filter ignore subclip rating-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rating filter only applies to the main clip's metadata rating and ignores subclip ratings." VerticalAlignment="Center" Margin="0,2,0,0">Rating filter ignores subclip rating</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=FilterIgnoreSubclipRating}" Margin="5" Height="20" x:Name="ToggleFilterIgnoreSubclipRating"/>
-                                </StackPanel>
-                                <!--LoadFileBrowserOnLastFolder-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the filebrowser starts in the last selected folder. If inactive, filebrowser starts on drive mode." VerticalAlignment="Center" Margin="0,2,0,0">Filebrowser start on last folder</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=LoadFileBrowserOnLastFolder}" Margin="5" Height="20" x:Name="ToggleLoadFileBrowserOnLastFolder"/>
-                                </StackPanel>
-                                <!-- Reset Layout -->
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Reset Layout</TextBlock>
-                                    <Button Name="BtnResetLayout" Content="Reset" Margin="5,0,0,0" Style="{StaticResource primary-sm}" Click="BtnResetLayout_Click"/>
-                                </StackPanel>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <StackPanel Orientation="Vertical" Grid.Row="0" Name="spMain">
+                            <!--General-->
+                            <Border Style="{StaticResource card}">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Style="{StaticResource h3}" >General</TextBlock>
+                                    <Separator Margin="0,5,0,10"/>
+                                    <!--Autosave sidecar-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Save changes automatically</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=AutosaveSidecar}" Margin="5" Height="20" x:Name="ToggleAutosaveSidecar"/>
+                                    </StackPanel>
+                                    <!--Filter must match all tags-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, clips must have ALL selected tags. If inactive, clips must have ANY of the selected tags." VerticalAlignment="Center" Margin="0,2,0,0">Filter must match all tags</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=FilterMustMatchAllTags}" Margin="5" Height="20" x:Name="ToggleFilterMustMatchAllTags"/>
+                                    </StackPanel>
+                                    <!--Filter ignore subclip rating-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rating filter only applies to the main clip's metadata rating and ignores subclip ratings." VerticalAlignment="Center" Margin="0,2,0,0">Rating filter ignores subclip rating</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=FilterIgnoreSubclipRating}" Margin="5" Height="20" x:Name="ToggleFilterIgnoreSubclipRating"/>
+                                    </StackPanel>
+                                    <!--LoadFileBrowserOnLastFolder-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, the filebrowser starts in the last selected folder. If inactive, filebrowser starts on drive mode." VerticalAlignment="Center" Margin="0,2,0,0">Filebrowser start on last folder</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=LoadFileBrowserOnLastFolder}" Margin="5" Height="20" x:Name="ToggleLoadFileBrowserOnLastFolder"/>
+                                    </StackPanel>
+                                    <!-- Reset Layout -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Reset Layout</TextBlock>
+                                        <Button Name="BtnResetLayout" Content="Reset" Margin="5,0,0,0" Style="{StaticResource primary-sm}" Click="BtnResetLayout_Click"/>
+                                    </StackPanel>
 
-                                <!--Skip seconds-->
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Skip duration (seconds)</TextBlock>
-                                    <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSkipSeconds" Text="{Binding Path=SkipSeconds}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
-                                </StackPanel>
+                                    <!--Skip seconds-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0">Skip duration (seconds)</TextBlock>
+                                        <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSkipSeconds" Text="{Binding Path=SkipSeconds}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
 
-                            </StackPanel>
-                        </Border>
-                        <!--Rendering-->
-                        <Border Style="{StaticResource card}">
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Style="{StaticResource h3}">Rendering</TextBlock>
-                                <Separator Margin="0,5,0,10"/>
-                                <!--Default Render Engine-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Default Render Engine</TextBlock>
-                                    <ComboBox Name="CbDefaultEngine" Width="200" SelectionChanged="CbDefaultEngine_SelectionChanged"/>
                                 </StackPanel>
-                                <!--Video Codec-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Video Codec</TextBlock>
-                                    <ComboBox Name="CbVideoCodec" Width="150" SelectionChanged="CbVideoCodec_SelectionChanged"/>
+                            </Border>
+                            <!--Video Preview-->
+                            <Border Style="{StaticResource card}">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Style="{StaticResource h3}">Video Preview</TextBlock>
+                                    <Separator Margin="0,5,0,10"/>
+                                    <!--Hardware decoding-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="Use the GPU (Direct3D11) to decode video in the preview. Strongly recommended for 4K and high-framerate footage. Disable only if the preview shows a black screen or artifacts on your machine. Takes effect the next time a clip is loaded." VerticalAlignment="Center" Margin="0,2,0,0" Width="260">Hardware (GPU) decoding</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=PlaybackHardwareDecoding}" Margin="5" Height="20" x:Name="TogglePlaybackHardwareDecoding"/>
+                                    </StackPanel>
+                                    <!--Performance mode-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="Trades a little decode accuracy for smoother playback of demanding footage (e.g. 4K120). Skips the deblocking filter and drops non-reference frames instead of stuttering. Especially useful when a rotation is applied. Takes effect the next time a clip is loaded." VerticalAlignment="Center" Margin="0,2,0,0" Width="260">Performance mode (smoother heavy footage)</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=PlaybackPerformanceMode}" Margin="5" Height="20" x:Name="TogglePlaybackPerformanceMode"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource small}" Foreground="{StaticResource MutedForegroundBrush}" Margin="0,6,0,0" TextWrapping="Wrap">
+                                    These settings apply the next time you load a clip. Reopen the current clip to see the effect.
+                                    </TextBlock>
                                 </StackPanel>
-                                <!--Quality Mode-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Quality Mode</TextBlock>
-                                    <ComboBox Name="CbQualityMode" Width="150" SelectionChanged="CbQualityMode_SelectionChanged"/>
+                            </Border>
+                            <!--Rendering-->
+                            <Border Style="{StaticResource card}">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Style="{StaticResource h3}">Rendering</TextBlock>
+                                    <Separator Margin="0,5,0,10"/>
+                                    <!--Default Render Engine-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Default Render Engine</TextBlock>
+                                        <ComboBox Name="CbDefaultEngine" Width="200" SelectionChanged="CbDefaultEngine_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Video Codec-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Video Codec</TextBlock>
+                                        <ComboBox Name="CbVideoCodec" Width="150" SelectionChanged="CbVideoCodec_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Quality Mode-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Quality Mode</TextBlock>
+                                        <ComboBox Name="CbQualityMode" Width="150" SelectionChanged="CbQualityMode_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Quality/CRF-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="CRF value (0-51, lower = better quality). Only used in CRF mode.">Quality (CRF)</TextBlock>
+                                        <TextBox Name="TbQuality" PreviewTextInput="NumberValidationTextBox" Width="60" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                    <!--Audio Codec-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Audio Codec</TextBlock>
+                                        <ComboBox Name="CbAudioCodec" Width="150" SelectionChanged="CbAudioCodec_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Container Format-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Container Format</TextBlock>
+                                        <ComboBox Name="CbContainerFormat" Width="150" SelectionChanged="CbContainerFormat_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Hardware Acceleration-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Hardware Acceleration</TextBlock>
+                                        <ComboBox Name="CbHardwareAcceleration" Width="150" SelectionChanged="CbHardwareAcceleration_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Preset-->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="Encoding speed preset for H264/H265 (ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow)">Encoding Preset</TextBlock>
+                                        <ComboBox Name="CbPreset" Width="150" SelectionChanged="CbPreset_SelectionChanged"/>
+                                    </StackPanel>
+                                    <!--Adobe Media Encoder Path-->
+                                    <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Adobe Media Encoder Path</TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentAMEPath" Style="{StaticResource muted}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Name="BtnPickAMEExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickAMEExe_Click"/>
+                                    </StackPanel>
                                 </StackPanel>
-                                <!--Quality/CRF-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="CRF value (0-51, lower = better quality). Only used in CRF mode.">Quality (CRF)</TextBlock>
-                                    <TextBox Name="TbQuality" PreviewTextInput="NumberValidationTextBox" Width="60" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-                                <!--Audio Codec-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Audio Codec</TextBlock>
-                                    <ComboBox Name="CbAudioCodec" Width="150" SelectionChanged="CbAudioCodec_SelectionChanged"/>
-                                </StackPanel>
-                                <!--Container Format-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Container Format</TextBlock>
-                                    <ComboBox Name="CbContainerFormat" Width="150" SelectionChanged="CbContainerFormat_SelectionChanged"/>
-                                </StackPanel>
-                                <!--Hardware Acceleration-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0">Hardware Acceleration</TextBlock>
-                                    <ComboBox Name="CbHardwareAcceleration" Width="150" SelectionChanged="CbHardwareAcceleration_SelectionChanged"/>
-                                </StackPanel>
-                                <!--Preset-->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,5,0" ToolTip="Encoding speed preset for H264/H265 (ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow)">Encoding Preset</TextBlock>
-                                    <ComboBox Name="CbPreset" Width="150" SelectionChanged="CbPreset_SelectionChanged"/>
-                                </StackPanel>
-                                <!--Adobe Media Encoder Path-->
-                                <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Adobe Media Encoder Path</TextBlock>
-                                <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentAMEPath" Style="{StaticResource muted}"/>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Name="BtnPickAMEExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickAMEExe_Click"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-                        <!--Timeline & Snapping-->
-                        <Border Style="{StaticResource card}">
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Style="{StaticResource h3}">Timeline &amp; Snapping</TextBlock>
-                                <Separator Margin="0,5,0,10"/>
+                            </Border>
+                            <!--Timeline & Snapping-->
+                            <Border Style="{StaticResource card}">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Style="{StaticResource h3}">Timeline &amp; Snapping</TextBlock>
+                                    <Separator Margin="0,5,0,10"/>
 
-                                <TextBlock Style="{StaticResource h4}" Margin="0,0,0,5">Snap Targets</TextBlock>
-                                
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Playhead</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToPlayhead}" Margin="5" Height="20" x:Name="ToggleSnapToPlayhead"/>
-                                </StackPanel>
+                                    <TextBlock Style="{StaticResource h4}" Margin="0,0,0,5">Snap Targets</TextBlock>
 
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Markers</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToMarkers}" Margin="5" Height="20" x:Name="ToggleSnapToMarkers"/>
-                                </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Playhead</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=SnapToPlayhead}" Margin="5" Height="20" x:Name="ToggleSnapToPlayhead"/>
+                                    </StackPanel>
 
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Subclips</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToSubclips}" Margin="5" Height="20" x:Name="ToggleSnapToSubclips"/>
-                                </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Markers</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=SnapToMarkers}" Margin="5" Height="20" x:Name="ToggleSnapToMarkers"/>
+                                    </StackPanel>
 
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to I/O Points</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=SnapToInOutPoints}" Margin="5" Height="20" x:Name="ToggleSnapToInOutPoints"/>
-                                </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to Subclips</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=SnapToSubclips}" Margin="5" Height="20" x:Name="ToggleSnapToSubclips"/>
+                                    </StackPanel>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap Sensitivity (pixels)</TextBlock>
-                                    <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSnapSensitivity" Text="{Binding Path=SnapSensitivityPixels}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap to I/O Points</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=SnapToInOutPoints}" Margin="5" Height="20" x:Name="ToggleSnapToInOutPoints"/>
+                                    </StackPanel>
 
-                        <!--Gyroflow-->
-                        <Border Style="{StaticResource card}">
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Style="{StaticResource h3}" >Gyroflow</TextBlock>
-                                <Separator Margin="0,5,0,10"/>
-                                <!--Gyroflow Path-->
-                                <TextBlock Style="{StaticResource h4}">Gyroflow Path</TextBlock>
-                                <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentGyroflowPath" Text="{Binding Path=CurrentGyroflowPath}" Style="{StaticResource muted}"/>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Name="BtnPickGyroflowExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowExe_Click"/>
-                                    <Button Name="BtnDiscoverGyroflowExe" Content="Discover automatically" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnDiscoverGyroflowExe_Click"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <TextBlock Style="{StaticResource h4}" VerticalAlignment="Center" Margin="0,2,0,0" Width="180">Snap Sensitivity (pixels)</TextBlock>
+                                        <TextBox PreviewTextInput="NumberValidationTextBox" Foreground="{StaticResource ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Background="{StaticResource BackgroundBrush}" Name="TbSnapSensitivity" Text="{Binding Path=SnapSensitivityPixels}" Width="50" Margin="5,0,0,0" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
                                 </StackPanel>
+                            </Border>
 
-                                <!--Gyroflow Lensprofile-->
-                                <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Gyroflow Lensprofile Path</TextBlock>
-                                <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentGyroflowSettingsPath" Text="{Binding Path=CurrentGyroflowSettingsPath}" Style="{StaticResource muted}"/>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Name="BtnPickGyroflowSettings" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowSettings_Click"/>
-                                    <Button Name="BtnResetGyroflowSettings" Content="Reset" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnResetGyroflowSettings_Click"/>
+                            <!--Gyroflow-->
+                            <Border Style="{StaticResource card}">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Style="{StaticResource h3}" >Gyroflow</TextBlock>
+                                    <Separator Margin="0,5,0,10"/>
+                                    <!--Gyroflow Path-->
+                                    <TextBlock Style="{StaticResource h4}">Gyroflow Path</TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentGyroflowPath" Text="{Binding Path=CurrentGyroflowPath}" Style="{StaticResource muted}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Name="BtnPickGyroflowExe" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowExe_Click"/>
+                                        <Button Name="BtnDiscoverGyroflowExe" Content="Discover automatically" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnDiscoverGyroflowExe_Click"/>
+                                    </StackPanel>
+
+                                    <!--Gyroflow Lensprofile-->
+                                    <TextBlock Style="{StaticResource h4}" Margin="0,10,0,0">Gyroflow Lensprofile Path</TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Margin="0,1,0,0" Name="TxCurrentGyroflowSettingsPath" Text="{Binding Path=CurrentGyroflowSettingsPath}" Style="{StaticResource muted}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Name="BtnPickGyroflowSettings" Content="Select" Margin="0,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnPickGyroflowSettings_Click"/>
+                                        <Button Name="BtnResetGyroflowSettings" Content="Reset" Margin="5,-2,0,0" Style="{StaticResource primary-sm}" Click="BtnResetGyroflowSettings_Click"/>
+                                    </StackPanel>
+                                    <!--Render with Rotation-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rendered video will be rotated according to the settings in the preview." VerticalAlignment="Center" Margin="0,2,0,0">Rotate videos when rendering</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowRenderWithRotation}" Margin="5" Height="20" x:Name="ToggleGyroflowRenderWithRotation"/>
+                                    </StackPanel>
+                                    <!--Disable Audio-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio track will be removed from the rendered video." VerticalAlignment="Center" Margin="0,2,0,0">Disable audio in rendered videos</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowDisableAudio}" Margin="5" Height="20" x:Name="ToggleGyroflowDisableAudio"/>
+                                    </StackPanel>
+                                    <!--Use other audio codec-->
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio codec will be set to PCM (s16le) instead of the AAC codec." VerticalAlignment="Center" Margin="0,2,0,0">Use alternative audio codec in rendered videos</TextBlock>
+                                        <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowUseOtherAudioCodec}" Margin="5" Height="20" x:Name="ToggleGyroflowUseOtherAudioCodec"/>
+                                    </StackPanel>
                                 </StackPanel>
-                                <!--Render with Rotation-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the rendered video will be rotated according to the settings in the preview." VerticalAlignment="Center" Margin="0,2,0,0">Rotate videos when rendering</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowRenderWithRotation}" Margin="5" Height="20" x:Name="ToggleGyroflowRenderWithRotation"/>
-                                </StackPanel>
-                                <!--Disable Audio-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio track will be removed from the rendered video." VerticalAlignment="Center" Margin="0,2,0,0">Disable audio in rendered videos</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowDisableAudio}" Margin="5" Height="20" x:Name="ToggleGyroflowDisableAudio"/>
-                                </StackPanel>
-                                <!--Use other audio codec-->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource h4}" ToolTip="If active, the audio codec will be set to PCM (s16le) instead of the AAC codec." VerticalAlignment="Center" Margin="0,2,0,0">Use alternative audio codec in rendered videos</TextBlock>
-                                    <local:ToggleButtonControl IsToggled="{Binding Path=GyroflowUseOtherAudioCodec}" Margin="5" Height="20" x:Name="ToggleGyroflowUseOtherAudioCodec"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem Header="Tags">
                 <Grid Margin="8">

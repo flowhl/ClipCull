@@ -31,6 +31,32 @@ namespace ClipCull.Models
         public int SkipSeconds { get; set; }
         public int VolumeInPercent { get; set; } = 20;
 
+        //Video preview / playback performance
+        /// <summary>
+        /// When true, the video preview requests GPU (Direct3D11) hardware decoding.
+        /// Strongly recommended for high resolution / high framerate footage. When false,
+        /// decoding is forced to software, which is much slower for 4K/high-fps clips.
+        /// </summary>
+        public bool PlaybackHardwareDecoding { get; set; } = true;
+
+        /// <summary>
+        /// When true, the video preview trades some decode accuracy for smoother playback of
+        /// demanding footage (4K120 etc.): it skips the deblocking loop filter and drops
+        /// non-reference frames instead of stuttering. Best paired with hardware decoding, and
+        /// especially useful when a rotation is applied (rotation forces CPU work per frame).
+        /// </summary>
+        public bool PlaybackPerformanceMode { get; set; }
+
+        //Proxy generation (remembers the last choices made in the proxy dialog)
+        /// <summary>Target height in pixels for generated proxies. Width preserves aspect ratio.</summary>
+        public int ProxyResolutionHeight { get; set; } = 720;
+        /// <summary>Target frame rate for generated proxies. 0 = keep the source frame rate.</summary>
+        public int ProxyFrameRate { get; set; } = 30;
+        /// <summary>Prefer GPU (AMD AMF) encoding for proxies, with a fast software fallback.</summary>
+        public bool ProxyUseHardwareEncoding { get; set; } = true;
+        /// <summary>Skip files that already have a proxy when generating.</summary>
+        public bool ProxySkipExisting { get; set; } = true;
+
         /// <summary>
         /// Path to the Gyroflow executable.
         /// If null, it will be discovered automatically

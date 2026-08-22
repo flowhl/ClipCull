@@ -17,15 +17,28 @@ namespace ClipCull.Controls
         public RenderQueueControl()
         {
             InitializeComponent();
-            RenderQueue.Jobs.CollectionChanged += Jobs_CollectionChanged;
-            foreach (var job in RenderQueue.Jobs)
-            {
-                job.PropertyChanged += Job_PropertyChanged;
-            }
+            Loaded += RenderQueueControl_Loaded;
             Unloaded += RenderQueueControl_Unloaded;
             PopulateEngineSelector();
             UpdateUI();
             DataContext = this;
+        }
+
+        private void RenderQueueControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            // The control lives inside a TabControl, which unloads/reloads the
+            // visual tree when tabs are switched. Re-attach the subscriptions and
+            // resync the derived UI state every time we become visible, otherwise
+            // items enqueued while another tab was active leave the queue counter,
+            // empty-state overlay and Start Render button stuck in an empty state.
+            RenderQueue.Jobs.CollectionChanged -= Jobs_CollectionChanged;
+            RenderQueue.Jobs.CollectionChanged += Jobs_CollectionChanged;
+            foreach (var job in RenderQueue.Jobs)
+            {
+                job.PropertyChanged -= Job_PropertyChanged;
+                job.PropertyChanged += Job_PropertyChanged;
+            }
+            UpdateUI();
         }
 
         private void RenderQueueControl_Unloaded(object sender, RoutedEventArgs e)

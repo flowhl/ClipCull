@@ -1,4 +1,5 @@
 using ClipCull.Core;
+using ClipCull.Core.Proxy;
 using ClipCull.Extensions;
 using System;
 using System.Collections.Generic;
@@ -508,6 +509,7 @@ namespace ClipCull.Controls
                 IsPicked = sidecarContent?.UserMetadata?.Pick == true,
                 IsReject = sidecarContent?.UserMetadata?.Pick == false,
                 SubClipCount = sidecarContent?.SubClips?.Count ?? 0,
+                HasProxy = IsVideoFile(file.Extension) && ProxyService.HasProxy(file.FullName),
             };
 
             var item = new TreeViewItem
@@ -605,7 +607,8 @@ namespace ClipCull.Controls
                         var directories = Directory.GetDirectories(parentPath)
                             .Select(d => new DirectoryInfo(d))
                             .Where(d => !d.Attributes.HasFlag(FileAttributes.Hidden) &&
-                                       !d.Attributes.HasFlag(FileAttributes.System))
+                                       !d.Attributes.HasFlag(FileAttributes.System) &&
+                                       !ProxyService.IsProxyFolder(d.Name))
                             .OrderBy(d => d.Name)
                             .ToList();
 
@@ -985,6 +988,42 @@ namespace ClipCull.Controls
             }
         }
 
+        private void GenerateProxiesButton_Click(object sender, RoutedEventArgs e)
+        {
+            string folder = GetTargetFolderForProxies();
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+            {
+                folder = DialogHelper.ChooseFolder("Select folder for proxy generation", RootPath);
+                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                    return;
+            }
+
+            var dialog = new ProxyGenerationDialog(folder)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+
+            if (dialog.AnyGenerated)
+                RefreshCurrentFolder();
+        }
+
+        /// <summary>
+        /// Chooses the folder proxies should be generated for: the selected folder, the folder of the
+        /// selected file, or the tree root as a fallback.
+        /// </summary>
+        private string GetTargetFolderForProxies()
+        {
+            if (!string.IsNullOrEmpty(SelectedPath))
+            {
+                if (Directory.Exists(SelectedPath))
+                    return SelectedPath;
+                if (System.IO.File.Exists(SelectedPath))
+                    return Path.GetDirectoryName(SelectedPath);
+            }
+            return RootPath;
+        }
+
         private void ShowFilesCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             // ShowFiles property is already bound, this will trigger RefreshTree through the property setter
@@ -1280,6 +1319,7 @@ namespace ClipCull.Controls
         private bool _isPicked;
         private bool _isReject;
         private int _subClipCount;
+        private bool _hasProxy;
 
         public FileInfo File { get; set; }
         public string Name { get; set; }
@@ -1304,6 +1344,13 @@ namespace ClipCull.Controls
         {
             get => _isReject;
             set { if (_isReject != value) { _isReject = value; OnPropertyChanged(nameof(IsReject)); } }
+        }
+
+        /// <summary>True when a proxy file exists for this video (drives the proxy indicator icon).</summary>
+        public bool HasProxy
+        {
+            get => _hasProxy;
+            set { if (_hasProxy != value) { _hasProxy = value; OnPropertyChanged(nameof(HasProxy)); } }
         }
 
         public int SubClipCount

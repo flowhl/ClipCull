@@ -208,13 +208,20 @@
                                        Foreground="{StaticResource ForegroundBrush}"
                                        Margin="0,0,8,0"
                                          Visibility="Collapsed"/>
-                <materialDesign:PackIcon x:Name="PickRejectIcon" 
+                <materialDesign:PackIcon x:Name="PickRejectIcon"
                                        Kind="None"
                                        Width="16" Height="16"
                                        Foreground="{StaticResource ForegroundBrush}"
                                        Margin="0,0,8,0"
                                        Visibility="Collapsed"/>
-                <TextBlock Text="{Binding Name}" 
+                <materialDesign:PackIcon x:Name="ProxyIcon"
+                                       Kind="LightningBolt"
+                                       Width="16" Height="16"
+                                       Foreground="#FFF59E0B"
+                                       Margin="0,0,8,0"
+                                       ToolTip="A preview proxy is available for this clip"
+                                       Visibility="Collapsed"/>
+                <TextBlock Text="{Binding Name}"
                           VerticalAlignment="Center"
                           Style="{StaticResource body}"/>
                 <TextBlock Text="{Binding SubClipCountDisplay}" 
@@ -246,6 +253,9 @@
                     <Setter TargetName="PickRejectIcon" Property="Foreground" Value="#FFEF4444"/>
                     <Setter TargetName="PickRejectIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding HasProxy}" Value="True">
+                    <Setter TargetName="ProxyIcon" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
@@ -273,13 +283,25 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0"
-                              Text="Folder Navigation" 
+                              Text="Folder Navigation"
                               Style="{StaticResource h4}"/>
 
                     <Button Grid.Column="1"
+                           x:Name="GenerateProxiesButton"
+                           Click="GenerateProxiesButton_Click"
+                           Style="{StaticResource icon-sm}"
+                           ToolTip="Generate preview proxies for videos in the selected folder (and subfolders)"
+                           Margin="0,0,4,0">
+                        <materialDesign:PackIcon Kind="LightningBolt"
+                                               Width="14" Height="14"
+                                               Foreground="{StaticResource ForegroundBrush}"/>
+                    </Button>
+
+                    <Button Grid.Column="2"
                            x:Name="RefreshButton"
                            Click="RefreshButton_Click"
                            Style="{StaticResource icon-sm}"
@@ -290,7 +312,7 @@
                                                Foreground="{StaticResource ForegroundBrush}"/>
                     </Button>
 
-                    <Button Grid.Column="2"
+                    <Button Grid.Column="3"
                            x:Name="ExpandAllButton"
                            Click="ExpandAllButton_Click"
                            Style="{StaticResource icon-sm}"
@@ -301,7 +323,7 @@
                                                Foreground="{StaticResource ForegroundBrush}"/>
                     </Button>
 
-                    <Button Grid.Column="3"
+                    <Button Grid.Column="4"
                            x:Name="CollapseAllButton"
                            Click="CollapseAllButton_Click"
                            Style="{StaticResource icon-sm}"
@@ -310,7 +332,7 @@
                                                Width="14" Height="14"
                                                Foreground="{StaticResource ForegroundBrush}"/>
                     </Button>
-                    <Button Grid.Column="4"
+                    <Button Grid.Column="5"
                            x:Name="SelectFolderButton"
                            Click="SelectFolderButton_Click"
                            Style="{StaticResource icon-sm}"
